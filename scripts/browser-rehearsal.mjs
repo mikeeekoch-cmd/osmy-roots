@@ -95,7 +95,11 @@ try{
   const previewResponse=page.waitForResponse(response=>response.url().includes('/book/preview')&&response.status()===200,{timeout:10000});
   await page.getByRole('button',{name:'Preview current PDF',exact:true}).click();
   const pdf=await previewResponse;
-  if(!(await pdf.body()).subarray(0,5).equals(Buffer.from('%PDF-')))throw Error('The book preview is not an actual PDF.');
+  // Chrome's native PDF viewer can expose a synthetic document body to CDP.
+  // Verify the same preview URL through this browser context's request client.
+  const pdfBytes=await context.request.get(pdf.url());
+  if(!pdfBytes.ok()||!(await pdfBytes.body()).subarray(0,5).equals(Buffer.from('%PDF-')))throw Error('The book preview is not an actual PDF.');
+  await page.waitForTimeout(750);
   await page.screenshot({path:join(directory,`${runLabel}-pdf-preview.png`),fullPage:true});
   await page.getByRole('button',{name:'Close book preview',exact:true}).click();
   const text=await page.locator('body').innerText();

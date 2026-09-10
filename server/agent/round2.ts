@@ -189,7 +189,7 @@ async function analyzeHeldOut(id: string, options: RoundOptions) {
 function appendUnique<T extends {id:string}>(to:T[], additions:T[]) { for(const row of additions) if(!to.some(x=>x.id===row.id)) to.push(structuredClone(row)); }
 function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: string) {
   const run=s.run!; const q=run.questions.find(q=>q.id===questionId)!; const answer=run.answers.find(a=>a.questionId===questionId)!;
-  if (!answer || !q.personIds.every(id=>s.people.some(p=>p.id===id))) return;
+  if (!answer || (q.effect.kind!=='annotation' && !q.personIds.every(id=>s.people.some(p=>p.id===id)))) return;
   if (run.appliedAnswerIds.includes(answer.requestId)) return;
   run.appliedAnswerIds.push(answer.requestId);
   const claimId=q.requiresAstra&&run.analysis?`claim-${run.analysis.id}`:`setup-claim-${q.id}`, storyId=q.requiresAstra&&run.analysis?`story-${run.analysis.id}`:`setup-story-${q.id}`;
