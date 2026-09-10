@@ -5,7 +5,7 @@
 
 Prepared for the OpenAI GPT-6 Astra NYC Hackathon, September 10, 2026.
 
-**Status: engineering preparation.** This repository contains documentation, a license, an environment template and a development readiness command. The application and deployment are not implemented yet. Planned behavior below is the build target.
+**Status: 90-minute engineering sprint authorized.** This repository contains documentation, a license, an environment template and a development readiness command. The application and deployment were not implemented at the preparation checkpoint. Follow [the current 90-minute plan](docs/EXECUTION.md) and owner statuses for actual progress. Planned behavior below is the product target.
 
 ## Why Roots
 
@@ -34,7 +34,7 @@ Memories, documentary evidence and uncertain interpretations remain distinct. Ro
 | Validation | Vitest for consequential logic, Playwright for the core journey |
 | Deployment target | Node web service; Render proposed, account unverified |
 
-These choices must be checked at the first build milestone. No database or hosting service is provisioned by this repository.
+The 90-minute sprint uses local persistence unless cloud infrastructure already works. Supabase/Auth, broad retrieval and deployment are optional. The lead checks the existing stack at the first milestone.
 
 ## Get ready locally
 
@@ -57,7 +57,8 @@ pnpm run doctor
 | [Product](docs/PRODUCT.md) | User journey, MVP and acceptance criteria |
 | [Architecture](docs/ARCHITECTURE.md) | Evidence model, run state and corrections |
 | [V3 contract](docs/CONTRACT-V3.json) | Shared data, review, progress and export envelopes |
-| [Execution](docs/EXECUTION.md) | First milestone, ownership and coding prompts |
+| [Execution](docs/EXECUTION.md) | Current 90-minute plan, three owners and scope cuts |
+| [Launch prompts](docs/prompts/) | Codex Mike, Codex Natalia and Claude Code Mike |
 | [Setup](docs/SETUP.md) | Local environment and deployment verification |
 | [Readiness](docs/READINESS.md) | Verified capabilities and remaining dependencies |
 | [Demo](docs/DEMO.md) | Demo script and submission preparation |

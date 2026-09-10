@@ -173,16 +173,23 @@
     "growthRule": "Import or extract attributable records. Ninety people is not a mandatory target."
   },
   "owners": {
-    "Codex": [
+    "Codex Mike": [
       "packages/contracts",
-      "server",
-      "integration-tests"
+      "server/agent",
+      "server/state",
+      "server/events",
+      "src/app",
+      "integration-tests",
+      "dependency-files"
     ],
-    "Claude": [
+    "Codex Natalia": [
+      "server/ingestion",
+      "server/export",
+      "tests/data-export"
+    ],
+    "Claude Code Mike": [
       "src/ui"
-    ],
-    "Gemini": [
-      "research"
     ]
-  }
+  },
+  "sprint": "90-minute local prototype; docs/EXECUTION.md overrides broad V3 acceptance."
 }

@@ -1,50 +1,61 @@
-# Engineering execution V3
+# Roots: 90-minute local prototype
 
-This is the prepared build plan. The user requested preparation before beginning application development. V3 supersedes earlier Alevtina and six-screen instructions. Read the fresh private scope and handoff before starting.
+Current execution plan. Supersedes V3 ownership, earlier absolute engineering milestones and any preparation-only hold. The product remains the two-screen experience in docs/PRODUCT.md. The team is Codex (Mike), Codex (Natalia) and Claude Code (Mike). Gemini is not on this sprint's critical path.
 
-## First milestone
+## Objective and deadline
 
-The first runnable contract should be committed within 15 minutes of engineering kickoff; this is a target. Do not wait for every connector or media format.
+We cannot deliver a fully functioning, production-ready application in 90 minutes. Deliver a convincing local prototype with one reliable, demonstrable journey. Optimize for jury comprehension, visible human contribution and an emotional family-book finish. Cut scope when needed and record the cut. Do not claim we will win or that a prepared result is live.
 
-1. Fetch the shared repository, inspect the worktree and establish path ownership. Verify the API key and database access; use local private inputs.
-2. Lead scaffolds Next.js with the layout in ARCHITECTURE.md, pins dependencies and freezes Zod/types plus one synthetic claim/event example. Publish that baseline commit for the UI owner.
-3. Implement import of the prepared 35-person seed as supplied evidence. Convert the old review schema and preserve original IDs, uncertainty and source locators. The reference has 93 people; additional import is explicit.
-4. Make one real short-source Astra Responses call, validate its proposal and record model/request/usage. Keep private request bodies out of public logs.
-5. Complete the smallest route: input → actual proposal → human review → durable map/person/source update → generated cited passage → complete ZIP. New material may arrive in the workspace while research continues.
-6. Reopen the exported project and verify edits, sources, original media and history. Inspect the four-page PDF. Deploy the same tested commit and verify the hosted route when hosting is configured.
+T0 is when the lead starts execution. Record T0 and T0+90 minutes in UTC and local time in docs/status/lead.md. Everyone uses this same deadline; each worker must not start a separate 90-minute clock. Mike is available to provide context, credentials, files and quick decisions. Ask a focused question when blocked for more than five minutes, while continuing independent work. Routine reversible choices and necessary scope cuts are authorized.
 
-The real DOCX-derived story and photo packet are available. Native Telegram/WhatsApp exports are not yet supplied; synthetic examples cannot establish native-format compatibility. Add and test actual exports when available; unsupported formats must report their limitation.
+## Ownership
 
-## Ownership and branches
-
-| Owner | Branch | Owned paths |
+| Owner / branch | Owns | Does not own |
 | --- | --- | --- |
-| Codex integration lead | `codex/engineering` | `packages/contracts`, `server`, `src/app`, `supabase`, `integration-tests`, package/lock/config files and integration |
-| Claude UI owner | `codex/ui` | `src/ui`: Input, workspace, map, galleries, person/edge inspection, human contribution panel and download UI |
-| Gemini research owner | `codex/research` | `research`: bounded queries, source register and candidate comparisons; private results go to Drive |
+| Codex Mike / codex/engineering | packages/contracts, server/agent, server/state, server/events, src/app integration, package/config/lockfiles, integration-tests, docs/status/lead.md | Worker modules before agreed handoff |
+| Codex Natalia / codex/data-export | server/ingestion, server/export, tests/data-export, docs/status/data-export.md | Astra orchestration, application routes, UI, shared contracts or lockfile |
+| Claude Code Mike / codex/ui | src/ui, UI tests, docs/status/ui.md | Backend, routing wrappers, shared contracts or lockfile |
 
-These are assignments for launch, not already running agents. No branch is an instruction to launch a new task automatically. Two laptops use separate clones and their own credentials. Fetch before editing, preserve other work, and hand off small commits. Only the integration lead changes contracts, lockfile and migrations. Research may start before the contract; UI integration waits for the baseline commit.
+Use separate clones across laptops and a separate worktree for simultaneous chats on the same laptop. You are not alone in the codebase. Preserve other edits. Never use destructive reset, force-push shared branches or edit another worker's module without coordination. Only the lead integrates worker commits into codex/engineering and merges the checked result into main. Workers hand off a remote branch and commit, not an assumed shared local file.
 
-Private handoff fields: owner, local path, base commit, branch, changed files, setup commands, checks, actual result, contract changes, limitation and next owner. Public GitHub contains code and sanitized documentation; Drive contains private context and results.
+## Shared source of truth
 
-## Copy-ready prompts
+GitHub committed code, docs, contracts, decisions and per-owner status are the engineering source of truth. Read AGENTS.md, docs/PRODUCT.md, docs/EXECUTION.md, docs/ARCHITECTURE.md, docs/CONTRACT-V3.json, docs/READINESS.md and the latest remote status. Use the newest user-approved scope for the intended experience; this plan controls the 90-minute tradeoffs and staffing. A scoped local-storage mode overrides the earlier Supabase/hosting dependency for this sprint.
 
-### Codex lead
+Refresh the latest private scope Doc and its Engineering handoff tab, then only the necessary current mockup/inputs. Copy safe requirements into repository docs and record source/version and unresolved differences. Do not spend the sprint recursively recrawling the entire family archive. If Drive is unavailable, use the repository's sanitized requirements and prepared local inputs; report the unread references. Resolve material conflicts with Mike.
 
-Read AGENTS.md, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/CONTRACT-V3.json and the latest private V3 scope/handoff. Use this repository and codex/engineering. Own contracts, server ingestion/Astra/events/storage/review/export, thin src/app wrappers, migrations, integration tests and dependencies. Preserve other edits. Freeze the contract and publish a baseline commit first, then build the actual short-source-to-proposal-to-review-to-map-to-book-ZIP route. Adapt the prepared seed schema; label imports. Implement genuine event counters, versioned review, unknown/conflict/undo and reopen. Keys remain server-side. Record actual model usage and checks, and save a private Drive handoff. Do not claim a working app, archive match or deployment without verification.
+Commit and push safe code, changed requirements, scope cuts, tests and handoffs at meaningful checkpoints, about every 15 minutes. Routine commits and pushes to this named repository are authorized. Every worker owns one status file: base commit, branch, latest code commit, implemented behavior, checks, next step and blocker. The lead owns the shared plan and dependency files. Fetch before integration. A chat update without a pushed commit is not a cross-laptop handoff.
 
-### Claude UI, after contract commit
+This repository is public. Keep actual family data/photos/chats, raw model payloads, credentials, private Drive links and private rendered books outside Git. Use ignored local inputs and a rights-safe synthetic fixture in GitHub. Code/docs/status live here; private evidence stays in the private context folder. This split is required even though GitHub is the engineering ground truth.
 
-Read the latest V3 scope, reference mockup, AGENTS.md and the lead's contract commit. Use your separate clone on codex/ui and own src/ui only. Build two screens: compact required input and one research workspace with progress left, editable family map center and distinct human contributions right. Start immediately triggers the internal plan. Support mid-run facts/files/people, original photo aspect ratios, source-backed person/edge drawers, uncertain life years, history/undo and one complete-download action. Consume shared schemas and real events. Any temporary mock adapter must be labeled and replaced for acceptance. Preserve backend/contracts and verify desktop/narrow layouts. Hand off commit, screenshots, commands and gaps privately.
+## Timeline and exits
 
-### Gemini research
+| Time | Exit criterion |
+| --- | --- |
+| T+0 to 10 | Lead publishes scaffold, a working dev command, shared types and sample source/event/review/book payloads. Confirm API readiness immediately. Natalia designs pure import/export modules; Claude builds the shell with a marked fixture adapter in parallel. |
+| T+10 to 35 | Each worker pushes a callable first version. UI displays the local family seed and a contribution. Data/export modules accept the agreed DTOs. Lead gets one real source-linked Astra proposal or reports the exact dependency blocking it. |
+| T+35 to 55 | Integrate the first source → proposal → human review → persisted graph change → book passage → PDF/ZIP route. Do not defer first integration until minute 80. |
+| T+55 to 70 | Fix core failures. Verify unknown, citation integrity, duplicate input, edit persistence/reopen and download contents. Apply the cut list to anything threatening the route. |
+| T+70 to 90 | Freeze features. Run the complete local journey twice in under three minutes. Leave the server running, a reproducible setup command, tested commit and a truthful readiness report. A quick backup screen capture is useful; polished submission video is a later task. |
 
-Read the current scope, private family manifest and source excerpts. Own only the bounded research package: queries.json, source-register.json and candidate-comparisons.md. Use original-language names, source-supported geography/periods and historical place aliases. Inspect one accessible original archive route. Return exact URLs/record locators, retrieval times, excerpts, access/reuse limits, candidate differences, no-match/failure outcomes and the next useful human question. Keep recollections attributed and surname matches unresolved until supported. Never target a predetermined family size. Do not edit app code or contact relatives. Save private findings and the handoff to Drive; commit only sanitized research structure/examples.
+## Keep, prepare, cut
 
-## Verification and timing
+KEEP: compact required form; automatic internal plan; one workspace with progress left, generational map center and distinct human Q&A right; photos; clickable person/edge evidence; accept/correct/unknown; one source-backed change; saved state; one illustrated English PDF and editable project JSON in a ZIP. Include source register and available originals. Preserve history; protect human edits from stale model updates.
 
-Test actual source → proposal → review → saved graph → cited passage → ZIP/reopen. Include unknown, contradictory dates, duplicate source, retry, stale response, undo, missing attachment, two-user isolation and source failure. Rehearse three runs under three minutes. On timeout retain accepted state and offer an explicitly labeled saved run.
+MODEL: one real bounded Astra analysis and one cited passage based on current accepted claims. Keys stay server-side. Use existing SDK/config, verify the exact configured model and API with a small real request, and record its actual success/failure. If credentials are missing, ask Mike to configure the local environment immediately; continue with a clearly labeled fixture adapter. A fixture run is not a successful live-model exit.
 
-V3 timing targets on September 10: end-to-end by 13:30 EDT, freeze/rehearsals by 14:45, 60-second recording by 16:00, package review 16:45, ready 17:00, submit target 17:15 and organizer deadline 17:30. Replan against the actual clock at kickoff. Latency targets (<2s prepared view, <15s short-source proposal, <1s accepted edit) are unmeasured.
+PREPARED: selected 35-person seed, photo thumbnails, source excerpts, OCR, translated text, layout, cached retrieval. Show the main family branch first. Existing-reference import must remain labeled. The reference has 93 people; adding all of them is optional and is not a new discovery.
 
-Cut OAuth, broad crawling, video interpretation and batch image restoration first. Keep actual Astra, inspectable evidence, human contribution, persistence and the complete download in the core route.
+CUT FIRST: OAuth, Supabase/Auth/cloud setup, broad crawling, universal ZIP parsers, video/audio processing, restoration, localization, multiuser operation and deployment. Use local single-user persistence bound to localhost and support the exact text/JSON/photo input path first. Store unsupported files with a clear not-processed state. Add an actual chat parser only when a real example is available and it does not delay the core route. Do not make compatibility claims from fictional exports.
+
+CUT NEXT IF NEEDED: live archive search becomes an explicitly labeled cached/source example; auto-layout becomes fixed generation positions; PDF uses a prepared layout with one genuinely updated passage; portable standalone HTML-map export can wait if project JSON reopens correctly in the app. Record each cut in docs/status/lead.md and tell Mike. Never cut truthful origin labels, source citations or real edit/download behavior.
+
+## Demo and acceptance
+
+The user brings a few clues, sees a focused branch, contributes a message, reviews its source-linked interpretation, then sees the person card and book change. Choose the source-backed example in the private scope; do not promise a new ancestor. Show concise action summaries, sources and findings, not private chain-of-thought.
+
+At T+90 the app runs locally from documented commands; the two screens work; one reviewed source changes saved family state and the book; person/relationship evidence and a discrepancy can be inspected; PDF/ZIP opens and JSON reimports with edits intact; real operation counters are honest, including zero external websites when none were fetched. Run the journey twice. Separate implemented, prepared, cut and blocked in the final status. Video, publishing family assets and event submission remain separate steps.
+
+## Launch prompts
+
+Run docs/prompts/01_CODEX_MIKE.md first, then start docs/prompts/02_CODEX_NATALIA.md and docs/prompts/03_CLAUDE_MIKE.md immediately. They can work on independent modules during the first ten minutes and integrate against the lead's frozen contract. No agent is dispatched by storing these files.

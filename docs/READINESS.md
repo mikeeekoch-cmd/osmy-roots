@@ -1,4 +1,4 @@
-# Readiness — September 10, 2026
+# Readiness , September 10, 2026
 
 Measured preparation status. Application features have not been implemented yet.
 
@@ -20,4 +20,4 @@ Measured preparation status. Application features have not been implemented yet.
 
 Validation: diagnostic syntax, local Markdown links, whitespace and private-path ignore checks passed. The public files were checked for common credential patterns and private paths. `pnpm run doctor` reports three missing app environment values; `pnpm run doctor:api` sends no request without a key. These expected failures do not demonstrate working inference or database access.
 
-Next: configure the OpenAI API project/key and Supabase locally, then begin the contract-first milestone in EXECUTION.md. Add actual native chat exports when available without delaying the existing source-text route. Verify hosting after the first local slice works. The private handoff contains exact source locations, read coverage and upload receipts.
+Current next step: begin the 90-minute plan in EXECUTION.md. Confirm the OpenAI key locally and make a real inference test; cloud/database credentials are optional under the local persistence fallback. Two additional workers own data/export and UI. Prior tool/credential observations above are preparation-time evidence and must be refreshed, not assumed current.

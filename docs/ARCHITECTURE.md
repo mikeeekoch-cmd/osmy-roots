@@ -1,6 +1,8 @@
-# Architecture V3
+# Architecture V3 with 90-minute override
 
-Proposed stack: Next.js App Router, React/TypeScript, Node 24, Tailwind, React Flow/elkjs, Zod, the official OpenAI SDK and Supabase Postgres/private Storage. Pin compatible versions at scaffold. Render is a proposed Node hosting target; no service is provisioned. These are implementation decisions for the first milestone, not claims of installed dependencies.
+For the current 90-minute sprint, use local single-user persistence behind a storage interface and bind the server to localhost. Supabase/Auth/RLS, multiuser isolation and hosting are future work unless already working; do not block the prototype on their credentials. Lead owns agent/state/events and routes; Natalia owns ingestion/export; Claude owns UI. docs/EXECUTION.md controls current ownership and acceptance.
+
+Longer-term proposed stack: Next.js App Router, React/TypeScript, Node 24, Tailwind, React Flow/elkjs, Zod, the official OpenAI SDK and Supabase Postgres/private Storage. Pin compatible versions at scaffold. Render is a proposed Node hosting target; no service is provisioned. These are implementation decisions for the first milestone, not claims of installed dependencies.
 
 Keep the two-screen UI in `src/ui`, shared schemas in `packages/contracts`, and ingestion, AI, events, persistence and export in `server`. Thin `src/app` wrappers expose routes and pages. One lead owns dependencies, integration and migrations.
 

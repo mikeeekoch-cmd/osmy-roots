@@ -1,6 +1,6 @@
 # Product scope V3
 
-Engineering preparation, September 10, 2026. This two-screen scope supersedes earlier six-step and questionnaire-first concepts. Planned features are not implemented by this repository yet.
+Current two-screen product target. The 90-minute prototype subset and staffing are governed by docs/EXECUTION.md. This supersedes preparation-only holds. Features below remain targets until validated in docs/status/lead.md.
 
 Osmy Roots turns scattered family photos, messages, records and memories into an editable family map and an illustrated book. People can contribute while an investigation runs. Each person, relationship and passage keeps inspectable evidence.
 
@@ -41,3 +41,7 @@ The reference HTML demonstrates interactions with prepared data, sample activity
 7. Counters derive from completed deduplicated events. Saved runs and prepared imports are labeled. Source failures do not fabricate results.
 
 No new ancestor or external identity match is guaranteed. The demonstration can succeed through useful provenance enrichment or a supported correction.
+
+## 90-minute acceptance override
+
+Use the smallest text/JSON/photo ingestion route first. Native chat ZIPs and standalone editable HTML export may be deferred; an English PDF, source register, originals and editable JSON that reopens in the local app remain the download target. Prepared layout and seed are allowed. OAuth, cloud storage/auth, multiuser support, broad search and media generation are optional. Preserve the two-screen journey and one actual reviewed, source-backed change. See EXECUTION.md for the shared deadline and truthful fallback rules.
