@@ -3,7 +3,7 @@ import {readFile, writeFile, mkdir, rename, lstat} from 'node:fs/promises';
 import {join, basename, dirname} from 'node:path';
 import {
   DemoManifestSchema, ProjectInputSchema, ProjectSnapshotSchema, SetupAnswerSchema, PhotoPairSchema, SourceSchema,
-  type DemoManifest, type InputFile, type ProjectSnapshot, type Proposal, type DataModules,
+  type DemoManifest, type InputFile, type ProjectSnapshot, type Proposal, type DataModules, type Source,
 } from '../../packages/contracts';
 import {parseFamilyPacket, parseFamilyNotesPacket} from '../ingestion/index.mjs';
 import {AppError, validateSnapshot, validateSpans} from '../state/validation';
@@ -46,6 +46,24 @@ function contentKey(s: ProjectSnapshot) {
 }
 export function isRound2Input(files: InputFile[]) {
   return !files.some(f=>f.originalName==='project.json') && files.some(f => ['family_register.csv','family notes.txt'].includes(f.originalName.toLowerCase()));
+}
+export function recollectionAttribution(source: Source | undefined, quotes: string[]) {
+  if (!source) return 'Family contributor';
+  if (!source.kind.includes('chat') && !source.reconstructed) return source.author || 'Family contributor';
+  const metadata = source.reconstructionMetadata as {messages?: unknown[]} | undefined;
+  const messages = Array.isArray(metadata?.messages) ? metadata.messages : [];
+  const speakers = new Set<string>();
+  for (const quote of quotes) {
+    const matches = messages.filter((entry): entry is {speaker: string; text: string} => {
+      if (!entry || typeof entry !== 'object') return false;
+      const message = entry as {speaker?: unknown; text?: unknown};
+      return typeof message.speaker === 'string' && !!message.speaker.trim() && message.text === quote &&
+        source.originalText.includes(`${message.speaker}: ${quote}`);
+    });
+    if (!matches.length) return 'Family contributor';
+    for (const message of matches) speakers.add(message.speaker.trim());
+  }
+  return speakers.size === 1 ? [...speakers][0] : 'Family contributor';
 }
 async function manifestFor(files: InputFile[], supplied?: DemoManifest) {
   let manifest = supplied;
@@ -153,7 +171,7 @@ async function analyzeHeldOut(id: string, options: RoundOptions) {
   const q = stage.manifest.questions.find(q=>q.requiresAstra)!;
   const source = stage.graph.sources.find(s=>s.id===q.support[0].sourceId)!;
   const excerpt = [...new Set(q.support.filter(span=>span.sourceId===source.id).map(span=>span.quote))].join('\n\n');
-  const analysisSource = {...source,originalText:excerpt,contentHash:hash(excerpt)};
+  const analysisSource = {...source,author:recollectionAttribution(source,q.support.filter(span=>span.sourceId===source.id).map(span=>span.quote)),originalText:excerpt,contentHash:hash(excerpt)};
   try {
     // Only actual uploaded evidence and parsed roster enter Astra. Manifest answers,
     // presenter notes and overview text are excluded from this held-out request.
@@ -246,7 +264,7 @@ function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: string) 
   s.people.find(p=>p.id===personId)!.claimIds.push(claimId);
   if(q.effect.kind==='story') {
     const original=s.sources.find(source=>source.id===q.support[0].sourceId);
-    s.stories.push({id:storyId,personId,text:answer.savedText,sourceIds,claimIds:[claimId],spans,evidenceType,status:'accepted',attribution:original?.author||'Family contributor'});
+    s.stories.push({id:storyId,personId,text:answer.savedText,sourceIds,claimIds:[claimId],spans,evidenceType,status:'accepted',attribution:recollectionAttribution(original,q.support.filter(span=>span.sourceId===original?.id).map(span=>span.quote))});
     s.people.find(p=>p.id===personId)!.storyIds.push(storyId);
     if(run.analysis && !s.proposals.some(p=>p.id===run.analysis!.id)) s.proposals.push({...run.analysis,status:answer.action==='correct'?'corrected':'accepted'});
   }
