@@ -2,6 +2,8 @@
 
 Status: prompts and contracts for execution. The revised journey and private packet are not created merely by publishing this handoff.
 
+Latest addition: [PHOTO-COMPARE-ADDENDUM.md](PHOTO-COMPARE-ADDENDUM.md) requires invisible runtime timing and Original/Enhanced comparison inside person cards. Send [prompt 08](../prompts/08_CODEX_NATALIA_PHOTO_COMPARE.md) to the existing Natalia task as a follow-up. Product prepares the pairs; Mike owns shared metadata; Claude preserves both versions in ingestion/export. Continue all four current assignments and their shared deadline.
+
 Read [DEMO-READY-SCOPE.md](DEMO-READY-SCOPE.md) and [NARRATIVE-DATA-CONTRACT.md](NARRATIVE-DATA-CONTRACT.md). Together they cover Mike's feedback, the active private demo script, seven questions, a complete 35-person input set, gradual arrivals and a current book download within 120 seconds of Submit. This supersedes the former 180-second interaction budget and Claude's former private-content ownership.
 
 | Owner            | Executable prompt                                                           | Owns                                                                               |

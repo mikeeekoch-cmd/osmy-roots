@@ -1,5 +1,7 @@
 # Claude Code Mike: ingest the frozen packet and export the current book
 
+Additive feedback: read docs/round-2/PHOTO-COMPARE-ADDENDUM.md. Preserve original/enhanced photo files, parent hashes and optional pair metadata through ingestion/export/reopen. Derivatives are not original evidence. Keep runtime timing in private logs only. Product supplies the pairs; continue the existing core assignment.
+
 Execute this assignment now in https://github.com/mikeeekoch-cmd/osmy-roots on codex/data-export in your own clone/worktree. Fetch and incorporate origin/codex/engineering, including baseline 556953f and the latest round-2 docs, preserving local work. Read AGENTS.md, docs/READINESS.md, docs/round-2/DEMO-READY-SCOPE.md, docs/round-2/NARRATIVE-DATA-CONTRACT.md and prompts 04-07. The latest 120-second/four-owner scope overrides old timing, text-only parser cuts and your previous ownership of private content creation.
 
 You own server/ingestion, server/research, server/export, their tests and docs/status/data-export.md. Product owns actual packet files/facts/photo labels/translations/manifest values and the presenter script. Mike owns shared contracts/routes/state/dependencies and the strict runtime bundle adapter; Natalia owns UI. You are not alone in the codebase. Preserve their work, keep the stricter lead adapter, never force-push and ask Mike for dependencies instead of editing package/lockfiles. Follow the lead's T0+90 clock, contract and integration checkpoints.

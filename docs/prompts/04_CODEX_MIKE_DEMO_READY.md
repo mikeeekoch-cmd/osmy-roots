@@ -1,5 +1,7 @@
 # Codex Mike: 120-second demo integration
 
+Additive feedback: read docs/round-2/PHOTO-COMPARE-ADDENDUM.md. Keep the 120-second timing invisible throughout the product. Publish optional photo-pair/variant metadata and preserve original/derivative identity through state/export, coordinating with Natalia, Claude and Product. Continue the existing deadline and core work.
+
 Execute this assignment now in https://github.com/mikeeekoch-cmd/osmy-roots on codex/engineering. Fetch origin and preserve local work. Include code baseline 556953f and the latest round-2 documents from origin/codex/engineering; main alone misses final integrated fixes. Read AGENTS.md, docs/READINESS.md, docs/round-2/DEMO-READY-SCOPE.md, docs/round-2/NARRATIVE-DATA-CONTRACT.md and prompts 04-07. The latest 120-second/four-owner contract supersedes older three-minute interaction and artifact-ownership instructions.
 
 Build the actual files-to-questions-to-growing-family-to-current-book route. The selected private family has 35 people, not an arbitrary 34. Preserve the verified P0 and partial P1 baseline: 74 tests, typecheck/build and the existing source/review/export/reopen behaviors. A loader over the existing one-person graph is insufficient; the current analysis only selects existing person IDs.

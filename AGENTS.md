@@ -1,5 +1,7 @@
 # Osmy Roots engineering instructions
 
+Latest additive feedback: read docs/round-2/PHOTO-COMPARE-ADDENDUM.md. No visible timer or countdown anywhere in the product; 120 seconds is an internal measurement. Natalia owns prompt 08 for person-card Original/Enhanced comparison, with Product supplying private pairs and Mike/Claude preserving variant data/export. Continue the four existing assignments without restarting their clock.
+
 Current next-round handoff: read docs/round-2/README.md, DEMO-READY-SCOPE.md and NARRATIVE-DATA-CONTRACT.md before executing prompts 04-07. Their 120-second interactive demo, seven questions and four-owner split supersede older conflicting scope below. The product/content owner prepares private files; Claude implements ingestion/retrieval/export. These documents are an assignment, not proof that round 2 is implemented. Preserve the validated round-1 P0 and partial P1 baseline.
 
 Read README.md, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/EXECUTION.md, docs/PROTOTYPE-CONTRACT.md, docs/SCOPE-PRIORITIES.md, your detailed docs/prompts assignment, docs/READINESS.md and docs/BUILD-LOG.md before work. The user has started the 90-minute engineering execution phase. The bootstrap is not yet a working app. Build now using docs/EXECUTION.md and record actual work/checks.
