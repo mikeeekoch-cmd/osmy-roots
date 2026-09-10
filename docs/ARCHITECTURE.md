@@ -1,79 +1,59 @@
-# Architecture and shared contract
+# Architecture V3
 
-Proposed initial implementation. Pin compatible package versions when scaffolding. Use one Next.js application with server route handlers; Postgres is enough for the graph. No general crawler or separate graph database is needed for the first slice.
+Proposed stack: Next.js App Router, React/TypeScript, Node 24, Tailwind, React Flow/elkjs, Zod, the official OpenAI SDK and Supabase Postgres/private Storage. Pin compatible versions at scaffold. Render is a proposed Node hosting target; no service is provisioned. These are implementation decisions for the first milestone, not claims of installed dependencies.
 
-```mermaid
-flowchart LR
-  I[Images, text and memories] --> S[Private sources]
-  S --> A[Astra interpretation]
-  A --> P[Proposed people, claims and stories]
-  P --> R[User review]
-  R --> T[Tree and cited chapter]
-  P --> Q[Optional archive query]
-  Q --> E[Inspect actual record]
-  E --> R
-  C[Correction] --> V[Version and invalidate dependencies]
-  V --> R
-```
+Keep the two-screen UI in `src/ui`, shared schemas in `packages/contracts`, and ingestion, AI, events, persistence and export in `server`. Thin `src/app` wrappers expose routes and pages. One lead owns dependencies, integration and migrations.
 
-## Data model
+## Core data and provenance
 
-| Table | Minimum contract |
-| --- | --- |
-| projects | Owner, title, language, version, visibility |
-| sources | Project, kind, original text/private file path, hash, source URI, record/revision ID, retrieved time, rights |
-| persons | Stable ID, display name, aliases, accepted claim IDs |
-| claims | Subject, predicate, value, evidence references, evidence kind, review status, version |
-| stories | Original span, narrator, faithful summary, mentioned people, optional claims, publication preference, version |
-| relationships | Endpoints, type, evidence claim IDs, proposed/accepted/rejected/needs-review, version |
-| runs | Goal, stage, input/project version, candidates, artifacts, pending question, lease, budget, error |
-| chapters | Sections, claim/story/source dependencies, versions, review status |
-| changes | Actor, action, before/after references, timestamp |
+The preparation contract is [CONTRACT-V3.json](CONTRACT-V3.json). At kickoff freeze runnable Zod schemas and inferred TypeScript types for ProjectInput, SourceAsset, ExtractedClaim (the JSON's claim object), Person, Relationship, ReviewDecision, ResearchEvent and BookPassage.
 
-Candidate objects may initially be validated JSONB inside runs; they need persistent IDs and explicit identity decisions. Source kinds include original record, transcription, memory, another tree and inference. Review status is independent of evidence kind.
+SourceAsset retains project ID, source/message ID, kind, original locator, hash, language, original text/file, extraction derivative, known author/time, parent attachment, origin, retrieval time and reuse/access notes. A filename date does not substitute for an unknown message timestamp. Store media as private objects rather than embedding base64 in graph rows.
 
-Use one Zod contract under `src/contracts/` and infer TypeScript types from it. Proposed shared envelopes: GraphPatch, Story, EvidenceRef, RunSnapshot, ReviewDecision, CorrectionResult. Validate referenced IDs against the project's real retrieved sources; valid JSON alone is not evidence.
+Claims retain source IDs and exact spans/locators, evidence type, status, competing values and version. Narrator-attributed story text remains separate from genealogy assertions. Keep original names, date wording and precision; unknown stays null. Every relationship has its own claim references. Runtime validation checks that source IDs and locators actually exist in this project.
 
-EvidenceRef needs source ID and an exact text span, page location or supplied image region, with optional original quote. Uncertain dates keep the original wording, earliest/latest bounds and precision; never convert a known year into an invented birthday.
+Minimal persistence: projects (owner/version), sources, persons, relationships, claims, stories, runs, research_events, review_decisions and book_passages. Original imported records live in source data with their old IDs. Import adapters convert prior review schemas into this contract; importing is not model discovery. Old confidence labels do not become verified facts.
 
-## Run and API boundaries
+## Execution and progress
 
-`created → extracting → reconciling → searching/comparing (optional) → awaiting_review → drafting → complete`
+Start validates input and immediately runs an internal bounded plan. Actual operations emit persisted ResearchEvent envelopes. The UI consumes events using a sequence cursor and can poll durable snapshots. Mid-run contributions append sources and queue work without replacing the accepted state. Unknown blocks only the dependent candidate.
 
-Additional states: awaiting_answer, unresolved, failed, cancelled, outdated. Persist each completed source and stage. A memory-only run can proceed without archive search.
+A request performs one bounded step under a lease, then saves its result. Do not leave untracked background promises after the response. Persist the run and completed work; durable processing while the browser is closed requires a worker. Use idempotency keys and version checks for writes and retry.
 
-Proposed endpoints: create project/source/run; GET run; POST run advance/answer/cancel; review proposal; correct claim; GET tree/chapter; export. Every mutation checks project ownership and expected version. The model never commits arbitrary database operations.
+Count distinct normalized hostnames only after successfully retrieving a page; count records only after parsing and analysis; count files after successful parsing of a distinct hash. Replayed/duplicate events cannot increment totals twice. Count people from persisted active records. Keep cached/prepared counts separate, and show planned/failed/blocked work honestly.
 
-Each advance request awaits one bounded step and commits its result. Browser polling shows saved state. Do not return while untracked work continues in a serverless promise. Use a lease, idempotency keys and version checks. Full background processing while the browser is closed requires a durable worker later.
-
-## Corrections
-
-In one transaction: create a new claim/story version, record the change, increment project version, mark dependent decisions and chapter sections for review. Follow dependencies transitively. Reject stale model writes. Regenerate affected passages from current reviewed material and preserve earlier versions. Hard-reject self-parent links and ancestry cycles.
+Initial run budget proposal: at most eight discovery queries, ten retrieved records, three displayed candidates and six model stages. Measure latency and cost before adjusting. Start with supplied material plus one geographically relevant archive route; a general web crawler is unnecessary for the first demo.
 
 ## AI and retrieval
 
-Use server-side Responses requests with `model: gpt-6-astra`, structured stage results and runtime validation. It accepts images and text; voice requires separate transcription. Keep the key and privileged storage/database operations outside client code. [Official model](https://developers.openai.com/api/docs/models/gpt-6-astra), [Astra guide](https://developers.openai.com/api/docs/guides/latest-model).
+Use server-side Responses requests with `model: gpt-6-astra`, structured outputs and runtime validation. Astra supports text and images; audio requires a separate transcription stage. Sources are untrusted data. Models propose changes; authenticated application transactions commit them. [Official model](https://developers.openai.com/api/docs/models/gpt-6-astra), [Astra guide](https://developers.openai.com/api/docs/guides/latest-model).
 
-Begin with supplied sources and one relevant permitted archive. OpenList known-record revision retrieval and LoC JSON search were checked in preparation; OpenList API text/title search returned disabled. Responses web search is a proposed discovery route, still unverified with the project account. Search hits remain leads until actual content is retrieved. Archive adapters must preserve full source references and return blocked/partial failures honestly.
+Search results are leads until retrieved content supports a comparison. Provider adapters return exact record/page locators, retrieval time, quotes and access failures. Historical place aliases and dates constrain queries. OpenList known-record revision retrieval and LoC JSON search worked during preparation; OpenList API text/title search was disabled. Those technical checks do not establish relevance or an ancestral match. The private research handoff selects the family's actual source routes.
 
-Initial limits: up to three displayed candidates, eight discovery queries, ten retrieved records and six model stages per run. Enforce timeouts and cost limits; measure real latency and usage before advertising performance.
+Keep fetch targets bounded, validate redirects and response size, and block local/private network destinations. Preserve downloaded originals independently of extracted text and summaries.
 
-## Storage and access
+## Review, corrections and export
 
-Supabase private buckets and project ownership/RLS. Browser-visible publishable keys are not privileged server keys. Check publication permissions at export. Use short-lived file URLs. Restrict fetch hosts/protocols, validate redirects, block local/private network targets and cap response size. Treat uploaded or fetched text as data, never instructions.
+ReviewDecision carries actor, action and baseVersion. Reject stale overwrites. In one transaction save the new version and audit event, validate identity/graph changes, increment project version and invalidate dependent decisions and passages. Reject self-parent links and ancestry cycles. Undo emits a new event and retains earlier values.
 
-## Proposed source layout
+BookPassage carries acceptedStateVersion, claim IDs and original source locators. A corrected or disputed claim marks dependent prose stale; regenerate from current accepted state. The four-page English target contains dedication, selected branch, sourced chapter and sources/open questions.
+
+One export action produces `book.pdf`, `book.html`, `editable-family-map.html`, `project.json`, `sources.json`, `research-notes.json`, `starting-context.json`, `photos/` and `uploads/`. Include a schema version, hashes and media references. Plan a maintained PDF-generation library and ZIP library; choose/pin them at scaffold and verify the resulting four pages and reopen behavior. Do not copy the review mockup's PDF implementation. Preserve original aspect ratios, Unicode names and source text; generated restorations remain separate labeled assets.
+
+## Access and deployment
+
+Supabase project ownership/RLS and private buckets protect uploaded material. Browser publishable keys are not privileged server keys; privileged operations still require explicit owner checks. Test two-user isolation. Keep durable data outside the web host's filesystem and use temporary signed media URLs. A successful local server or dashboard login does not prove database access or deployment.
+
+## Planned layout
 
 ```text
-src/app/                 # pages and route handlers
-src/components/          # intake, graph, evidence and chapter UI
-src/contracts/           # Zod schemas and inferred types
-src/server/ai/           # Astra stage functions
-src/server/investigation/# run progression, review and correction
-src/server/sources/     # bounded provider adapters
-supabase/migrations/    # schema, policies and transactions
-tests/                  # consequential logic and end-to-end checks
-docs/                   # decisions, execution and evidence of checks
+packages/contracts/     # lead-owned Zod schemas and inferred types
+server/                 # ingestion, Astra, events, storage, review, export
+src/app/                # lead-owned thin Next.js integration wrappers
+src/ui/                 # UI owner: only Input and Research workspace
+supabase/migrations/    # lead-owned schema and policies
+integration-tests/      # lead-owned consequential flow verification
+research/               # source research handoff; private findings excluded
 ```
 
-These application directories are planned, not already implemented.
+These directories are planned. Preparation does not include an application scaffold.

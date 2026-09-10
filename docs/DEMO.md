@@ -1,35 +1,23 @@
-# Demo and submission preparation
+# Demonstration and submission V3
 
-Draft only. No demo video, deployed app or award is claimed. Use cleared inputs; existing research or a replay must be identified honestly.
-
-## One-line description
-
-Osmy Roots turns scattered family photos, memories and records into a reviewable family tree and a cited family book.
-
-## Short project description
-
-Family history is scattered across photo captions, relatives' messages and archive records. Osmy Roots is being built to interpret those fragments with GPT-6 Astra, propose connections, preserve attributed stories and make uncertainty visible. People review evidence before accepting a relationship. The resulting family chapter stays connected to its sources, so correcting a clue can update the affected parts of the tree and book.
-
-## One-minute target
+Planned 2:30 stage route, with only two screens. Working app URL, recorded video and measured results are pending. Private family scripts/assets live in Drive and are not published here.
 
 | Time | Show |
 | --- | --- |
-| 0–10 s | Explain the family-preservation motivation; add a photo, caption and message |
-| 10–25 s | Proposed branch and an attributed story; open the original source |
-| 25–40 s | Real record retrieval and a conflicting candidate; review the supported proposal |
-| 40–55 s | Open a cited chapter; correct one clue and show affected output |
-| 55–60 s | Show the printable result and close with the human outcome |
+| 0:00–0:20 | Emotional family motivation; compact Input with starting name, geography and selected material; Start the search |
+| 0:20–0:45 | Workspace with real progress left, prepared family branch center and one useful question right |
+| 0:45–1:30 | Add a real source mid-run; inspect an actual Astra proposal, open its original evidence, and accept/correct/leave unknown |
+| 1:30–2:05 | Show the persisted person/connection change, photos, attributed story, citations and history |
+| 2:05–2:30 | Download one bundle; open the illustrated PDF and editable project; return to the family motivation |
 
-For a three-minute live demo, allow the judge to choose a correction. Show source inspection and recovery from an unavailable record. Do not fake waiting stages over cached results. If using a recorded fallback, label it.
+The supplied private example enriches provenance for a story already in the family book. Do not present it as a newly discovered fact. A 35-person seed and any expansion from the 93-person reference are existing data imports. No external match is established by the preparation package.
 
-## Evidence to add when real
+Generate at least one passage live from reviewed material. The four-page English mini-book contains dedication, family branch, sourced chapter and sources/open questions. Corrections must flag dependent text until refreshed. If the live call fails, show the actual failure and label any saved replay before playing it.
 
-- Public app URL and tested commit.
-- Public one-minute video and permitted assets.
-- Exact functionality built during the event and substantive Astra-assisted implementation/validation.
-- Actual model calls and measured usage/latency, not estimates presented as results.
-- Approved teammate names supplied by the team; do not infer the team from an old repository.
+## Before recording/submitting
 
-The participant guide supplied by the user gives a 17:30 EDT submission deadline on September 10. Aim for readiness at 17:00 and submission by 17:15; recheck organizer updates. Five finalists have three-minute demos plus two-minute Q&A. Retain the actual submission receipt.
+Run three complete rehearsals under three minutes and verify exact commit, actual model call, persistence, citations, correction and ZIP reopening. Review the PDF's page count, text, source list and photo proportions. Test the host after idle time. Keep a saved, labeled backup and original media locally available.
 
-Only completed behavior should be described in the final submission as implemented. This draft should be rewritten around the shipped result.
+Prepare the working URL, public repository, 60-second video, clear description of the implemented Astra capability, actual validation evidence and disclosure of prior research/assets. Review selected public material and submission fields with the user; keep private exports and credentials outside the public repository. Repo creation/public documentation are already authorized and complete.
+
+Record by 16:00 EDT; review 16:45; ready 17:00; target submission 17:15 before 17:30 organizer deadline on September 10. These are targets, not completion claims.

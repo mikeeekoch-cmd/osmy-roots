@@ -11,9 +11,18 @@ User requested a fresh public repository and engineering preparation before star
 - Rechecked GitHub CLI/connector identity and local Node HTTP serving.
 - Rehashed the complete local family archive: 2,848 files unchanged from the earlier review; no additions/removals.
 - Validated diagnostic syntax, local documentation links and Git ignore rules. Ran the diagnostic and confirmed it reports missing app credentials without sending API requests.
-- Application API, database, hosting and newest private-context access remain unverified; see READINESS.md.
+- Application API, database and hosting remain unverified; see READINESS.md.
 
 These are preparation artifacts. No end-user feature, app inference, archive investigation or deployment is claimed by this entry. Pre-existing family research remains private reference material.
+
+## 2026-09-10 — fresh V3 context reconciliation
+
+- Restored authenticated Drive access and downloaded the complete root snapshot, then refreshed the newer Execution Pack at 11:52 EDT.
+- Read current two-screen scope, engineering handoff, shared contract and three owner prompts; inspected the family packet and review prototype boundaries.
+- Replaced older product/ownership instructions with V3: seed import, real events, mid-run contributions, reviewed changes and one complete PDF/project ZIP.
+- Added a sanitized public preparation contract. Private family identifiers, source contents and Drive URLs remain outside this repository.
+- Identified the old seed schema needing an import adapter and synthetic fixtures needing real-export validation. No review prototype code was copied.
+- Updated readiness and checked documentation/diagnostic again. No app functionality, deployment or model inference was implemented in this preparation entry.
 
 ## Future event implementation entry template
 

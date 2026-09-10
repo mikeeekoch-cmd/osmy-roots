@@ -13,24 +13,11 @@ A family history rarely arrives as a complete tree. It arrives as a photograph w
 
 ## The experience we are building
 
-```text
-Photos + names + messages + memories
-                  ↓
-       Proposed family map + stories
-                  ↓
-        Review, clarify and investigate
-                  ↓
-      Supported connections + family chapter
-                  ↓
-        Correct a clue → review affected output
-```
+1. **Input.** Add a starting name, family geography (or “unknown”), and files, context or a prepared packet. Click Start the search.
+2. **Research workspace.** Follow real progress on the left, inspect and edit the family map in the center, and answer questions or add new clues on the right. Photos, stories, citations and history stay with each person and relationship.
+3. **Download from the workspace.** One action saves an illustrated PDF and HTML book, editable map, structured project, sources, notes and original media.
 
-1. **Bring what you have.** Upload a small batch of images/text and paste a memory. A questionnaire is optional.
-2. **See your family take shape.** Astra extracts people, dates, possible relationships and attributed stories, each linked to its original source.
-3. **Follow a useful clue.** Compare archive candidates, inspect contradictions and answer a focused question when needed.
-4. **Review the connection.** Accept or reject a proposal. Similar names stay separate until supported.
-5. **Keep the story.** Build an editable illustrated chapter with citations. Correcting a clue flags affected relationships and passages for review.
-
+There are only two screens. Research planning runs internally. Astra proposes interpretations; human review commits supported changes. Corrections flag affected relationships and book passages.
 Memories, documentary evidence and uncertain interpretations remain distinct. Roots does not promise to discover an ancestor from every photo.
 
 ## Planned stack
@@ -43,7 +30,7 @@ Memories, documentary evidence and uncertain interpretations remain distinct. Ro
 | Data and files | Supabase Postgres, Auth and private Storage |
 | Contracts | Zod and shared TypeScript types |
 | Sources | User-selected material and bounded archive retrieval |
-| Export | Print-styled chapter and structured JSON |
+| Export | Illustrated PDF/HTML plus editable map, JSON, sources and originals in one ZIP |
 | Validation | Vitest for consequential logic, Playwright for the core journey |
 | Deployment target | Node web service; Render proposed, account unverified |
 
@@ -69,6 +56,7 @@ pnpm run doctor
 | --- | --- |
 | [Product](docs/PRODUCT.md) | User journey, MVP and acceptance criteria |
 | [Architecture](docs/ARCHITECTURE.md) | Evidence model, run state and corrections |
+| [V3 contract](docs/CONTRACT-V3.json) | Shared data, review, progress and export envelopes |
 | [Execution](docs/EXECUTION.md) | First milestone, ownership and coding prompts |
 | [Setup](docs/SETUP.md) | Local environment and deployment verification |
 | [Readiness](docs/READINESS.md) | Verified capabilities and remaining dependencies |

@@ -1,36 +1,43 @@
-# Product contract
+# Product scope V3
 
-Status: proposed implementation based on the user's explicit mixed-input direction. New private context must be reconciled before dependent engineering decisions.
+Engineering preparation, September 10, 2026. This two-screen scope supersedes earlier six-step and questionnaire-first concepts. Planned features are not implemented by this repository yet.
 
-## Customer and outcome
+Osmy Roots turns scattered family photos, messages, records and memories into an editable family map and an illustrated book. People can contribute while an investigation runs. Each person, relationship and passage keeps inspectable evidence.
 
-For the family member preserving memories, researching one branch or making a family book. Begin with fragments; produce a reviewable map, preserved stories and a readable chapter. Avoid a mandatory questionnaire, empty dashboard and unsupported biographical generation.
+## Screen 1: Input
 
-## Event slice
+Required: a starting person/family name; family geography or an explicit “I do not know”; and at least one file, nonempty family context or a prepared packet. Keep drag and drop compact. Optional fields: birthplace, current residence, relatives’ places and residence periods, approximate years, name variants and book language. Account connections are separate controls.
 
-Up to five JPG/PNG/UTF-8 text inputs plus a pasted note. Implement concrete file and aggregate limits, show them before upload and test them. Preserve originals and source attribution. One failed file does not discard successful files.
+Start the search starts the internal plan and opens the workspace. There is no plan approval page. Select archives from source-supported or user-supplied geography, historical names and periods; do not infer a location as a fact.
 
-The first visible result is a proposed map and a story shelf. Dotted relationships indicate proposals. Unknown people and uncertain dates remain unresolved. Stories can be saved without establishing a relationship.
+Photos, documents, selected Telegram/WhatsApp exports and tree files are the first import targets. Pasted source text provides the initial real route. Preserve attachment parents, originals and locators. A DOCX-derived message is not a native chat export. Real native exports must be tested before advertising format support. Email, audio/video and OAuth remain scoped extensions; unsupported inputs get a clear status.
 
-After review, select one useful missing fact, search a suitable source and compare at most three candidates. Show matching fields and conflicts. A surname alone cannot identify a person. A source outage is not evidence that no record exists.
+## Screen 2: Research workspace
 
-Allow explicit relationship review, an editable chapter with source links, then a correction which marks dependent links and paragraphs for review. Do not silently choose between conflicting dates.
+| Area | Behavior |
+| --- | --- |
+| Left | Actual current action, progress state, useful findings and completed-work counters; distinguish live, cached, prepared and replay |
+| Center | Editable generational map; English display names, original spellings, uncertain life years, photos/galleries and evidence on both people and connections |
+| Right | Distinct human contribution panel; answer questions or add people, facts, memories and files at any time |
+| Person/edge details | Original excerpts, citations, attributed stories, discrepancies, revision history and undo |
+| Download action | One ZIP with an illustrated PDF, book HTML, editable map, project JSON, sources, notes, starting context and original media |
 
-## Acceptance criteria
+Accept, correct, reject and unknown are separate decisions. Unknown leaves the candidate unresolved while unrelated work can continue. A human accepting a memory does not turn it into an independently verified archival fact. Rejected decisions remain in history; corrections invalidate affected passages until regeneration/review.
 
-- Two images and one message produce reviewable people and at least one attributed story, or a truthful explanation of insufficient information.
-- Every processed source has output, a no-relevant-content result, a failure or an exclusion; duplicate bytes reference the original.
-- A namesake distractor is not merged automatically.
-- Clicking a claim or chapter citation opens its actual source and excerpt.
-- Reviewed oral testimony remains labelled as testimony.
-- A correction invalidates only dependent output; unrelated accepted material survives.
-- Reload preserves completed work. Double-clicking review does not duplicate a relationship.
-- Users cannot retrieve or mutate another user's private project.
+## Prepared data and real work
 
-## Later
+The private review material contains a selected 35-person seed with ten original photographs and a 93-person reference. All are supplied prior family evidence. Importing remaining records is an existing-record import. Growth to an arbitrary number is not a success criterion.
 
-Native Telegram JSON/WhatsApp export parsers, EML import, PDFs, voice transcription, large collections, ongoing account sync, full GEDCOM, server-generated PDFs and live mid-turn steering. Pasted excerpts already fit the initial text intake. No direct email/social connector is connected by this plan.
+The reference HTML demonstrates interactions with prepared data, sample activity and prepared book text. It is not the event application. Its code, the prior Family Tree code and ArtLens code must not be reused as original event work. Private seed/media require explicit publication clearance before public distribution.
 
-## Product language
+## Acceptance
 
-Use “suggested connection,” “family memory,” “record says,” “needs review,” “saved result” and “unresolved” where appropriate. Show actual progress and coverage. Avoid invented confidence percentages and promises of a complete family history.
+1. Valid input starts the internal plan and the two-screen workspace.
+2. An actual Astra request returns a source-linked proposal from a real supplied source.
+3. A human review persists a map/person/relationship change with citations and history; a new clue can arrive during the run.
+4. Unknowns, competing claims, duplicate sources, retry and stale-response behavior remain correct. Undo is a recorded change.
+5. At least one cited passage is generated from current accepted claims and attributed memories. Correcting its source marks affected output for review.
+6. One download contains a four-page English mini-book and complete editable project with originals; reopening preserves edits, sources and history.
+7. Counters derive from completed deduplicated events. Saved runs and prepared imports are labeled. Source failures do not fabricate results.
+
+No new ancestor or external identity match is guaranteed. The demonstration can succeed through useful provenance enrichment or a supported correction.

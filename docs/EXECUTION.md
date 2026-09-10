@@ -1,59 +1,50 @@
-# Engineering execution
+# Engineering execution V3
 
-The user requested repository preparation before starting real development. This document is an executable work plan, not a record of completed application features. Reconcile new private context before dependent changes.
+This is the prepared build plan. The user requested preparation before beginning application development. V3 supersedes earlier Alevtina and six-screen instructions. Read the fresh private scope and handoff before starting.
 
-## First milestone: one complete slice
+## First milestone
 
-Target a 45–60 minute implementation milestone once credentials and input are ready; this is a planning estimate.
+The first runnable contract should be committed within 15 minutes of engineering kickoff; this is a target. Do not wait for every connector or media format.
 
-1. Read refreshed context, verify the baseline commit and agree file ownership.
-2. Scaffold the Next.js application in this repository, preserving the existing docs and history. One owner installs/pins dependencies and updates the lockfile.
-3. Define the minimum shared source, proposal, story and run schemas. Create Supabase migrations/private storage and ownership policies.
-4. Send one small real Astra Responses request and record model, request ID, result and usage without private payloads or secrets.
-5. Upload two permitted sample images and paste one memory. Extract and validate proposed people/links plus an attributed story.
-6. Display the result with source inspection, persist it, refresh and show the same saved result. Mark it as proposed.
-7. Deploy that slice and verify the hosted flow. Record the deployed commit and URL.
+1. Fetch the shared repository, inspect the worktree and establish path ownership. Verify the API key and database access; use local private inputs.
+2. Lead scaffolds Next.js with the layout in ARCHITECTURE.md, pins dependencies and freezes Zod/types plus one synthetic claim/event example. Publish that baseline commit for the UI owner.
+3. Implement import of the prepared 35-person seed as supplied evidence. Convert the old review schema and preserve original IDs, uncertainty and source locators. The reference has 93 people; additional import is explicit.
+4. Make one real short-source Astra Responses call, validate its proposal and record model/request/usage. Keep private request bodies out of public logs.
+5. Complete the smallest route: input → actual proposal → human review → durable map/person/source update → generated cited passage → complete ZIP. New material may arrive in the workspace while research continues.
+6. Reopen the exported project and verify edits, sources, original media and history. Inspect the four-page PDF. Deploy the same tested commit and verify the hosted route when hosting is configured.
 
-Completion means a real request, durable data and working UI—not separate mock screens. If DB or API access fails, expose that dependency and keep an explicitly labelled local fixture for UI work.
+The real DOCX-derived story and photo packet are available. Native Telegram/WhatsApp exports are not yet supplied; synthetic examples cannot establish native-format compatibility. Add and test actual exports when available; unsupported formats must report their limitation.
 
-## Then add in this order
+## Ownership and branches
 
-1. One real archive retrieval with a same-name distractor and visible conflict.
-2. Authenticated review of a relationship, with stable identities and idempotency.
-3. A cited chapter using reviewed claims and attributed memories.
-4. A corrected source that marks dependent edges/paragraphs and updates the chapter after review.
-5. End-to-end validation, export, rehearsal and submission evidence.
+| Owner | Branch | Owned paths |
+| --- | --- | --- |
+| Codex integration lead | `codex/engineering` | `packages/contracts`, `server`, `src/app`, `supabase`, `integration-tests`, package/lock/config files and integration |
+| Claude UI owner | `codex/ui` | `src/ui`: Input, workspace, map, galleries, person/edge inspection, human contribution panel and download UI |
+| Gemini research owner | `codex/research` | `research`: bounded queries, source register and candidate comparisons; private results go to Drive |
 
-Cut extra providers, native chat parsers, voice, live steering and visual polish before cutting source inspection or correction semantics. Do not attempt a general crawler for the event.
+These are assignments for launch, not already running agents. No branch is an instruction to launch a new task automatically. Two laptops use separate clones and their own credentials. Fetch before editing, preserve other work, and hand off small commits. Only the integration lead changes contracts, lockfile and migrations. Research may start before the contract; UI integration waits for the baseline commit.
 
-## Two laptops
+Private handoff fields: owner, local path, base commit, branch, changed files, setup commands, checks, actual result, contract changes, limitation and next owner. Public GitHub contains code and sanitized documentation; Drive contains private context and results.
 
-Proposed ownership pending kickoff reconciliation:
+## Copy-ready prompts
 
-| Owner | Paths and responsibility |
-| --- | --- |
-| Integration owner | Shared contracts, package files/lockfile, migrations, app config, production deploy, merging |
-| Experience branch `codex/experience` | UI components/pages after the shared baseline; no backend or migration changes without coordination |
-| Evidence branch `codex/evidence` | `src/server/`, agreed route handlers, archive adapters and logic checks |
+### Codex lead
 
-Assign human/laptop owners explicitly before simultaneous edits. Older context proposes another role split; do not combine overlapping assignments. Each laptop uses its own clone, credentials and environment. Share small commits and handoffs; never overwrite another clone's work.
+Read AGENTS.md, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/CONTRACT-V3.json and the latest private V3 scope/handoff. Use this repository and codex/engineering. Own contracts, server ingestion/Astra/events/storage/review/export, thin src/app wrappers, migrations, integration tests and dependencies. Preserve other edits. Freeze the contract and publish a baseline commit first, then build the actual short-source-to-proposal-to-review-to-map-to-book-ZIP route. Adapt the prepared seed schema; label imports. Implement genuine event counters, versioned review, unknown/conflict/undo and reopen. Keys remain server-side. Record actual model usage and checks, and save a private Drive handoff. Do not claim a working app, archive match or deployment without verification.
 
-Handoff fields: branch, commit, owned paths, behavior completed, checks run, contract changes, blocker and next action. Private findings belong in Drive; public handoffs must not include family data or keys.
+### Claude UI, after contract commit
 
-## Ready-to-use kickoff prompt
+Read the latest V3 scope, reference mockup, AGENTS.md and the lead's contract commit. Use your separate clone on codex/ui and own src/ui only. Build two screens: compact required input and one research workspace with progress left, editable family map center and distinct human contributions right. Start immediately triggers the internal plan. Support mid-run facts/files/people, original photo aspect ratios, source-backed person/edge drawers, uncertain life years, history/undo and one complete-download action. Consume shared schemas and real events. Any temporary mock adapter must be labeled and replaced for acceptance. Preserve backend/contracts and verify desktop/narrow layouts. Hand off commit, screenshots, commands and gaps privately.
 
-> Read AGENTS.md and every document linked in README. Refresh private Drive context and reconcile new decisions. Inspect the current branch and worktree. Begin the first milestone from docs/EXECUTION.md: scaffold the agreed Next.js/Supabase/Astra stack, validate one real small model request, then persist two images and one memory as a source-backed proposed map and attributed story. Implement ownership checks and source references from the start. Keep private evidence out of Git. One owner controls contracts, dependencies and migrations. Record checks and actual Astra usage in BUILD-LOG. Do not claim deployment until the hosted workflow is verified.
+### Gemini research
 
-## Experience prompt (after baseline)
+Read the current scope, private family manifest and source excerpts. Own only the bounded research package: queries.json, source-register.json and candidate-comparisons.md. Use original-language names, source-supported geography/periods and historical place aliases. Inspect one accessible original archive route. Return exact URLs/record locators, retrieval times, excerpts, access/reuse limits, candidate differences, no-match/failure outcomes and the next useful human question. Keep recollections attributed and surname matches unresolved until supported. Never target a predetermined family size. Do not edit app code or contact relatives. Save private findings and the handoff to Drive; commit only sanitized research structure/examples.
 
-> Work in your separate clone on codex/experience. Read the shared contract and handoff. Own only the assigned UI paths. Build mixed intake, per-file progress, proposed graph, story shelf, evidence inspection and review states. Preserve unknowns and visibly distinguish saved, proposed and accepted content. Consume the agreed server contract. Use labelled synthetic fixtures only when the endpoint is unavailable. Include loading, partial failure and reload behavior. Commit a small coherent slice and hand off exact paths/checks.
+## Verification and timing
 
-## Evidence prompt (after baseline)
+Test actual source → proposal → review → saved graph → cited passage → ZIP/reopen. Include unknown, contradictory dates, duplicate source, retry, stale response, undo, missing attachment, two-user isolation and source failure. Rehearse three runs under three minutes. On timeout retain accepted state and offer an explicitly labeled saved run.
 
-> Work in your separate clone on codex/evidence. Own agreed server paths and logic checks. Implement bounded Astra extraction/reconciliation, actual source retrieval, proposal persistence and source references. Keep candidate IDs separate, validate all references, preserve memories and reject stale writes. Model output cannot bypass authenticated review. Return explicit partial/unavailable results. Coordinate migration and contract changes with the integration owner. Log actual tests, model usage and remaining limits.
+V3 timing targets on September 10: end-to-end by 13:30 EDT, freeze/rehearsals by 14:45, 60-second recording by 16:00, package review 16:45, ready 17:00, submit target 17:15 and organizer deadline 17:30. Replan against the actual clock at kickoff. Latency targets (<2s prepared view, <15s short-source proposal, <1s accepted edit) are unmeasured.
 
-## Review prompt
-
-> Review the integrated slice against PRODUCT acceptance criteria. Exercise a namesake, conflicting date, unsupported assertion, missing attachment, source failure, double-submit and correction. Verify isolation between two users. Open citations and check actual evidence. Do not edit another owner's paths without agreement. Report reproducible failures and the exact tested commit.
-
-These prompts are prepared assignments; no agent tasks are launched by this document.
+Cut OAuth, broad crawling, video interpretation and batch image restoration first. Keep actual Astra, inspectable evidence, human contribution, persistence and the complete download in the core route.

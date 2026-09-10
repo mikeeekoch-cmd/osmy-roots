@@ -1,0 +1,188 @@
+{
+  "version": "roots-v3-draft-contract",
+  "status": "Public preparation contract. Freeze runnable schemas under packages/contracts at engineering kickoff; not implemented yet.",
+  "screens": [
+    "input",
+    "research_workspace"
+  ],
+  "input": {
+    "required": [
+      "seedName",
+      "geoOrExplicitUnknown",
+      "filesOrContextOrPreparedPacket"
+    ],
+    "optional": [
+      "birthPlace",
+      "currentPlace",
+      "residenceHistory",
+      "period",
+      "aliases",
+      "language"
+    ],
+    "startAction": "Start the search",
+    "next": "internal_plan_then_research_workspace"
+  },
+  "source": {
+    "required": [
+      "id",
+      "kind",
+      "originalLocator",
+      "contentHash",
+      "origin"
+    ],
+    "nullable": [
+      "author",
+      "messageTimestamp",
+      "parentAttachmentId"
+    ],
+    "origin": [
+      "live",
+      "cached",
+      "prepared",
+      "replay"
+    ],
+    "rule": "File date does not substitute for an unknown message timestamp. Keep original and extracted text separately."
+  },
+  "claim": {
+    "required": [
+      "id",
+      "subjectId",
+      "predicate",
+      "value",
+      "sourceIds",
+      "status"
+    ],
+    "status": [
+      "proposed",
+      "accepted",
+      "disputed",
+      "unresolved",
+      "superseded"
+    ],
+    "evidenceType": [
+      "family_recollection",
+      "family_document",
+      "archive_record",
+      "user_correction"
+    ],
+    "rule": "A human review does not change a family recollection into independent archival support."
+  },
+  "researchEvent": {
+    "required": [
+      "runId",
+      "eventId",
+      "sequence",
+      "at",
+      "operation",
+      "origin",
+      "state"
+    ],
+    "optional": [
+      "sourceId",
+      "countsDelta",
+      "finding",
+      "error"
+    ],
+    "state": [
+      "planned",
+      "running",
+      "completed",
+      "blocked",
+      "failed",
+      "paused"
+    ],
+    "operation": [
+      "parse_file",
+      "normalize_entity",
+      "retrieve_website",
+      "analyze_record",
+      "compare_candidates",
+      "request_human",
+      "apply_review",
+      "generate_book",
+      "export_project"
+    ],
+    "countRules": {
+      "websitesRead": "Count distinct normalized hostnames with at least one successfully retrieved page. Deduplicate retries and show cached origins separately.",
+      "recordsAnalyzed": "Increment after parsing and analyzing a unique record or article, not just finding a URL.",
+      "filesProcessed": "Increment after successful parsing of a unique asset hash.",
+      "peopleInMap": "Derive from persisted active people, not an animation counter."
+    }
+  },
+  "person": {
+    "required": [
+      "id",
+      "displayNameEn",
+      "originalName",
+      "lifeYears",
+      "claimIds",
+      "photoIds"
+    ],
+    "unknownDates": "null with display label Unknown"
+  },
+  "relationship": {
+    "required": [
+      "id",
+      "fromPersonId",
+      "toPersonId",
+      "type",
+      "claimIds",
+      "status"
+    ]
+  },
+  "reviewDecision": {
+    "required": [
+      "id",
+      "claimId",
+      "actor",
+      "at",
+      "action",
+      "baseVersion"
+    ],
+    "actions": [
+      "accept",
+      "correct",
+      "reject",
+      "unknown"
+    ],
+    "rule": "Reject stale overwrites, preserve prior value and source. Undo emits a new event."
+  },
+  "bookPassage": {
+    "required": [
+      "id",
+      "text",
+      "claimIds",
+      "sourceLocators",
+      "acceptedStateVersion"
+    ]
+  },
+  "export": [
+    "book.pdf",
+    "book.html",
+    "editable-family-map.html",
+    "project.json",
+    "sources.json",
+    "research-notes.json",
+    "starting-context.json",
+    "photos/",
+    "uploads/"
+  ],
+  "seed": {
+    "initialPeople": 35,
+    "referencePeople": 93,
+    "growthRule": "Import or extract attributable records. Ninety people is not a mandatory target."
+  },
+  "owners": {
+    "Codex": [
+      "packages/contracts",
+      "server",
+      "integration-tests"
+    ],
+    "Claude": [
+      "src/ui"
+    ],
+    "Gemini": [
+      "research"
+    ]
+  }
+}
