@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { GraphMutation, ProjectSnapshot, RootsApi } from "./types";
+import { Brand } from "./Brand";
 import { InputScreen } from "./InputScreen";
 import { FamilyCanvas } from "./FamilyCanvas";
 import { ResearchProgress } from "./ResearchProgress";
@@ -172,7 +173,7 @@ export function RootsApp({
       const url = URL.createObjectURL(blob),
         anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "roots-family-book.zip";
+      anchor.download = "osmy-roots-family-book.zip";
       anchor.click();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
       setDownloaded(true);
@@ -200,10 +201,7 @@ export function RootsApp({
   return (
     <div className="roots-app">
       <header className="roots-header">
-        <div className="brand" aria-label="Roots">
-          <span aria-hidden="true">♧</span> roots
-          <span className="brand-period">.</span>
-        </div>
+        <Brand />
         <div className="project-label">
           {snapshot ? (
             <>

@@ -39,7 +39,7 @@ export function ResearchProgress({
       : event.finding;
   return (
     <aside className="research-progress">
-      <span className="eyebrow">Roots is working with you</span>
+      <span className="eyebrow">Osmy Roots is working with you</span>
       <h2>Following the clues</h2>
       <div className={`run-status ${busy ? "working" : ""}`}>
         {busy && <span className="spinner" />}
@@ -48,14 +48,16 @@ export function ResearchProgress({
             ? "Working…"
             : storedOriginal(latest)
               ? "Original saved"
-              : label(latest?.state || "Ready")}
+              : "Up to date"}
         </strong>
       </div>
       <p className="current-action" aria-live="polite">
-        {(latest && findingText(latest)) ||
-          (latest
-            ? operationText[latest.operation]
-            : "Ready for your family material.")}
+        {!busy
+          ? "Up to date. Add another clue while you review."
+          : (latest && findingText(latest)) ||
+            (latest
+              ? operationText[latest.operation]
+              : "Ready for your family material.")}
       </p>
       <div className="metrics">
         {(

@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
-<title id="title">Osmy Roots — connected family branches</title>
-<rect width="160" height="160" rx="36" fill="#f3efe5"/>
-<path d="M80 128V84M80 101L43 68V39M80 84L117 52V33M80 63V30" fill="none" stroke="#315943" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-<g fill="#315943"><circle cx="43" cy="39" r="11"/><circle cx="117" cy="33" r="11"/><circle cx="80" cy="30" r="11"/></g>
-<circle cx="80" cy="84" r="12" fill="#b8884d"/>
-<path d="M80 128L59 143M80 128L101 143" fill="none" stroke="#315943" stroke-width="7" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title"><title id="title">Osmy Roots</title><g stroke="#375b43" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="14" r="5"/><circle cx="16" cy="22" r="4"/><circle cx="48" cy="22" r="4"/><path d="M24 33v-5a8 8 0 0 1 16 0v5M9 35v-3a7 7 0 0 1 14 0M41 32a7 7 0 0 1 14 0v3M16 35l16 7 16-7M32 34v23M32 45l-13 9M32 45l13 9M23 51l-7-1M41 51l7-1"/></g></svg>

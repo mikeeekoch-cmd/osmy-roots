@@ -1574,3 +1574,116 @@
 .photo-lightbox img {
   max-height: 72vh;
 }
+
+/* Round 2 keeps the warm paper palette and the existing research workspace. */
+.roots-app [hidden] {
+  display: none !important;
+}
+.roots-app .brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font:
+    28px/1 Georgia,
+    serif;
+  letter-spacing: -1px;
+}
+.roots-app .brand > span:first-child {
+  font: inherit;
+  margin: 0;
+  color: inherit;
+}
+.roots-mark {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  color: var(--green);
+}
+.photo-guidance {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.photo-guidance strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+.file-total {
+  font-size: 12px;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+.open-saved-project {
+  padding: 18px 0;
+  max-width: 540px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.open-saved-project summary {
+  cursor: pointer;
+  color: var(--green);
+}
+.open-saved-project p {
+  margin: 14px 0;
+}
+.preparation-state {
+  width: 100%;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+}
+.preparation-state h2 {
+  font-size: 34px;
+  margin-bottom: 16px;
+}
+.preparation-state p {
+  max-width: 430px;
+  color: var(--muted);
+}
+.preparation-state small {
+  margin-top: 28px;
+  color: var(--muted);
+}
+.preparation-mark {
+  background: #e8eedf;
+  border: 1px solid #d1dcc6;
+  border-radius: 50%;
+  padding: 25px;
+  margin-bottom: 28px;
+}
+.preparation-mark .roots-mark {
+  width: 66px;
+  height: 66px;
+}
+.preparation-mark.active {
+  animation: preparation-breathe 2.8s ease-in-out infinite;
+}
+@keyframes preparation-breathe {
+  50% {
+    box-shadow: 0 0 0 12px #e8eedf66;
+  }
+}
+@media (max-width: 600px) {
+  .roots-app .brand {
+    font-size: 23px;
+    gap: 4px;
+  }
+  .roots-mark {
+    width: 32px;
+    height: 32px;
+  }
+  .preparation-state {
+    min-height: 440px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .preparation-mark.active {
+    animation: none;
+  }
+}

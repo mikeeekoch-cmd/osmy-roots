@@ -86,12 +86,18 @@ export function FilePicker({
         />
         {!compact && (
           <small>
-            TXT & JSON for text · Photos kept as originals
-            <br />
-            Other documents and chat exports depend on available parsers.
+            Family records, documents, photos and exported chats. Originals stay
+            linked to their sources.
           </small>
         )}
       </div>
+      {files.length > 0 && (
+        <p className="file-total" role="status">
+          {files.length} {files.length === 1 ? "file" : "files"} selected ·{" "}
+          {formatBytes(files.reduce((total, file) => total + file.size, 0))}{" "}
+          total
+        </p>
+      )}
       {files.length > 0 && (
         <ul className="file-list">
           {files.map((file, i) => (
@@ -99,9 +105,7 @@ export function FilePicker({
               <Thumbnail file={file} />
               <div>
                 <strong>{file.name}</strong>
-                <small>
-                  {Math.max(1, Math.round(file.size / 1024))} KB · Queued
-                </small>
+                <small>{formatBytes(file.size)} · Ready to upload</small>
               </div>
               <button
                 type="button"
@@ -119,4 +123,10 @@ export function FilePicker({
       )}
     </div>
   );
+}
+
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }

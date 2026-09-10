@@ -1,15 +1,15 @@
 import { useState, type FormEvent } from "react";
 import type { ProjectInput } from "./types";
 import { FilePicker } from "./FilePicker";
+import { PreparationState } from "./PreparationState";
 export function validateInput(
   input: ProjectInput,
   fileCount: number,
 ): string | null {
-  if (!input.seedName.trim()) return "Add a starting person or family name.";
+  if (!input.seedName.trim()) return "Add your full name.";
   if (!input.geography.trim() && !input.geographyUnknown)
-    return "Add a family location or choose “I do not know.”";
-  if (!input.context.trim() && !input.preparedPacket && !fileCount)
-    return "Add a file, a family memory or a prepared packet.";
+    return "Add a family location or choose I don't know.";
+  if (!fileCount) return "Add your family files to begin.";
   return null;
 }
 export function InputScreen({
@@ -31,169 +31,154 @@ export function InputScreen({
     aliases: [],
   });
   const [files, setFiles] = useState<File[]>([]);
+  const [savedFiles, setSavedFiles] = useState<File[]>([]);
   const [validation, setValidation] = useState<string | null>(null);
-  const field = (key: keyof ProjectInput, value: string | boolean) =>
-    setInput((current) => ({
-      ...current,
-      [key]:
-        key === "aliases"
-          ? String(value)
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : value,
-    }));
+  const [opening, setOpening] = useState(false);
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const issue = validateInput(input, files.length);
     setValidation(issue);
-    if (!issue) onStart(input, files);
+    if (!issue) {
+      setOpening(false);
+      onStart(input, files);
+    }
+  };
+  const reopen = () => {
+    if (!savedFiles.some((file) => /\.json$/i.test(file.name))) {
+      setValidation(
+        "Select the project.json from your downloaded book, with its original files.",
+      );
+      return;
+    }
+    setValidation(null);
+    setOpening(true);
+    onStart(
+      {
+        ...input,
+        seedName: "Saved family project",
+        geography: "",
+        geographyUnknown: true,
+      },
+      savedFiles,
+    );
   };
   return (
-    <main className="input-screen">
-      <div className="intro">
-        <span className="eyebrow">
-          A little evidence. A lasting connection.
-        </span>
-        <h1>
-          Your family story,
-          <br />
-          <em>coming together.</em>
-        </h1>
-        <p>
-          Start with a name, a photograph, a memory.
-          <br />
-          Keep the stories – and the sources behind them.
-        </p>
-      </div>
-      <form className="intake" onSubmit={submit} noValidate>
-        <section className="intake-material">
-          <span className="step-label">01 / Bring what you have</span>
-          <FilePicker files={files} onChange={setFiles} disabled={busy} />
-          <label className="field">
-            A memory or a little context
-            <textarea
-              value={input.context}
-              onChange={(e) => field("context", e.target.value)}
-              placeholder="My grandfather often spoke about…"
-              rows={3}
-            />
-          </label>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={input.preparedPacket}
-              onChange={(e) => field("preparedPacket", e.target.checked)}
-            />
-            Use the prepared example family (synthetic)
-          </label>
-          <small className="muted">
-            For your own family, upload a prepared project JSON. Existing
-            records are labeled as an import.
-          </small>
-          <div className="connections">
-            <span className="eyebrow">Optional connections</span>
-            <div>
-              <button type="button" disabled>
-                Google Drive · unavailable
-              </button>
-              <button type="button" disabled>
-                Email · unavailable
-              </button>
-            </div>
-          </div>
-        </section>
-        <section className="intake-details">
-          <span className="step-label">02 / Where should we begin?</span>
-          <label className="field">
-            Starting person or family name <span aria-hidden="true">*</span>
-            <input
-              autoComplete="off"
-              value={input.seedName}
-              onChange={(e) => field("seedName", e.target.value)}
-              placeholder="A full name or family name"
-              aria-required="true"
-            />
-          </label>
-          <label className="field">
-            Family geography
-            <input
-              value={input.geography}
-              disabled={input.geographyUnknown}
-              onChange={(e) => field("geography", e.target.value)}
-              placeholder="A village, region or country"
-              aria-required={!input.geographyUnknown}
-            />
-          </label>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={input.geographyUnknown}
-              onChange={(e) => field("geographyUnknown", e.target.checked)}
-            />
-            I do not know the family location
-          </label>
-          <details className="optional">
-            <summary>
-              A few more details <span>optional</span>
-            </summary>
-            {(
-              [
-                ["birthPlace", "Birthplace"],
-                ["currentPlace", "Current place"],
-                ["period", "Approximate years"],
-                ["aliases", "Other names or spellings"],
-              ] as const
-            ).map(([key, label]) => (
-              <label className="field" key={key}>
-                {label}
-                <input
-                  value={
-                    key === "aliases"
-                      ? input.aliases.join(", ")
-                      : input[key] || ""
-                  }
-                  onChange={(e) => field(key, e.target.value)}
-                />
-              </label>
-            ))}
-            <label className="field">
-              Book language
-              <select
-                value={input.language}
-                onChange={(e) => field("language", e.target.value)}
-              >
-                <option value="en">English</option>
-              </select>
-            </label>
-          </details>
-          {(validation || error) && (
-            <p role="alert" className="error">
-              {validation || error}
-            </p>
-          )}
-          <button className="primary start-button" disabled={busy}>
-            {busy ? (
-              <>
-                <span className="spinner" />
-                Reading your material…
-              </>
-            ) : (
-              <>
-                Start the search <span aria-hidden="true">↗</span>
-              </>
-            )}
-          </button>
-          <p className="fine-print">
-            You stay part of the story. Review suggestions,
+    <>
+      {busy && (
+        <PreparationState
+          title={
+            opening
+              ? "Reopening your family story"
+              : "Preparing your family story"
+          }
+          summary={
+            opening
+              ? "Opening your saved project and its original files."
+              : "Sending your files and starting a saved project. Your first source checks will appear when they are ready."
+          }
+        />
+      )}
+      <main className="input-screen" hidden={busy}>
+        <div className="intro">
+          <span className="eyebrow">
+            A little evidence. A lasting connection.
+          </span>
+          <h1>
+            Your family story,
             <br />
-            keep unknowns open, and add more at any time.
+            <em>coming together.</em>
+          </h1>
+          <p>
+            Bring the photographs and records you have.
+            <br />
+            Keep the stories and the sources behind them.
           </p>
-        </section>
-      </form>
-      <p className="input-footer">
-        Family memories stay distinct from archival evidence.
-      </p>
-    </main>
+        </div>
+        <form className="intake" onSubmit={submit} noValidate>
+          <section className="intake-material">
+            <span className="step-label">01 / Bring what you have</span>
+            <FilePicker files={files} onChange={setFiles} disabled={busy} />
+            <p className="photo-guidance">
+              Name the people in each photo from left to right. Example:{" "}
+              <strong>01__Alex_Morgan__Jamie_Morgan.jpg</strong>. If you are
+              unsure, use Unknown. You can confirm the names after starting.
+            </p>
+          </section>
+          <section className="intake-details">
+            <span className="step-label">02 / Where should we begin?</span>
+            <label className="field">
+              Your full name <span aria-hidden="true">*</span>
+              <input
+                autoComplete="name"
+                value={input.seedName}
+                onChange={(e) =>
+                  setInput({ ...input, seedName: e.target.value })
+                }
+                placeholder="Your full name"
+                aria-required="true"
+              />
+            </label>
+            <label className="field">
+              Family location
+              <input
+                value={input.geography}
+                disabled={input.geographyUnknown}
+                onChange={(e) =>
+                  setInput({ ...input, geography: e.target.value })
+                }
+                placeholder="A village, region or country"
+                aria-required={!input.geographyUnknown}
+              />
+            </label>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={input.geographyUnknown}
+                onChange={(e) =>
+                  setInput({ ...input, geographyUnknown: e.target.checked })
+                }
+              />
+              I don't know the family location
+            </label>
+            {(validation || error) && (
+              <p role="alert" className="error">
+                {validation || error}
+              </p>
+            )}
+            <button className="primary start-button" disabled={busy}>
+              Start <span aria-hidden="true">↗</span>
+            </button>
+            <p className="fine-print">
+              Review the evidence, keep unknowns open,
+              <br />
+              and add more while your story takes shape.
+            </p>
+          </section>
+        </form>
+        <details className="open-saved-project">
+          <summary>Open saved project</summary>
+          <p>
+            Choose project.json and the originals from a previously downloaded
+            book. Your reviewed work will reopen.
+          </p>
+          <FilePicker
+            files={savedFiles}
+            onChange={setSavedFiles}
+            compact
+            disabled={busy}
+          />
+          <button
+            type="button"
+            disabled={busy || !savedFiles.length}
+            onClick={reopen}
+          >
+            Open project
+          </button>
+        </details>
+        <p className="input-footer">
+          Family memories stay distinct from archival evidence.
+        </p>
+      </main>
+    </>
   );
 }
