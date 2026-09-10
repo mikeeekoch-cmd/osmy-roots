@@ -2,6 +2,7 @@ import { ZodError } from "zod";
 import { randomUUID } from "node:crypto";
 import type { InputFile } from "../../packages/contracts";
 import { AppError } from "../state/validation";
+import { UPLOAD_LIMITS } from "../../packages/contracts/round2";
 export function localRequest(request: Request) {
   const url = new URL(request.url);
   const host = request.headers.get("host") || url.host;
@@ -31,9 +32,30 @@ export function localRequest(request: Request) {
     );
 }
 export async function multipart(request: Request) {
-  if (Number(request.headers.get("content-length") || 0) > 30_000_000)
-    throw new AppError("Upload exceeds the 30 MB prototype limit.", 413);
-  const form = await request.formData();
+  const cap = UPLOAD_LIMITS.maxTotalBytes + UPLOAD_LIMITS.multipartOverheadBytes;
+  const advertised = request.headers.get("content-length");
+  if (advertised && (!/^\d+$/.test(advertised) || Number(advertised) > cap))
+    throw new AppError("Upload exceeds the 100 MB total limit.", 413);
+  const reader = request.body?.getReader();
+  if (!reader) throw new AppError("Choose files before starting.");
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      length += value.byteLength;
+      if (length > cap) {
+        await reader.cancel();
+        throw new AppError("Upload exceeds the 100 MB total limit.", 413);
+      }
+      chunks.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  const bounded = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) { bounded.set(chunk, offset); offset += chunk.length; }
+  const form = await new Response(bounded, {headers: {"content-type": request.headers.get("content-type") || ""}}).formData();
   let input: unknown;
   try {
     input = JSON.parse(String(form.get("input") || "{}"));
@@ -43,8 +65,10 @@ export async function multipart(request: Request) {
   const picked = form
     .getAll("files")
     .filter((f): f is File => f instanceof File);
-  if (picked.length > 20 || picked.reduce((n, f) => n + f.size, 0) > 30_000_000)
-    throw new AppError("Choose at most 20 files totaling 30 MB.", 413);
+  if (picked.length > UPLOAD_LIMITS.maxFiles || picked.reduce((n, f) => n + f.size, 0) > UPLOAD_LIMITS.maxTotalBytes)
+    throw new AppError("Choose at most 40 files totaling 100 MB.", 413);
+  const tooLarge = picked.find(f => f.size > UPLOAD_LIMITS.maxFileBytes);
+  if (tooLarge) throw new AppError(`${tooLarge.name} exceeds the 25 MB per-file limit.`, 413);
   const files: InputFile[] = await Promise.all(
     picked.map(async (f) => ({
       uploadId: randomUUID(),

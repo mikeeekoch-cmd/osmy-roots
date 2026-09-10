@@ -1,9 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { searchLocalSources, fetchPublicRecord, isPrivateAddress, htmlToText, websiteCountDelta } from '../../server/research/index.mjs';
+import { searchLocalSources, fetchPublicRecord as fetchRecord, isPrivateAddress, htmlToText, websiteCountDelta } from '../../server/research/index.mjs';
 import { ingestContribution } from '../../server/ingestion/index.mjs';
 
 const sourcesFor = async (text) => (await ingestContribution({ text })).sources;
+// These are adapter unit tests. Both network layers are controlled so offline
+// environments test redirect/access behavior without relying on live DNS.
+const fetchPublicRecord = (input) => fetchRecord({ lookupImpl: async () => [{ address: '93.184.216.34', family: 4 }], ...input });
 
 test('local search finds a real phrase and returns its exact locator', async () => {
   const sources = await sourcesFor('I remember my grandfather Alex Morgan repairing watches in his workshop.');
@@ -46,6 +49,12 @@ test('private and reserved addresses are refused', () => {
   for (const ip of ['8.8.8.8', '93.184.216.34', '2606:2800:220:1:248:1893:25c8:1946']) {
     assert.equal(isPrivateAddress(ip), false, `${ip} should be allowed`);
   }
+});
+
+test('a permitted hostname resolving to private space is refused before fetch', async () => {
+  let called = false;
+  const result = await fetchPublicRecord({ url: 'https://www.loc.gov/a', lookupImpl: async () => [{ address: '10.0.0.1', family: 4 }], fetchImpl: async () => { called = true; } });
+  assert.equal(result.error.code, 'BLOCKED_PRIVATE'); assert.equal(called, false);
 });
 
 test('non-http schemes and off-allowlist hosts are refused before any request', async () => {

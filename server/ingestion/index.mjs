@@ -16,9 +16,15 @@ import { normalizeSeed } from './normalize-seed.mjs';
 import { detectMediaType, extensionOf, isImage, isAudioOrVideo } from './media-type.mjs';
 import { decodeUtf8, segmentText, lineLocator, parseJsonSafely } from './parse-text.mjs';
 import { ORIGIN, FILE_STATUS, PARSEABLE_TEXT_TYPES, SCHEMA_VERSION } from '../contracts/types.mjs';
+import { extractPdfText } from './pdf.mjs';
+import { readUploadZip, parseChatText } from './zip.mjs';
 
 export { normalizeSeed, parseDate } from './normalize-seed.mjs';
 export { searchableTextOf } from './searchable.mjs';
+export { parseFamilyPacket } from './packet.mjs';
+export { parseFamilyNotesPacket } from './family-notes.mjs';
+export { parseCsvWithSpans as parseCsv } from './csv.mjs';
+export { readUploadZip, parseChatText } from './zip.mjs';
 
 const toBuffer = (b) => (Buffer.isBuffer(b) ? b : Buffer.from(b));
 
@@ -218,6 +224,7 @@ export async function ingestContribution({ text, files = [], targetPersonId, kno
   const known = new Set(knownHashes);
   const seenThisCall = new Map();
   let seq = 0;
+  const zipBudget = { expandedBytes: 0 };
 
   const noteDuplicate = (hash, label) => {
     if (known.has(hash) || seenThisCall.has(hash)) {
@@ -287,6 +294,49 @@ export async function ingestContribution({ text, files = [], targetPersonId, kno
     const isDup = noteDuplicate(contentHash, originalName);
     if (isDup) warnings.push('Content hash matches an already supplied file.');
     seenThisCall.set(contentHash, originalName);
+
+    // The selected PDF and reconstructed chat formats are genuinely extracted.
+    if (mediaType === 'application/pdf' || mediaType === 'application/zip') {
+      const archiveAssetId = assetIdFor(contentHash, seq);
+      const originalAsset = { id: archiveAssetId, sourceId: null, originalName, mediaType, byteLength: bytes.length, contentHash, storageKey: storageKeyFor(archiveAssetId, originalName), origin: ORIGIN.LIVE, bytes };
+      assets.push(originalAsset); assetIds.push(archiveAssetId);
+      try {
+        if (mediaType === 'application/pdf') {
+          const originalText = await extractPdfText(bytes), id = sourceIdFor(contentHash, seq);
+          sources.push({ id, kind: 'family_document', originalLocator: `${originalName}#extracted-pages-1-10`, contentHash, originalText, origin: ORIGIN.LIVE, author: null, messageTimestamp: null, parentAttachmentId: archiveAssetId, title: originalName, language: 'en', extractionMethod: 'Poppler pdftotext: actual text extraction, up to 10 pages; no OCR', segments: segmentText(originalText), mediaType });
+          originalAsset.sourceId = id; sourceIds.push(id);
+        } else {
+          const entries = readUploadZip(bytes, zipBudget), chats = entries.filter((e) => /(?:^|\/)_chat\.txt$/i.test(e.name));
+          if (chats.length !== 1) throw new Error('Chat ZIP must contain exactly one UTF-8 _chat.txt');
+          const metadataEntry = entries.find((e) => /(?:^|\/)metadata\.json$/i.test(e.name));
+          if (chats[0].bytes.length > 2_000_000 || (metadataEntry?.bytes.length || 0) > 512_000) throw new Error('Chat text or metadata exceeds its extraction limit');
+          const metadata = metadataEntry ? JSON.parse(decodeUtf8(metadataEntry.bytes)) : {};
+          const chat = chats[0], originalText = decodeUtf8(chat.bytes), id = typeof metadata.sourceId === 'string' ? metadata.sourceId : sourceIdFor(sha256(chat.bytes), seq);
+          const reconstructed = metadata.reconstruction === true || metadata.reconstructed === true;
+          const locator = `${originalName}/${chat.name}`;
+          const messages = parseChatText(originalText, locator).map((message) => {
+            const metadataMessages = metadata.messages || [];
+            const zeroBased = metadataMessages.some((p) => p.index === 0);
+            const provenance = metadataMessages.find((p) => p.ordinal === message.index || p.index === message.index - (zeroBased ? 1 : 0) || p.messageIndex === message.index);
+            return { ...message, ...(provenance ? { evidenceRootId: provenance.evidenceRootId, originalLocator: provenance.originalLocator, attribution: provenance.attribution, sourceSpan: provenance.sourceSpan } : {}) };
+          });
+          sources.push({ id, kind: reconstructed ? 'reconstructed_chat' : 'uploaded_chat', originalLocator: locator, contentHash: sha256(chat.bytes), archiveHash: contentHash, originalText, origin: reconstructed ? ORIGIN.PREPARED : ORIGIN.LIVE, author: metadata.attribution || metadata.actualAuthor || null, messageTimestamp: null, parentAttachmentId: archiveAssetId, title: originalName, language: 'en', extractionMethod: reconstructed ? 'UTF-8 chat ZIP extraction; dialogue and timestamps are reconstructed scaffolding, not historical messages' : 'UTF-8 chat ZIP extraction', evidenceRootId: metadata.evidenceRootId || contentHash, lineage: metadata.lineage || [], reconstructionMetadata: metadata, segments: messages, bytes: chat.bytes, mediaType: 'text/plain' });
+          originalAsset.sourceId = id; sourceIds.push(id);
+          for (const entry of entries) {
+            if (entry === chat || entry === metadataEntry) continue;
+            const attachmentType = detectMediaType(entry.name, entry.bytes);
+            if (!isImage(attachmentType) && !['text/plain', 'application/json'].includes(attachmentType)) { warnings.push(`Unsupported chat attachment ${entry.name} was not extracted.`); continue; }
+            const attachmentHash = sha256(entry.bytes), attachmentId = `chat-${shortHash(contentHash, 8)}-${shortHash(attachmentHash, 10)}`;
+            assets.push({ id: attachmentId, sourceId: id, originalName: entry.name.split('/').at(-1), mediaType: attachmentType, byteLength: entry.bytes.length, contentHash: attachmentHash, storageKey: `assets/${attachmentId}`, origin: ORIGIN.PREPARED, bytes: entry.bytes }); assetIds.push(attachmentId);
+          }
+          const attachmentRefs = [...originalText.matchAll(/(?:<attached:\s*([^>]+)>|([^\n]+?)\s*\(file attached\))/gi)].map((m) => (m[1] || m[2]).trim());
+          for (const ref of attachmentRefs) if (!entries.some((e) => e.name === ref || e.name.endsWith(`/${ref}`))) warnings.push(`Chat attachment missing: ${ref}`);
+          if (reconstructed) warnings.push('Reconstructed chat: source attribution and evidence roots remain distinct from speaker/time scaffolding.');
+        }
+        fileOutcomes.push({ uploadId, originalName, status: FILE_STATUS.PARSED, sourceIds, assetIds, warnings, mediaType, contentHash });
+      } catch (e) { fileOutcomes.push({ uploadId, originalName, status: FILE_STATUS.FAILED, sourceIds: [], assetIds, warnings, mediaType, contentHash, reason: `Extraction failed: ${e.message}` }); }
+      continue;
+    }
 
     // Images: stored and displayable. No OCR, no face identification.
     if (isImage(mediaType)) {

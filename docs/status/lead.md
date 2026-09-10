@@ -1,4 +1,28 @@
+# Round 3 execution checkpoint
+
+Started 2026-09-10T20:08:05Z on codex/engineering at a7d50ab. Origin fetched. Round-2 production on 3200 remains untouched; round-3 candidate will use 3300 and an isolated build directory. Actual versioned contracts and API examples published in packages/contracts/round3.ts and docs/round-3/API.md. Natalia and Claude retain their ownership; no replacement agents.
+
+Access: Astra key configured; no Google OAuth client in the application environment. User requested to configure GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET with callback http://127.0.0.1:3300/api/connections/callback. Real successful read remains required. Estimate after contracts: 60-90 minutes for runtime and integration, then media/book readiness and two full rehearsals; provider authorization and Claude packet determine the final acceptance time. No new deadline or readiness claim.
+
 # Codex Mike status
+
+## Round 3 planning handoff, 2026-09-10
+
+The user's next revision is specified in docs/round-3 and prompts 09-11. Exactly three owners: Mike handles contracts/Astra/connections/state/integration, Natalia UI, and Claude private content/media/retrieval/full-book export. The new flow has six initial checks with at least three large photos, one initial research cycle and two explicit deeper cycles, a later question bank, actual metric growth, all selected-old-photo sliders and a current 35-40-page English book. The user replaced the total 120-second ceiling with about 20 seconds of visible actual work per research click before progressive results.
+
+Read-only code/content audits and a live intake inspection informed the plan. Current input is 20 files/35 people, current PDF is four pages, actual Gmail/Drive authorization and general research cycles do not exist yet, and the old-photo pair set needs preparation. These are next-round implementation requirements. No application code, private packet, provider state or live project changed. No new engineering clock or implementation run started. Safe prompts, ownership and acceptance are published for launch; the private source handoff remains ignored/local. Earlier readiness below applies only to round 2.
+
+## Final round 2 handoff, 2026-09-10
+
+- Integrated-demo-ready locally: application a627436, production http://127.0.0.1:3200. Two fresh Chrome rehearsals passed with actual file receipt at 104.174 and 104.747 seconds; the second refreshed/resumed. Both current PDFs passed full visual review. Safe details: docs/READINESS.md and docs/round-2/ACCEPTANCE.json.
+- Original round-2 T0 18:18:15 UTC and deadline 19:48:15 UTC retained. Contracts published T+4:28. Actual API route integrated/exported T+54:31; corrected browser acceptance followed. Application code froze at 19:18:20, before T+70. Later changes are status/documentation only.
+- Exact final input: 20 ordinary files, 35 people, 56 sourced relationships, 14 unchanged original photographs, three reconstructed English chat archives. No visible CSV/technical IDs, enhanced photos or hidden graph injection. Product's latest Desktop upload copy matches the frozen files. Earlier packet versions and original source narrative are preserved.
+- Lead contracts/Astra/state/route changes, Natalia's final UI history and Claude's parser/export history are integrated. Codex helpers added regression checks, fictional fixtures and source/visual QA. The Product task remained sole owner of actual private facts, files and presenter cues. The shared manifest is schema-normalized and hash checked; its contents and outputs stay private.
+- 171 tests, typecheck and production webpack build pass. Both actual downloads preserve all 23 asset hashes, full English evidence and review state; each reopens in an empty store, permits edits and invalidates its previous book on change. Source-matched narrator, exact quote, uncertainty and current Astra passage pass in both outputs.
+- Prepared family records, source derivatives, reconstructed dialogue and release cadence remain distinct from live Astra interpretation and book generation. No live website discovery, hosting, arbitrary archive importer, OCR/restoration or standalone editable HTML map is claimed. Final packet uses original photos; optional older photo pairs remain supported.
+- Private output and presenter instructions are delivered locally. Default-branch publication remains restricted to a separately approved exact commit; routine engineering-branch publication is authorized. One optional internal Product status message was rejected by automatic approval review and was not sent. It did not block the code or local output delivery.
+
+## Historical round-1 and intermediate execution records
 
 - Shared T0: 2026-09-10 16:27:53 UTC / 12:27:53 EDT.
 - Contracts due T+10: 16:37:53 UTC / 12:37:53 EDT.
@@ -92,3 +116,40 @@
 - Product owns actual private files, manifest values, source/translation/photo lineage, complete coverage and presenter cues. Claude owns parsers/retrieval/export against the frozen packet; Natalia owns display/animations; Mike owns runtime schemas, model/state/run, integration and acceptance. Private source pointers are in an ignored local handoff, not Git.
 - No engineering agents were dispatched, no new T0 started and no content packet was claimed complete in this documentation pass. Existing P0/partial P1 evidence remains the 556953f check: 74 tests, typecheck and build passed with two known tracing warnings. This pass changes instructions only; application tests were not rerun as if code changed.
 - Required next execution: one shared T0+90 engineering deadline, contracts within ten minutes, P0 integration by T+55, freeze by T+70, then all shared checks and two real fresh <=120-second browser rehearsals. Status must distinguish content-ready, engineering-ready and integrated-demo-ready.
+
+## Round 2 execution: shared engineering clock
+
+- Actual T0: 2026-09-10 18:18:15 UTC / 14:18:15 EDT.
+- Contracts due: 18:28:15 UTC / 14:28:15 EDT. P0 integration: 19:13:15 UTC / 15:13:15 EDT.
+- Feature freeze: 19:28:15 UTC / 15:28:15 EDT. Shared engineering deadline: 19:48:15 UTC / 15:48:15 EDT.
+- Baseline: fetched d10eb59, descendant of validated 556953f, in a separate engineering worktree; preserved the data/export checkout.
+- Lead owns contracts, Astra, state, API and integration. Three Codex helpers support integration and QA. External Natalia and Claude owner branches are also active and are integrated without replacing their history. The existing Product task is the sole owner of the frozen private packet; the Product helper supplies its fictional twin and independent QA.
+- Published schema: packages/contracts/round2.ts. API/module instructions: docs/round-2/CONTRACT-HANDOFF.md. Fictional structural example: docs/round-2/DEMO_MANIFEST.example.json; zero hashes are explicit example placeholders, not a frozen packet.
+- Product is auditing the selected private inputs and building the single private manifest. No content-ready or integrated-demo-ready claim yet.
+- Final gate: exact frozen packet, seven explicit answers, six saved arrivals across at least 45 seconds, current source-reviewed English book, and two actual <=120-second browser rehearsals. Timing and failures must be recorded.
+
+## Round 2 integration checkpoint, 18:46 UTC
+
+- Contracts were pushed at 18:22:43 UTC, T+4:28, in ea320f8. The original engineering clock remains unchanged.
+- Private content is frozen by Product. Read-only runtime parsing validates 16 uploaded files, 35 people, 56 normalized relationships, exact source quotations and original/derivative hashes. The supplied 57-row audit retains its documented duplicate reconciliation. Public test files are a separate fictional twin.
+- Implemented: bounded ordinary intake, seven versioned explicit decisions, actual Astra recollection interpretation, zero visible people before review, dependency-safe saved batches, saved-source provenance, current English book preparation, immutable export sealing, retry, cancellation, portable reopen and photo-pair preservation.
+- Runtime edge-case checks caught and fixed unknown-photo reattachment, relationship-correction semantics, cancelled-book resurrection and undo replacing later batches. Independent tests also verified early export, failed sealed export retry and editable cross-store reopen.
+- Baseline plus integration tests passed at the implementation checkpoint. Combined external-owner merges, production build and full browser acceptance remain in progress. Isolated checks are not demo readiness.
+- A live fictional source-to-Astra-to-reviewed-passage-to-ZIP/reopen smoke test passed in 8.638 seconds. Private live dispatch is pending explicit payload approval after automatic approval review rejected sending the private roster/recollection to OpenAI without that review. No indirect private dispatch is permitted while approval is pending.
+- P0 integration and two fresh browser rehearsals remain open. No integrated-demo-ready claim has been made.
+
+## Round 2 ordinary-document candidate, 18:59 UTC
+
+- The user revised the visible input: a personal one-page PDF, natural family notes, photo notes, three reconstructed chat ZIPs and 14 unchanged original photographs. Product froze a new private packet separately; earlier frozen inputs are preserved. The new packet has 20 files, 35 people and 56 sourced relationships. No enhanced photographs or saved background arrivals are supplied in this packet.
+- Added the bounded prose parser and stable identity-key contract. It derives parent/partner/sibling connections from actual uploaded sentences, retains tentative links and unknown dates, validates all manifest photo associations against parsed captions, and never imports a hidden register.
+- Combined regression suite: 159 tests passed. Production build passed. Exact final packet intake, source spans, photo identities, and roster/link coverage passed with zero people visible before review. The one different date encoding expresses the same two unresolved birth-date alternatives as the reviewed roster.
+- The first browser attempt exposed a harness fingerprint mismatch caused by an omitted default field; schema normalization fixes the measurement. The second stopped honestly on an invalid live model citation. The held-out response now constrains citations to the exact uploaded span while leaving person selection, interpretation, question and uncertainty live. No failed attempt counts as acceptance.
+- Direct user approval for the scoped private OpenAI requests is now present in this task. Earlier automatic-review rejections of cross-task approval evidence remain recorded; the scope excludes photographs, presenter notes and the full archive.
+- Final UI-owner commits are being incorporated before the two fresh private-packet rehearsals. P0 acceptance remains open until those integrated checks succeed.
+## Additive photo comparison and invisible timing
+
+- Mike is launching the four assignments. Continue them and their existing deadline. The 120-second budget is internal only: no countdown, elapsed session clock, seconds remaining or time-derived progress in any product screen/details. Actual activity and question/count progress remain visible.
+- Added docs/round-2/PHOTO-COMPARE-ADDENDUM.md and prompt 08_CODEX_NATALIA_PHOTO_COMPARE.md. Natalia owns the person-card Original/Enhanced divider and normal gallery fallback; this is a follow-up to the existing UI owner. Product prepares all selected old-photo variants and the private library; Mike owns optional pair contracts/state; Claude preserves both versions and metadata in export/reopen.
+- Read-only inspection located two existing private original/enhanced candidate pairs. Their filenames, hashes and alignment/provenance caveats are in an ignored local handoff. No new restoration was run and no private images entered Git. Different crop/geometry must be checked before a usable comparison is claimed.
+- Important integration detail: the existing photo lightbox captures left/right arrows globally and traps focus on buttons. Natalia must make the range control keyboard-accessible without triggering gallery paging or escaping the focus trap.
+- This is an additive instruction pass, not a feature implementation claim. Core P0 integration continues while content pairs are prepared; local restoration belongs before the timed demo. Final rehearsal includes a brief comparison within the existing map-review segment.

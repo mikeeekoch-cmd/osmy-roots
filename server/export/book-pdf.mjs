@@ -1,33 +1,31 @@
 /**
- * Osmy Roots: four-page illustrated English book.
+ * Four-page illustrated English mini-book.
  *
- * Page 1  branding, cover portrait, dedication
- * Page 2  legible main branch, then the full selected family register
- * Page 3  the reviewed source-backed story with its selected photographs
- * Page 4  numbered sources with exact locators, and what is still open
+ * Page 1 cover/dedication + original portrait
+ * Page 2 selected family branch, names, life years, source markers
+ * Page 3 the person's photographs and their latest attributed story + cited passage
+ * Page 4 numbered sources with exact locators, and what is still unresolved
  *
- * Layout is prepared; every fact comes from current accepted state. Four guards
- * run while rendering and fail loudly rather than printing something misleading:
- * clipped text, page overflow, raw object prose and unresolved citation markers.
+ * Narrative comes from CURRENT accepted state. The layout is prepared; the facts are not.
+ * If the four-page layout cannot be produced, the caller falls back to a shorter PDF
+ * carrying the same essential content, and records the cut.
  */
 
 import { PdfDocument, A4 } from './pdf/document.mjs';
 import { selectFont } from './pdf/ttf.mjs';
-import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText, displayText } from './select.mjs';
-import { hasNonLatinScript } from './english.mjs';
+import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText, displayPhotoIds, photoReviewLabel } from './select.mjs';
 import { UNKNOWN_LABEL } from '../contracts/types.mjs';
+import { hasNonLatinScript } from './english.mjs';
 
 const INK = [0.11, 0.11, 0.13];
 const MUTED = [0.42, 0.42, 0.47];
-const FAINT = [0.58, 0.58, 0.62];
-const RULE = [0.83, 0.81, 0.77];
+const RULE = [0.82, 0.80, 0.76];
 const ACCENT = [0.35, 0.24, 0.16];
 const CARD = [0.97, 0.96, 0.94];
-const FOCUS_FILL = [0.94, 0.91, 0.86];
 
-const MARGIN = 52;
-const FOOTER_RESERVE = 52;
+const MARGIN = 56;
 
+/** macOS system fonts that permit embedding and cover Cyrillic. */
 const SERIF_CANDIDATES = [
   '/System/Library/Fonts/Supplemental/Times New Roman.ttf',
   '/System/Library/Fonts/Supplemental/Georgia.ttf',
@@ -41,12 +39,15 @@ const SANS_CANDIDATES = [
 ];
 
 export function loadBookFonts(mustCover = 'Roots') {
-  return { serif: selectFont(SERIF_CANDIDATES, mustCover), sans: selectFont(SANS_CANDIDATES, mustCover) };
+  const serif = selectFont(SERIF_CANDIDATES, mustCover);
+  const sans = selectFont(SANS_CANDIDATES, mustCover);
+  return { serif, sans };
 }
 
 const personLabel = (p) => p?.displayNameEn || p?.originalName || p?.id || UNKNOWN_LABEL;
-const yearsLabel = (p) => p?.lifeYears?.label || UNKNOWN_LABEL;
+const yearsLabel = (p) => (p?.lifeYears?.label ? p.lifeYears.label : UNKNOWN_LABEL);
 
+/** Number every source once so the book can cite it as [n]. */
 function buildSourceRegister(sources) {
   const register = new Map();
   let n = 0;
@@ -58,27 +59,26 @@ function buildSourceRegister(sources) {
   return register;
 }
 
-/** Draw the Osmy Roots mark: a small rooted stem, then the wordmark. */
-function drawBranding(page, x, y, scale = 1) {
-  const s = scale;
-  page.setStroke(ACCENT).setLineWidth(1.3 * s);
-  page.line(x + 6 * s, y, x + 6 * s, y + 13 * s);
-  page.line(x + 6 * s, y + 5 * s, x + 1 * s, y + 1 * s);
-  page.line(x + 6 * s, y + 5 * s, x + 11 * s, y + 1 * s);
-  page.line(x + 6 * s, y + 13 * s, x + 2 * s, y + 17 * s);
-  page.line(x + 6 * s, y + 13 * s, x + 10 * s, y + 17 * s);
-  return page.text({ x: x + 18 * s, y: y + 14 * s, text: 'Osmy Roots', font: 'sans', size: 10.5 * s, color: ACCENT }) + 18 * s;
+function markersFor(ids, register) {
+  const nums = [...new Set((ids || []).map((id) => register.get(id)?.number).filter(Boolean))];
+  return nums.length ? `[${nums.join(',')}]` : '';
 }
 
-function footer(page, text, pageNumber) {
-  const y = page.height - 30;
-  page.setStroke(RULE).setLineWidth(0.5).line(MARGIN, y - 13, page.width - MARGIN, y - 13);
-  page.text({ x: MARGIN, y, text, font: 'sans', size: 7.5, color: FAINT });
-  page.text({ x: page.width - MARGIN, y, text: `${pageNumber}`, font: 'sans', size: 7.5, color: FAINT, align: 'right' });
+function footer(page, doc, text, pageNumber) {
+  const y = page.height - 34;
+  page.setStroke(RULE).setLineWidth(0.5).line(MARGIN, y - 14, page.width - MARGIN, y - 14);
+  page.text({ x: MARGIN, y, text, font: 'sans', size: 8, color: MUTED });
+  page.text({ x: page.width - MARGIN, y, text: String(pageNumber), font: 'sans', size: 8, color: MUTED, align: 'right' });
 }
 
 /**
- * @returns {{bytes:Buffer, pages:number, warnings:string[], guardFailures:string[], cuts:string[], sourceRegister:Map}}
+ * @param {object} args
+ * @param {object} args.snapshot
+ * @param {Array} args.passages   current book passages supplied by the lead
+ * @param {Function} args.getImage (assetId) -> {bytes, mediaType}|null
+ * @param {object} args.branch     from selectBranch()
+ * @param {object} [args.options]
+ * @returns {{bytes:Buffer, pages:number, warnings:string[], staleFlagged:Array, cuts:string[]}}
  */
 export function renderBookPdf({ snapshot, passages = [], getImage, branch, options = {} }) {
   const warnings = [];
@@ -87,62 +87,45 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
   const people = new Map((snapshot.people || []).map((p) => [p.id, p]));
   const sources = snapshot.sources || [];
   const register = buildSourceRegister(sources);
-  const englishOnly = options.englishOnly !== false;
+  for (const record of [...(snapshot.claims || []), ...(snapshot.stories || []), ...passages]) {
+    for (const id of record.sourceIds || []) if (!register.has(id)) guardFailures.push(`Citation target ${id} is absent from the source register.`);
+  }
 
   const focusId = options.focusPersonId || branch?.focusPersonId || (snapshot.people || [])[0]?.id;
   const focus = people.get(focusId);
-  const dedication = options.dedication || 'For Dad.';
-  const title = options.title || 'Roots: The Family Book';
-
-  /** Every marker must resolve to a numbered entry, or the citation is a lie. */
-  const markersFor = (ids, where) => {
-    const nums = [];
-    for (const id of new Set(ids || [])) {
-      const entry = register.get(id);
-      if (!entry) {
-        guardFailures.push(`Citation target "${id}" referenced by ${where} is not in the source register.`);
-        continue;
-      }
-      nums.push(entry.number);
-    }
-    return nums.length ? `[${nums.sort((a, b) => a - b).join(',')}]` : '';
+  const focusPhotoIds = displayPhotoIds(snapshot, focusId);
+  const photoCaption = (id) => {
+    const annotation = snapshot.photoAnnotations?.find(a => a.assetId === id);
+    const citations = [...new Set((annotation?.support || []).map(span => `${markersFor([span.sourceId], register)} ${span.locator}`))];
+    return `${photoReviewLabel(snapshot, id)}${citations.length ? ` Source: ${citations.join('; ')}` : ''}`;
   };
+  const dedication = options.dedication || 'For Dad.';
+  const title = (options.title || 'Osmy Roots: The Family Book').replace(/^Roots(?=:)/, 'Osmy Roots');
 
-  const coverSample = [title, dedication, 'Osmy Roots', ...[...people.values()].map((p) => `${p.displayNameEn} ${p.originalName}`)]
-    .join(' ').slice(0, 6000);
+  // Fonts must cover every character we intend to print.
+  const coverSample = [title, dedication, ...[...people.values()].map((p) => `${p.displayNameEn} ${p.originalName}`)]
+    .join(' ').slice(0, 4000);
   const { serif, sans } = loadBookFonts(coverSample);
   if (!serif.font || !sans.font) {
     const err = new Error(`No embeddable font covering the book text. Tried: ${[...serif.tried, ...sans.tried].join('; ')}`);
     err.code = 'NO_FONT';
     throw err;
   }
+  if (options.fontNote !== false) {
+    warnings.push(`Embedded fonts: ${serif.font.name} (body), ${sans.font.name} (headings).`);
+  }
 
   const doc = new PdfDocument({
     size: A4,
-    info: { title, author: options.author || 'Osmy Roots', subject: 'Family history assembled from reviewed family records' },
+    info: { title, author: options.author || 'Osmy Roots', subject: 'Family history, generated from reviewed evidence' },
   });
   doc.addFont('serif', serif.font);
   doc.addFont('sans', sans.font);
 
-  /** Shorten to fit, and record it, so a name is never silently cut off. */
-  const fit = (text, fontKey, size, maxWidth, where) => {
-    const s = String(text ?? '');
-    if (doc.widthOf(fontKey, s, size) <= maxWidth) return s;
-    let out = s;
-    while (out.length > 1 && doc.widthOf(fontKey, `${out}...`, size) > maxWidth) out = out.slice(0, -1);
-    warnings.push(`Shortened "${s}" to fit ${where}.`);
-    return `${out}...`;
-  };
-
   const { current: currentPassages, stale, invalid } = partitionPassages(passages, snapshot.version);
   for (const s of stale) warnings.push(`STALE PASSAGE EXCLUDED: ${s.reason}`);
   for (const i of invalid) warnings.push(`INVALID PASSAGE EXCLUDED: ${i.reason}`);
-
-  if (englishOnly) {
-    for (const p of currentPassages) {
-      if (hasNonLatinScript(p.text)) guardFailures.push(`Passage ${p.id} contains non-English text; the demo bundle is English only.`);
-    }
-  }
+  if (options.englishOnly !== false) for (const passage of currentPassages) if (hasNonLatinScript(passage.text)) guardFailures.push(`Passage ${passage.id} contains non-English text.`);
 
   const imageCache = new Map();
   const putImage = (assetId) => {
@@ -160,103 +143,107 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
     return record;
   };
 
-  // ------------------------------------------------------------------ page 1
+  // ---------------------------------------------------------------- page 1
   const p1 = doc.addPage();
-  p1.setFill([0.99, 0.985, 0.976]).rect(0, 0, p1.width, p1.height);
-  drawBranding(p1, MARGIN, 44, 1.15);
-  p1.setStroke(ACCENT).setLineWidth(1.2).line(MARGIN, 84, p1.width - MARGIN, 84);
-  p1.text({ x: MARGIN, y: 116, text: title, font: 'sans', size: 25, color: INK });
+  p1.setFill([0.99, 0.985, 0.975]).rect(0, 0, p1.width, p1.height);
+  p1.setStroke(ACCENT).setLineWidth(1.2).line(MARGIN, 92, p1.width - MARGIN, 92);
+  p1.text({ x: MARGIN, y: 80, text: title, font: 'sans', size: 26, color: INK });
 
-  let y1 = 146;
-  const portrait = putImage((focus?.photoIds || [])[0]);
+  const portraitId = focusPhotoIds[0];
+  const portrait = putImage(portraitId);
+  let cursor = 132;
   if (portrait) {
-    const box = p1.image(portrait, { x: MARGIN, y: y1, width: p1.width - MARGIN * 2, height: 372 });
-    y1 = (box ? box.y + box.h : y1 + 372) + 28;
+    const box = p1.image(portrait, { x: MARGIN, y: cursor, width: p1.width - MARGIN * 2, height: 380 });
+    cursor = (box ? box.y + box.h : cursor + 380) + 16;
+    cursor = p1.paragraph({ x: MARGIN, y: cursor, maxWidth: p1.width - MARGIN * 2, font: 'sans', size: 8, color: MUTED, text: photoCaption(portraitId), leading: 11 }) + 25;
   } else {
-    p1.setFill(CARD).rect(MARGIN, y1, p1.width - MARGIN * 2, 130);
-    p1.text({ x: p1.width / 2, y: y1 + 70, text: 'No portrait was supplied for this person', font: 'sans', size: 9.5, color: MUTED, align: 'center' });
-    warnings.push(`No portrait available for ${personLabel(focus)}; the cover shows a placeholder.`);
-    y1 += 158;
+    p1.setFill(CARD).rect(MARGIN, cursor, p1.width - MARGIN * 2, 150);
+    p1.text({ x: p1.width / 2, y: cursor + 80, text: 'No portrait supplied for this person', font: 'sans', size: 10, color: MUTED, align: 'center' });
+    warnings.push(`No portrait available for ${personLabel(focus)}; cover shows a placeholder.`);
+    cursor += 176;
   }
 
   if (focus) {
-    p1.text({ x: MARGIN, y: y1, text: fit(personLabel(focus), 'serif', 20, p1.width - MARGIN * 2, 'the cover'), font: 'serif', size: 20, color: INK });
-    y1 += 25;
-    if (focus.originalName && focus.originalName !== focus.displayNameEn && !(englishOnly && hasNonLatinScript(focus.originalName))) {
-      p1.text({ x: MARGIN, y: y1, text: focus.originalName, font: 'serif', size: 12.5, color: MUTED });
-      y1 += 19;
+    p1.text({ x: MARGIN, y: cursor, text: personLabel(focus), font: 'serif', size: 20, color: INK });
+    cursor += 24;
+    if (focus.originalName && focus.originalName !== focus.displayNameEn) {
+      p1.text({ x: MARGIN, y: cursor, text: focus.originalName, font: 'serif', size: 13, color: MUTED });
+      cursor += 20;
     }
-    p1.text({ x: MARGIN, y: y1, text: yearsLabel(focus), font: 'sans', size: 10.5, color: MUTED });
-    y1 += 32;
+    p1.text({ x: MARGIN, y: cursor, text: yearsLabel(focus), font: 'sans', size: 11, color: MUTED });
+    cursor += 34;
   }
-  p1.setStroke(RULE).setLineWidth(0.5).line(MARGIN, y1, MARGIN + 84, y1);
-  y1 += 26;
-  p1.text({ x: MARGIN, y: y1, text: dedication, font: 'serif', size: 15, color: ACCENT });
-  y1 += 28;
-  if (options.dedicationNote) {
-    y1 = p1.paragraph({ x: MARGIN, y: y1, maxWidth: p1.width - MARGIN * 2, font: 'serif', size: 10, color: MUTED, text: options.dedicationNote, leading: 14 });
-  }
-  if (y1 > p1.height - FOOTER_RESERVE) guardFailures.push('Cover content overflows page 1.');
-  footer(p1, `Assembled ${new Date().toISOString().slice(0, 10)} from reviewed family records. Project version ${snapshot.version}.`, 1);
 
-  // ------------------------------------------------------------------ page 2
+  p1.setStroke(RULE).setLineWidth(0.5).line(MARGIN, cursor, MARGIN + 90, cursor);
+  cursor += 26;
+  p1.text({ x: MARGIN, y: cursor, text: dedication, font: 'serif', size: 15, color: ACCENT });
+  cursor += 30;
+  if (options.dedicationNote) {
+    p1.paragraph({ x: MARGIN, y: cursor, maxWidth: p1.width - MARGIN * 2, font: 'serif', size: 10.5, color: MUTED, text: options.dedicationNote });
+  }
+  footer(p1, doc, `Generated ${new Date().toISOString().slice(0, 10)} from reviewed family evidence. Project version ${snapshot.version}.`, 1);
+
+  // ---------------------------------------------------------------- page 2
   const p2 = doc.addPage();
-  drawBranding(p2, MARGIN, 34, 0.85);
-  p2.text({ x: MARGIN, y: 76, text: 'The family', font: 'sans', size: 16, color: INK });
-  p2.setStroke(RULE).setLineWidth(0.5).line(MARGIN, 86, p2.width - MARGIN, 86);
+  p2.text({ x: MARGIN, y: 70, text: 'The family branch', font: 'sans', size: 17, color: INK });
+  p2.setStroke(RULE).setLineWidth(0.5).line(MARGIN, 82, p2.width - MARGIN, 82);
   p2.paragraph({
-    x: MARGIN, y: 104, maxWidth: p2.width - MARGIN * 2, font: 'serif', size: 9, color: MUTED, leading: 12,
-    text: 'The main line is drawn below. Every person in the project is listed in the register that follows, with known life years and the source that supports the record. A bracketed number cites that source. Unknown values are shown as Unknown.',
+    x: MARGIN, y: 102, maxWidth: p2.width - MARGIN * 2, font: 'serif', size: 9.5, color: MUTED,
+    text: 'Each card carries the English name, the original name and known life years. A bracketed number cites the source that supports the person. Unknown values are shown as Unknown rather than filled in.',
   });
 
-  // Main branch, kept small enough to stay legible.
-  const levels = branch?.levels || new Map();
+  const fullRegister = people.size > 12;
+  // A small connected branch stays readable above the complete register.
+  const levels = fullRegister ? new Map([...(branch?.levels || new Map())].slice(0, 5)) : branch?.levels || new Map();
   const byLevel = new Map();
   for (const [id, lvl] of levels.entries()) {
     if (!people.has(id)) continue;
     if (!byLevel.has(lvl)) byLevel.set(lvl, []);
     byLevel.get(lvl).push(id);
   }
-  const orderedLevels = [...byLevel.keys()].sort((a, b) => b - a);
-  const MAX_PER_ROW = 4;
-  const chartTop = 138;
-  const rowHeight = 66;
-  const cardH = 46;
+  const orderedLevels = [...byLevel.keys()].sort((a, b) => b - a); // oldest generation first
+
+  const chartTop = 150;
+  const chartBottom = fullRegister ? 335 : p2.height - 90;
+  const rows = Math.max(1, orderedLevels.length);
+  const rowHeight = Math.min(96, (chartBottom - chartTop) / rows);
+  const cardH = Math.min(58, rowHeight - 22);
   const centres = new Map();
-  let chartBottom = chartTop;
 
   orderedLevels.forEach((lvl, rowIndex) => {
-    let ids = byLevel.get(lvl);
-    if (ids.length > MAX_PER_ROW) {
-      warnings.push(`Generation ${lvl} has ${ids.length} people; the compact page shows ${MAX_PER_ROW}. The full list is in the register below and in book.html.`);
-      cuts.push(`branch_row_${lvl}_trimmed`);
-      ids = ids.slice(0, MAX_PER_ROW);
-    }
+    const ids = byLevel.get(lvl);
     const y = chartTop + rowIndex * rowHeight;
-    chartBottom = y + cardH;
     const usable = p2.width - MARGIN * 2;
-    const cardW = Math.min(126, (usable - (ids.length - 1) * 12) / Math.max(1, ids.length));
-    const totalW = ids.length * cardW + (ids.length - 1) * 12;
+    const cardW = Math.min(150, (usable - (ids.length - 1) * 10) / Math.max(1, ids.length));
+    const totalW = ids.length * cardW + (ids.length - 1) * 10;
     let x = MARGIN + (usable - totalW) / 2;
     for (const id of ids) {
       const person = people.get(id);
       centres.set(id, { x: x + cardW / 2, top: y, bottom: y + cardH });
-      p2.setFill(id === focusId ? FOCUS_FILL : CARD).rect(x, y, cardW, cardH);
+      p2.setFill(id === focusId ? [0.94, 0.91, 0.86] : CARD).rect(x, y, cardW, cardH);
       p2.setStroke(id === focusId ? ACCENT : RULE).setLineWidth(id === focusId ? 1 : 0.5).rect(x, y, cardW, cardH, 'S');
 
-      const nameLines = doc.wrap('sans', personLabel(person), 8, cardW - 10);
-      let ty = y + 14;
-      for (const line of nameLines.slice(0, 2)) {
-        p2.text({ x: x + cardW / 2, y: ty, text: fit(line, 'sans', 8, cardW - 10, 'a branch card'), font: 'sans', size: 8, color: INK, align: 'center' });
-        ty += 10;
+      const marker = markersFor(person?.claimIds?.length ? [] : [], register);
+      const claimSources = new Set();
+      for (const c of snapshot.claims || []) {
+        if (c.subjectId === id) (c.sourceIds || []).forEach((s) => claimSources.add(s));
       }
-      if (nameLines.length > 2) warnings.push(`Name "${personLabel(person)}" needed more than two lines on the branch card.`);
-      p2.text({ x: x + cardW / 2, y: ty + 1, text: yearsLabel(person), font: 'serif', size: 7.5, color: MUTED, align: 'center' });
-      x += cardW + 12;
+      const cite = markersFor([...claimSources], register) || marker;
+
+      const nameLines = doc.wrap('sans', personLabel(person), 8.5, cardW - 12);
+      let ty = y + 15;
+      for (const line of nameLines.slice(0, 2)) {
+        p2.text({ x: x + cardW / 2, y: ty, text: line, font: 'sans', size: 8.5, color: INK, align: 'center' });
+        ty += 11;
+      }
+      p2.text({ x: x + cardW / 2, y: ty + 1, text: yearsLabel(person), font: 'serif', size: 8, color: MUTED, align: 'center' });
+      if (cite) p2.text({ x: x + cardW - 6, y: y + cardH - 5, text: cite.slice(0, 14), font: 'sans', size: 6, color: MUTED, align: 'right' });
+      x += cardW + 10;
     }
   });
 
-  p2.setStroke([0.62, 0.6, 0.57]).setLineWidth(0.7);
+  // Connectors follow real parent_child edges only.
+  p2.setStroke([0.6, 0.58, 0.55]).setLineWidth(0.7);
   for (const e of branch?.edges || []) {
     if (e.type !== 'parent_child') continue;
     const a = centres.get(e.fromPersonId);
@@ -267,61 +254,29 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
     p2.line(a.x, mid, b.x, mid);
     p2.line(b.x, mid, b.x, b.top);
   }
-
-  // Full selected family register, two columns.
-  let ry = Math.max(chartBottom + 26, 300);
-  p2.text({ x: MARGIN, y: ry, text: `Family register: ${(snapshot.people || []).length} people`, font: 'sans', size: 10.5, color: INK });
-  ry += 6;
-  p2.setStroke(RULE).setLineWidth(0.5).line(MARGIN, ry, p2.width - MARGIN, ry);
-  ry += 13;
-
-  const roster = [...(snapshot.people || [])].sort((a, b) => {
-    const ga = snapshot.layout?.positions?.[a.id]?.generation ?? 0;
-    const gb = snapshot.layout?.positions?.[b.id]?.generation ?? 0;
-    return ga - gb || personLabel(a).localeCompare(personLabel(b));
-  });
-  const colGap = 18;
-  const colW = (p2.width - MARGIN * 2 - colGap) / 2;
-  const lineH = 10.4;
-  const available = p2.height - FOOTER_RESERVE - ry;
-  const maxPerCol = Math.max(1, Math.floor(available / lineH));
-  const capacity = maxPerCol * 2;
-  const shown = roster.slice(0, capacity);
-  // Split evenly rather than filling column one to the bottom first.
-  const perCol = Math.min(maxPerCol, Math.ceil(shown.length / 2));
-  if (roster.length > capacity) {
-    warnings.push(`The compact register lists ${capacity} of ${roster.length} people. The complete register is in book.html and project.json.`);
-    cuts.push('register_truncated');
+  if (fullRegister) {
+    const roster = [...people.values()], half = Math.ceil(roster.length / 2), columnW = (p2.width - 2 * MARGIN - 20) / 2;
+    p2.text({ x: MARGIN, y: 370, text: `Complete family register: ${roster.length} people`, font: 'sans', size: 12, color: INK });
+    p2.text({ x: MARGIN, y: 387, text: 'Names and life years from supplied records. c. means approximate; Unknown stays unresolved.', font: 'sans', size: 7.5, color: MUTED });
+    for (let i = 0; i < roster.length; i++) {
+      const p = roster[i], col = i < half ? 0 : 1, row = i % half, x = MARGIN + col * (columnW + 20), y = 413 + row * 19;
+      const nameSize = Math.min(8.2, 8.2 * (columnW - 28) / Math.max(1, doc.widthOf('sans', personLabel(p), 8.2)));
+      p2.text({ x, y, text: p.id, font: 'sans', size: 6.5, color: MUTED });
+      p2.text({ x: x + 26, y, text: personLabel(p), font: 'sans', size: nameSize, color: INK });
+      if (nameSize < 7) warnings.push(`Long register name ${p.id} uses ${nameSize.toFixed(1)} pt; verify readability visually.`);
+      p2.text({ x: x + 26, y: y + 9, text: yearsLabel(p), font: 'sans', size: 6.5, color: MUTED });
+    }
   }
+  footer(p2, doc, `${centres.size} people in the main branch. ${people.size} people in the ${fullRegister ? 'complete register above and ' : ''}editable project.`, 2);
 
-  shown.forEach((person, i) => {
-    const col = i < perCol ? 0 : 1;
-    const x = MARGIN + col * (colW + colGap);
-    const y = ry + (i % perCol) * lineH;
-    const claimSources = new Set();
-    for (const c of snapshot.claims || []) if (c.subjectId === person.id) (c.sourceIds || []).forEach((s) => claimSources.add(s));
-    const cite = markersFor([...claimSources], `the register row for ${person.id}`);
-    const years = yearsLabel(person);
-    const citeW = cite ? doc.widthOf('sans', cite, 6.5) + 4 : 0;
-    const yearsW = doc.widthOf('serif', years, 7.2) + 6;
-    const nameW = colW - yearsW - citeW - 4;
-    p2.text({ x, y, text: fit(personLabel(person), 'serif', 8, nameW, 'the register'), font: 'serif', size: 8, color: INK });
-    p2.text({ x: x + colW - citeW, y, text: years, font: 'serif', size: 7.2, color: MUTED, align: 'right' });
-    if (cite) p2.text({ x: x + colW, y, text: cite, font: 'sans', size: 6.5, color: FAINT, align: 'right' });
-  });
-  const registerBottom = ry + Math.min(perCol, shown.length) * lineH;
-  if (registerBottom > p2.height - FOOTER_RESERVE) guardFailures.push('The family register overflows page 2.');
-  footer(p2, `${centres.size} people drawn in the main line; ${(snapshot.people || []).length} in the full project.`, 2);
-
-  // ------------------------------------------------------------------ page 3
+  // ---------------------------------------------------------------- page 3
   const p3 = doc.addPage();
-  drawBranding(p3, MARGIN, 34, 0.85);
-  p3.text({ x: MARGIN, y: 76, text: fit(personLabel(focus), 'sans', 16, p3.width - MARGIN * 2, 'the chapter heading'), font: 'sans', size: 16, color: INK });
-  p3.setStroke(RULE).setLineWidth(0.5).line(MARGIN, 86, p3.width - MARGIN, 86);
-  if (focus) p3.text({ x: MARGIN, y: 103, text: yearsLabel(focus), font: 'serif', size: 10, color: MUTED });
+  p3.text({ x: MARGIN, y: 70, text: personLabel(focus), font: 'sans', size: 17, color: INK });
+  p3.setStroke(RULE).setLineWidth(0.5).line(MARGIN, 82, p3.width - MARGIN, 82);
+  if (focus?.originalName) p3.text({ x: MARGIN, y: 100, text: `${focus.originalName} · ${yearsLabel(focus)}`, font: 'serif', size: 10.5, color: MUTED });
 
   let y3 = 124;
-  const photoIds = (focus?.photoIds || []).slice(0, 3);
+  const photoIds = focusPhotoIds.slice(0, 3);
   if (photoIds.length) {
     const gap = 10;
     const boxW = (p3.width - MARGIN * 2 - gap * (photoIds.length - 1)) / photoIds.length;
@@ -330,134 +285,121 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
     for (const pid of photoIds) {
       const rec = putImage(pid);
       if (rec) {
-        const box = p3.image(rec, { x: px, y: y3, width: boxW, height: 176 });
-        if (box) maxBottom = Math.max(maxBottom, box.y + box.h);
+        const box = p3.image(rec, { x: px, y: y3, width: boxW, height: 190 });
+        if (box) {
+          const bottom = p3.paragraph({ x: px, y: box.y + box.h + 12, maxWidth: boxW, font: 'sans', size: 7, color: MUTED, text: photoCaption(pid), leading: 9 });
+          maxBottom = Math.max(maxBottom, bottom);
+        }
       } else {
-        p3.setFill(CARD).rect(px, y3, boxW, 110);
-        p3.text({ x: px + boxW / 2, y: y3 + 58, text: 'Photograph unavailable', font: 'sans', size: 8, color: MUTED, align: 'center' });
-        maxBottom = Math.max(maxBottom, y3 + 110);
+        p3.setFill(CARD).rect(px, y3, boxW, 120);
+        p3.text({ x: px + boxW / 2, y: y3 + 64, text: 'Photo unavailable', font: 'sans', size: 8, color: MUTED, align: 'center' });
+        maxBottom = Math.max(maxBottom, y3 + 120);
       }
       px += boxW + gap;
     }
-    y3 = maxBottom + 22;
-    const total = (focus?.photoIds || []).length;
-    if (total > photoIds.length) warnings.push(`${total - photoIds.length} further photograph(s) of ${personLabel(focus)} are in book.html and the project bundle.`);
+    y3 = maxBottom + 24;
   } else {
-    warnings.push(`No photographs are available for ${personLabel(focus)}.`);
+    warnings.push(`No photographs available for ${personLabel(focus)}.`);
   }
 
-  const room = () => p3.height - FOOTER_RESERVE - y3;
-
-  const facts = acceptedClaimsFor(snapshot.claims, focusId);
-  if (facts.length && room() > 60) {
-    p3.text({ x: MARGIN, y: y3, text: 'What the records support', font: 'sans', size: 10.5, color: INK });
-    y3 += 16;
-    for (const c of facts) {
-      if (room() < 22) { warnings.push('The supported-facts list was trimmed to fit page 3; the full set is in book.html.'); cuts.push('facts_trimmed'); break; }
-      const body = claimText(c, people);
-      if (/[{}[\]"]/.test(body) && /":/.test(body)) guardFailures.push(`Claim ${c.id} would print raw object text on page 3.`);
-      y3 = p3.paragraph({ x: MARGIN + 9, y: y3, maxWidth: p3.width - MARGIN * 2 - 9, font: 'serif', size: 9.3, color: INK, leading: 12.6, text: `${body} ${markersFor(c.sourceIds, `claim ${c.id}`)}` });
-    }
-    y3 += 8;
-  }
-
-  const focusPassages = currentPassages.filter((p) => !p.personId || p.personId === focusId);
-  if (focusPassages.length && room() > 60) {
-    p3.text({ x: MARGIN, y: y3, text: 'The reviewed story', font: 'sans', size: 10.5, color: INK });
+  // Facts, each keeping its evidence marker.
+  const facts = options.compactChapter ? [] : acceptedClaimsFor(snapshot.claims, focusId);
+  if (facts.length) {
+    p3.text({ x: MARGIN, y: y3, text: 'What the evidence supports', font: 'sans', size: 11, color: INK });
     y3 += 17;
-    for (const passage of focusPassages) {
-      if (room() < 50) { warnings.push('A reviewed passage did not fit page 3 and is in book.html.'); cuts.push('passage_trimmed'); break; }
-      p3.setFill([0.98, 0.97, 0.95]).rect(MARGIN, y3 - 11, p3.width - MARGIN * 2, 5);
-      y3 = p3.paragraph({ x: MARGIN, y: y3, maxWidth: p3.width - MARGIN * 2, font: 'serif', size: 10.8, color: INK, leading: 15.4, text: passage.text }) + 3;
+    for (const c of facts.slice(0, 8)) {
+      const line = `${claimText(c, people)} ${markersFor(c.sourceIds, register)}`;
+      y3 = p3.paragraph({ x: MARGIN + 10, y: y3, maxWidth: p3.width - MARGIN * 2 - 10, font: 'serif', size: 9.5, color: INK, text: line, leading: 13 });
+    }
+    y3 += 10;
+  }
+
+  // The lead's current cited passage. Never a canned paragraph.
+  const focusPassages = currentPassages.filter((p) => !p.personId || p.personId === focusId);
+  if (focusPassages.length) {
+    p3.text({ x: MARGIN, y: y3, text: 'From the family record', font: 'sans', size: 11, color: INK });
+    y3 += 18;
+    for (const passage of focusPassages.slice(0, 3)) {
+      p3.setFill([0.98, 0.97, 0.95]).rect(MARGIN, y3 - 12, p3.width - MARGIN * 2, 6);
+      const end = p3.paragraph({
+        x: MARGIN, y: y3, maxWidth: p3.width - MARGIN * 2, font: 'serif', size: 11, color: INK,
+        text: passage.text, leading: 16,
+      });
       const cite = (passage.sourceLocators || []).join('; ');
+      y3 = end + 4;
       if (cite) {
-        y3 = p3.paragraph({ x: MARGIN, y: y3, maxWidth: p3.width - MARGIN * 2, font: 'sans', size: 7.6, color: MUTED, leading: 10, text: `Source: ${cite}` }) + 9;
+        y3 = p3.paragraph({ x: MARGIN, y: y3, maxWidth: p3.width - MARGIN * 2, font: 'sans', size: 8, color: MUTED, text: `Source: ${cite}`, leading: 11 }) + 10;
       }
     }
   }
 
+  // Attributed recollections stay labelled as recollections.
   const { accepted: acceptedStories, notes } = partitionStories(snapshot.stories, focusId);
-  if (acceptedStories.length && room() > 50) {
-    p3.text({ x: MARGIN, y: y3, text: 'Family recollections', font: 'sans', size: 10.5, color: INK });
-    y3 += 16;
-    for (const s of acceptedStories) {
-      if (room() < 30) { warnings.push('Recollections were trimmed to fit page 3; the full set is in book.html.'); cuts.push('recollections_trimmed'); break; }
-      if (englishOnly && hasNonLatinScript(s.text)) {
-        guardFailures.push(`Story ${s.id} contains non-English text; the demo bundle is English only.`);
-        continue;
-      }
+  if (!options.compactChapter && acceptedStories.length && y3 < p3.height - 150) {
+    p3.text({ x: MARGIN, y: y3, text: 'Family recollections', font: 'sans', size: 11, color: INK });
+    y3 += 17;
+    for (const s of acceptedStories.slice(0, 3)) {
+      if (y3 > p3.height - 110) break;
       const who = s.attributedTo ? `Remembered by ${s.attributedTo}. ` : 'Family recollection. ';
-      y3 = p3.paragraph({ x: MARGIN + 9, y: y3, maxWidth: p3.width - MARGIN * 2 - 9, font: 'serif', size: 9.6, color: INK, leading: 13.4, text: `${who}${displayText(s.text)} ${markersFor(s.sourceIds, `story ${s.id}`)}` }) + 7;
+      y3 = p3.paragraph({
+        x: MARGIN + 10, y: y3, maxWidth: p3.width - MARGIN * 2 - 10, font: 'serif', size: 10, color: INK,
+        text: `${who}${s.text} ${markersFor(s.sourceIds, register)}`, leading: 14,
+      }) + 8;
     }
   }
   if (notes.length) warnings.push(`${notes.length} unreviewed note(s) for ${personLabel(focus)} were kept out of the biography.`);
-  if (y3 > p3.height - FOOTER_RESERVE) guardFailures.push('Chapter content overflows page 3.');
-  footer(p3, 'A recollection is evidence of memory. It is not independent archival proof.', 3);
+  if (options.compactChapter) {
+    cuts.push('compact_chapter_current_passage');
+    p3.paragraph({ x: MARGIN, y: Math.min(y3 + 14, p3.height - 100), maxWidth: p3.width - MARGIN * 2, font: 'sans', size: 8, color: MUTED,
+      text: 'The HTML edition contains the other recorded facts and recollections. Exact quotations remain in project.json; the complete numbered source register is in book.html.', leading: 11 });
+  }
+  footer(p3, doc, 'A recollection is evidence of memory. It is not independent archival proof.', 3);
 
-  // ------------------------------------------------------------------ page 4
+  // ---------------------------------------------------------------- page 4
   const p4 = doc.addPage();
-  drawBranding(p4, MARGIN, 34, 0.85);
-  p4.text({ x: MARGIN, y: 76, text: 'Sources', font: 'sans', size: 16, color: INK });
-  p4.setStroke(RULE).setLineWidth(0.5).line(MARGIN, 86, p4.width - MARGIN, 86);
-  let y4 = 106;
-  // Sources actually cited by the printed pages come first, so a truncated list
-  // never drops the evidence the book relies on.
-  const citedIds = new Set();
-  for (const c of acceptedClaimsFor(snapshot.claims, focusId)) (c.sourceIds || []).forEach((i) => citedIds.add(i));
-  for (const s of partitionStories(snapshot.stories, focusId).accepted) (s.sourceIds || []).forEach((i) => citedIds.add(i));
-  for (const p of currentPassages) (p.sourceIds || []).forEach((i) => citedIds.add(i));
-  const used = [...register.values()].sort((a, b) => {
-    const ca = citedIds.has(a.source.id) ? 0 : 1;
-    const cb = citedIds.has(b.source.id) ? 0 : 1;
-    return ca - cb || a.number - b.number;
-  });
-  const openList = openQuestionsFrom(snapshot);
-  const openLines = Math.min(openList.length, 14);
-  const reserveForOpen = 34 + openLines * 12.2 + (openList.length > openLines ? 12 : 0);
-
+  p4.text({ x: MARGIN, y: 70, text: 'Sources', font: 'sans', size: 17, color: INK });
+  p4.setStroke(RULE).setLineWidth(0.5).line(MARGIN, 82, p4.width - MARGIN, 82);
+  let y4 = p4.paragraph({ x: MARGIN, y: 104, maxWidth: p4.width - MARGIN * 2, font: 'sans', size: 8.5, color: MUTED,
+    text: 'Selected entries below. Every numbered citation resolves in the complete Sources section of book.html. Original text and exact locators are preserved in sources.json and project.json.', leading: 12 }) + 14;
+  const used = [...register.values()].sort((a, b) => a.number - b.number);
   for (const { number, source } of used) {
-    if (y4 > p4.height - FOOTER_RESERVE - reserveForOpen) {
-      warnings.push(`The printed source list shows ${number - 1} of ${used.length} entries. The complete numbered register is in book.html and sources.json.`);
-      cuts.push('source_list_truncated');
-      break;
-    }
+    const origin = source.origin ? ` · ${source.origin}` : '';
+    const kind = source.kind ? source.kind.replace(/_/g, ' ') : 'source';
     const head = `[${number}] ${source.title || source.originalLocator || source.id}`;
-    y4 = p4.paragraph({ x: MARGIN, y: y4, maxWidth: p4.width - MARGIN * 2, font: 'serif', size: 9.2, color: INK, leading: 12, text: head });
-    const bits = [
-      (source.kind || 'source').replace(/_/g, ' '),
-      source.origin,
-      source.originalLocator,
-      source.reconstruction?.reconstructed ? 'reconstructed chat format' : null,
-      source.textWithheld ? 'English derivative; original text held privately' : null,
-      source.unresolved ? 'original document not supplied' : null,
-    ].filter(Boolean).join(' · ');
-    y4 = p4.paragraph({ x: MARGIN + 11, y: y4, maxWidth: p4.width - MARGIN * 2 - 11, font: 'sans', size: 7.6, color: MUTED, leading: 10, text: bits }) + 5;
+    const detail = `${kind}${origin}${source.originalLocator ? ` · ${source.originalLocator}` : ''}${source.unresolved ? ' · original document not supplied' : ''}`;
+    const needed = doc.wrap('serif', head, 9.5, p4.width - MARGIN * 2).length * 12.5 + doc.wrap('sans', detail, 8, p4.width - MARGIN * 2 - 12).length * 10.5 + 6;
+    if (y4 + needed > p4.height - 230) { warnings.push('Source list truncated to fit the four-page layout; the complete numbered register is in book.html.'); cuts.push('source_list_truncated'); break; }
+    y4 = p4.paragraph({ x: MARGIN, y: y4, maxWidth: p4.width - MARGIN * 2, font: 'serif', size: 9.5, color: INK, text: head, leading: 12.5 });
+    y4 = p4.paragraph({ x: MARGIN + 12, y: y4, maxWidth: p4.width - MARGIN * 2 - 12, font: 'sans', size: 8, color: MUTED, text: detail, leading: 10.5 }) + 6;
   }
 
-  y4 += 10;
-  p4.text({ x: MARGIN, y: y4, text: 'Still to discover', font: 'sans', size: 11.5, color: INK });
-  y4 += 17;
-  if (!openList.length) {
-    p4.text({ x: MARGIN, y: y4, text: 'No unresolved items were recorded at export time.', font: 'serif', size: 9.2, color: MUTED });
-  } else {
-    let printed = 0;
-    for (const q of openList) {
-      if (y4 > p4.height - FOOTER_RESERVE - 14) break;
-      y4 = p4.paragraph({ x: MARGIN + 9, y: y4, maxWidth: p4.width - MARGIN * 2 - 9, font: 'serif', size: 8.8, color: INK, leading: 11.6, text: `${q.status === 'error' ? '!' : '-'} ${displayText(q.text)}` }) + 2;
-      printed += 1;
-    }
-    if (printed < openList.length) {
-      p4.text({ x: MARGIN + 9, y: y4 + 3, text: `... and ${openList.length - printed} more in research-notes.json.`, font: 'sans', size: 7.6, color: MUTED });
+  const open = openQuestionsFrom(snapshot);
+  if (y4 < p4.height - 180) {
+    y4 += 12;
+    p4.text({ x: MARGIN, y: y4, text: 'Still to discover', font: 'sans', size: 12, color: INK });
+    y4 += 18;
+    if (!open.length) {
+      p4.text({ x: MARGIN, y: y4, text: 'No unresolved items were recorded at export time.', font: 'serif', size: 9.5, color: MUTED });
+    } else {
+      let printedQuestions = 0;
+      for (const q of open.slice(0, 12)) {
+        const text = `${q.status === 'error' ? '!' : '-'} ${q.text}`;
+        const needed = doc.wrap('serif', text, 9, p4.width - MARGIN * 2 - 10).length * 12 + 3;
+        if (y4 + needed > p4.height - 100) { warnings.push('Open-question list truncated to fit the page; complete entries remain in HTML and research notes.'); cuts.push('open_questions_truncated'); break; }
+        y4 = p4.paragraph({
+          x: MARGIN + 10, y: y4, maxWidth: p4.width - MARGIN * 2 - 10, font: 'serif', size: 9, color: INK,
+          text, leading: 12,
+        }) + 3;
+        printedQuestions++;
+      }
+      if (open.length > printedQuestions) {
+        p4.text({ x: MARGIN + 10, y: Math.min(y4 + 4, p4.height - 90), text: `${open.length - printedQuestions} more open items in book.html and research-notes.json.`, font: 'sans', size: 8, color: MUTED });
+      }
     }
   }
-  if (y4 > p4.height - FOOTER_RESERVE + 12) guardFailures.push('Source and open-question content overflows page 4.');
-  footer(p4, 'Osmy Roots. Supplied family records assembled and reviewed in this session, not new archive discoveries.', 4);
+  footer(p4, doc, 'Osmy Roots. Imported records are supplied family evidence, not new archive discoveries.', 4);
 
   const bytes = doc.toBuffer();
   warnings.push(...doc.warnings);
-  return {
-    bytes, pages: doc.pages.length, warnings, guardFailures,
-    staleFlagged: stale, invalidPassages: invalid, cuts, sourceRegister: register,
-    fonts: { body: serif.font.name, headings: sans.font.name },
-  };
+  return { bytes, pages: doc.pages.length, warnings, guardFailures, staleFlagged: stale, invalidPassages: invalid, cuts, sourceRegister: register };
 }

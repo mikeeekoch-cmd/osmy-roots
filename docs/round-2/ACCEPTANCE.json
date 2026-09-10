@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "roots-round2-acceptance-v1",
+  "testedCodeCommit": "a627436",
+  "t0": "2026-09-10T18:18:15Z",
+  "contractsPublishedAt": "2026-09-10T18:22:43Z",
+  "p0ApiIntegratedAt": "2026-09-10T19:12:46.071Z",
+  "featureFrozenAt": "2026-09-10T19:18:20Z",
+  "engineeringDeadline": "2026-09-10T19:48:15Z",
+  "browser": "Actual installed Google Chrome via Playwright, fresh isolated contexts, 1440x900",
+  "testCount": 171,
+  "typecheck": "passed",
+  "productionBuild": "passed (webpack)",
+  "runs": [
+    {
+      "runLabel": "v2-final-3",
+      "manifestFileHash": "fd9e2c6930a355fef5230c499f4851a17573f6903a9c76de690d33f460eb27f1",
+      "packetHash": "ede0e0ddff7bca9e23f6c1e70c759347654e8b2dae8bcdb54cea684a0e5496fb",
+      "submitAt": "2026-09-10T19:18:22.808Z",
+      "questionCompletionAt": "2026-09-10T19:18:51.859Z",
+      "initialSavedAt": "2026-09-10T19:18:58.134Z",
+      "batches": [
+        {
+          "id": "batch-1",
+          "savedAt": "2026-09-10T19:19:08.131Z",
+          "observedAt": "2026-09-10T19:19:08.163Z"
+        },
+        {
+          "id": "batch-2",
+          "savedAt": "2026-09-10T19:19:18.155Z",
+          "observedAt": "2026-09-10T19:19:18.179Z"
+        },
+        {
+          "id": "batch-3",
+          "savedAt": "2026-09-10T19:19:28.142Z",
+          "observedAt": "2026-09-10T19:19:28.174Z"
+        },
+        {
+          "id": "batch-4",
+          "savedAt": "2026-09-10T19:19:38.162Z",
+          "observedAt": "2026-09-10T19:19:38.185Z"
+        },
+        {
+          "id": "batch-5",
+          "savedAt": "2026-09-10T19:19:48.146Z",
+          "observedAt": "2026-09-10T19:19:48.217Z"
+        },
+        {
+          "id": "batch-6",
+          "savedAt": "2026-09-10T19:19:58.139Z",
+          "observedAt": "2026-09-10T19:20:05.186Z"
+        }
+      ],
+      "bookReadyAt": "2026-09-10T19:20:05.186Z",
+      "downloadClickAt": "2026-09-10T19:20:06.411Z",
+      "receiptAt": "2026-09-10T19:20:06.982Z",
+      "clickMs": 103603,
+      "receiptMs": 104174,
+      "models": {
+        "analysis": "gpt-6-astra",
+        "passage": [
+          "gpt-6-astra"
+        ]
+      },
+      "pass": true,
+      "refreshResume": false,
+      "people": 35,
+      "relationships": 56,
+      "portableChecks": {
+        "zipSha256": "3ff12c05ef3ff877181ab8e22bec5bb2336419b2c118ac9add2a6d1b1dcea37d",
+        "assets": 23,
+        "narratorMatched": true,
+        "englishScan": true,
+        "portableReopen": true,
+        "editable": true,
+        "bookInvalidatedOnEdit": true
+      }
+    },
+    {
+      "runLabel": "v2-final-4",
+      "manifestFileHash": "fd9e2c6930a355fef5230c499f4851a17573f6903a9c76de690d33f460eb27f1",
+      "packetHash": "ede0e0ddff7bca9e23f6c1e70c759347654e8b2dae8bcdb54cea684a0e5496fb",
+      "submitAt": "2026-09-10T19:20:33.058Z",
+      "questionCompletionAt": "2026-09-10T19:21:02.113Z",
+      "initialSavedAt": "2026-09-10T19:21:08.405Z",
+      "batches": [
+        {
+          "id": "batch-1",
+          "savedAt": "2026-09-10T19:21:18.755Z",
+          "observedAt": "2026-09-10T19:21:18.783Z"
+        },
+        {
+          "id": "batch-2",
+          "savedAt": "2026-09-10T19:21:28.814Z",
+          "observedAt": "2026-09-10T19:21:28.884Z"
+        },
+        {
+          "id": "batch-3",
+          "savedAt": "2026-09-10T19:21:38.750Z",
+          "observedAt": "2026-09-10T19:21:38.781Z"
+        },
+        {
+          "id": "batch-4",
+          "savedAt": "2026-09-10T19:21:48.763Z",
+          "observedAt": "2026-09-10T19:21:48.783Z"
+        },
+        {
+          "id": "batch-5",
+          "savedAt": "2026-09-10T19:21:58.793Z",
+          "observedAt": "2026-09-10T19:21:58.837Z"
+        },
+        {
+          "id": "batch-6",
+          "savedAt": "2026-09-10T19:22:08.822Z",
+          "observedAt": "2026-09-10T19:22:16.070Z"
+        }
+      ],
+      "bookReadyAt": "2026-09-10T19:22:16.070Z",
+      "downloadClickAt": "2026-09-10T19:22:17.384Z",
+      "receiptAt": "2026-09-10T19:22:17.805Z",
+      "clickMs": 104326,
+      "receiptMs": 104747,
+      "models": {
+        "analysis": "gpt-6-astra",
+        "passage": [
+          "gpt-6-astra"
+        ]
+      },
+      "pass": true,
+      "refreshResume": true,
+      "people": 35,
+      "relationships": 56,
+      "portableChecks": {
+        "zipSha256": "459b7f6726d246fa48dafeb1fdd835cf12e2f1f69c8bc2d44d1d717d6aaf6946",
+        "assets": 23,
+        "narratorMatched": true,
+        "englishScan": true,
+        "portableReopen": true,
+        "editable": true,
+        "bookInvalidatedOnEdit": true
+      }
+    }
+  ],
+  "pdfVisualReview": "Both actual four-page PDFs rendered and visually inspected; attribution, citations, uncertainty, all names and original-photo bytes passed.",
+  "limitations": [
+    "Local single-user prototype",
+    "Prepared supplied family records and reconstructed English chats",
+    "No external archive discovery demonstrated",
+    "No hosting or general chat/archive importer",
+    "Final packet uses original photos only"
+  ],
+  "integratedDemoReady": true
+}

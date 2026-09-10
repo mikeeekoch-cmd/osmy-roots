@@ -7,6 +7,9 @@ import { ResearchProgress } from "./ResearchProgress";
 import { HumanContributionPanel } from "./HumanContributionPanel";
 import { EvidenceDrawer } from "./EvidenceDrawer";
 import { GraphEditor } from "./GraphEditor";
+import { SetupQuestions } from "./SetupQuestions";
+import { BookPreview } from "./BookPreview";
+import {SavedArrivals, savedDelta, type SavedDelta} from "./SavedArrivals";
 import type { SavedConnection } from "./SourceConnection";
 import "./styles.css";
 export type { RootsApi } from "./types";
@@ -29,6 +32,9 @@ export function RootsApp({
     [error, setError] = useState<string | null>(null),
     [download, setDownload] = useState(false),
     [downloaded, setDownloaded] = useState(false),
+    [setupReview, setSetupReview] = useState(false),
+    [arrivals, setArrivals] = useState<SavedDelta | null>(null),
+    [downloadStage, setDownloadStage] = useState<"sealing" | "delivering">("sealing"),
     [selection, setSelection] = useState<{
       kind: "person" | "relationship" | "source";
       id: string;
@@ -44,6 +50,14 @@ export function RootsApp({
     [focusedProposalId, setFocusedProposalId] = useState<string | null>(null),
     [panel, setPanel] = useState<"map" | "progress" | "human">("map"),
     [restoring, setRestoring] = useState(true);
+  const downloadLock = useRef(false);
+  const previousSnapshot = useRef<ProjectSnapshot | null>(null);
+  useEffect(() => {
+    if (!snapshot) { previousSnapshot.current = null; return; }
+    const prior = previousSnapshot.current; previousSnapshot.current = snapshot;
+    if (prior) { const delta = savedDelta(prior, snapshot); if (delta) setArrivals(delta); }
+  }, [snapshot?.projectId, snapshot?.version]);
+  useEffect(() => { if (!arrivals) return; const timer = setTimeout(() => setArrivals(null), 3500); return () => clearTimeout(timer); }, [arrivals?.version]);
   const active = useRef(false),
     mounted = useRef(true);
   const saveSnapshot = (next: ProjectSnapshot) => {
@@ -88,14 +102,16 @@ export function RootsApp({
   useEffect(() => {
     if (!snapshot) return;
     let cancelled = false;
+    let polling = false;
     const timer = setInterval(async () => {
-      if (document.visibilityState === "hidden") return;
+      if (document.visibilityState === "hidden" || polling) return;
+      polling = true;
       try {
         const next = await api.getSnapshot(snapshot.projectId);
-        if (!cancelled) saveSnapshot(next);
+        if (!cancelled) { saveSnapshot(next); setError((current) => current?.startsWith("Connection interrupted:") ? null : current); }
       } catch (e) {
         if (!cancelled) setError(`Connection interrupted: ${errorMessage(e)}`);
-      }
+      } finally { polling = false; }
     }, 2500);
     return () => {
       cancelled = true;
@@ -127,7 +143,7 @@ export function RootsApp({
     changedId?: string,
     background = false,
   ): Promise<boolean> {
-    if (!background && active.current) return false;
+    if (downloadLock.current || closed || (!background && active.current)) return false;
     if (background) setContributionsRunning((n) => n + 1);
     else {
       active.current = true;
@@ -162,31 +178,36 @@ export function RootsApp({
     }
   }
   async function downloadBook() {
-    if (!snapshot || download) return;
+    if (!snapshot || downloadLock.current) return;
+    downloadLock.current = true;
     setDownload(true);
+    setDownloadStage("sealing");
     setError(null);
     try {
       const blob = await api.downloadFamilyBook(snapshot.projectId);
       if (!blob.size)
         throw new Error("The export was empty. No file was downloaded.");
+      setDownloadStage("delivering");
       const url = URL.createObjectURL(blob),
         anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "roots-family-book.zip";
+      anchor.download = "osmy-roots-family-book.zip";
       anchor.click();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
       setDownloaded(true);
-      saveSnapshot(await api.getSnapshot(snapshot.projectId));
+      try { saveSnapshot(await api.getSnapshot(snapshot.projectId)); } catch { /* The file is already received; polling can refresh state. */ }
     } catch (e) {
       setError(errorMessage(e));
     } finally {
+      downloadLock.current = false;
       setDownload(false);
     }
   }
-  const running =
+  const closed = !!snapshot?.run && (downloaded || !!snapshot.run.sealedAt || ["sealing", "completed", "cancelled"].includes(snapshot.run.phase));
+  const running = !closed && (
     busy ||
     contributionsRunning > 0 ||
-    !!snapshot?.researchEvents.some(
+    (snapshot?.run ? snapshot.run.modelStatus === "running" || snapshot.run.book.status === "preparing" || snapshot.run.phase === "preparing" : !!snapshot?.researchEvents.some(
       (e) =>
         e.state === "running" &&
         !snapshot.researchEvents.some(
@@ -196,13 +217,14 @@ export function RootsApp({
             other.sequence > e.sequence &&
             other.state !== "running",
         ),
-    );
+    )));
+  const setupVisible = !closed && !!snapshot?.run && (!snapshot.run.initialSavedAt || setupReview) && !["completed", "cancelled"].includes(snapshot.run.phase);
   return (
     <div className="roots-app">
       <header className="roots-header">
-        <div className="brand" aria-label="Roots">
-          <span aria-hidden="true">♧</span> roots
-          <span className="brand-period">.</span>
+        <div className="brand" aria-label="Osmy Roots">
+          <svg viewBox="0 0 160 160" aria-hidden="true"><rect width="160" height="160" rx="36" fill="#f3efe5"/><path d="M80 127V85M80 102L43 70V41M80 85L117 54V34M80 64V30M80 127L59 143M80 127L101 143" fill="none" stroke="#315943" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/><g fill="#315943"><circle cx="43" cy="41" r="11"/><circle cx="117" cy="34" r="11"/><circle cx="80" cy="30" r="11"/></g><circle cx="80" cy="85" r="12" fill="#b8884d"/></svg>
+          <span className="brand-wordmark"><small>Osmy</small>Roots</span>
         </div>
         <div className="project-label">
           {snapshot ? (
@@ -223,7 +245,11 @@ export function RootsApp({
           <button
             className="new-project-button"
             disabled={busy || download || contributionsRunning > 0}
-            onClick={() => {
+            onClick={async () => {
+              if (snapshot.run && !closed && api.cancelRun) {
+                const cancelled = await perform(() => api.cancelRun!(snapshot.projectId));
+                if (!cancelled) return;
+              }
               setSnapshot(null);
               setSelection(null);
               setEditor(null);
@@ -233,6 +259,9 @@ export function RootsApp({
               setPanel("map");
               setError(null);
               setDownloaded(false);
+              setSetupReview(false);
+              setArrivals(null);
+              previousSnapshot.current = null;
               try {
                 localStorage.removeItem(`roots-last-project-${mode}`);
               } catch {}
@@ -249,7 +278,7 @@ export function RootsApp({
         {snapshot && (
           <>
             <span className="book-state">
-              {snapshot.bookStatus === "stale"
+              {downloaded || snapshot.run?.phase === "completed" ? "Download completed" : snapshot.run?.book.status === "ready" ? "Your family book is ready" : snapshot.bookStatus === "stale"
                 ? "Book needs updating"
                 : snapshot.bookStatus === "current"
                   ? "Book is up to date"
@@ -269,7 +298,7 @@ export function RootsApp({
               {download ? (
                 <>
                   <span className="spinner" />
-                  Preparing your book…
+                  {downloadStage === "sealing" ? "Sealing your book…" : "Delivering your book…"}
                 </>
               ) : (
                 <>
@@ -336,10 +365,26 @@ export function RootsApp({
                 setPanel("map");
               }}
             />
-            <div className="center-workspace">
+            <div className={`center-workspace ${setupVisible ? "setup-center" : ""}`}>
+              {setupVisible ? <SetupQuestions
+                snapshot={snapshot}
+                api={api}
+                busy={busy}
+                onAnswer={(answer) => perform(() => {
+                  if (!api.answerSetupQuestion) throw new Error("The source-check API is unavailable. Please refresh and try again.");
+                  return api.answerSetupQuestion(snapshot.projectId, answer);
+                })}
+                onSource={(id) => setSelection({kind: "source", id})}
+                onRetry={api.retryAnalysis ? () => void perform(() => api.retryAnalysis!(snapshot.projectId)) : undefined}
+                onClose={setupReview ? () => setSetupReview(false) : undefined}
+              /> : <>
+              {snapshot.run && <div className="run-arrivals" aria-live="polite"><strong>{snapshot.people.length} of {snapshot.run.targetPeople} supplied people saved</strong>{snapshot.run.batches.map((batch) => <span key={batch.id} className={`batch-dot ${batch.status}`} title={batch.status === "saved" ? "Family records saved" : batch.status === "cancelled" ? "Pending records left open" : "More supplied records to add"} />)}{snapshot.run.initialSavedAt && !closed && <button className="text-button" onClick={() => setSetupReview(true)}>Your seven answers</button>}</div>}
+              {arrivals && <SavedArrivals delta={arrivals} snapshot={snapshot} api={api} onSelect={(id) => setSelection({kind:"person", id})} onSource={(id) => setSelection({kind:"source", id})} />}
               <FamilyCanvas
                 snapshot={snapshot}
                 api={api}
+                progressive={!!snapshot.run}
+                readOnly={closed}
                 selectedId={selection?.kind === "person" ? selection.id : null}
                 highlightId={highlight}
                 savedConnection={savedConnection}
@@ -356,32 +401,10 @@ export function RootsApp({
                   setSelection(null);
                 }}
               />
-              {snapshot.bookPassages.length > 0 && (
-                <details className="book-passage">
-                  <summary>
-                    Current family-book passage · {snapshot.bookStatus}
-                  </summary>
-                  {snapshot.bookPassages.map((p) => (
-                    <article key={p.id}>
-                      <p>{p.text}</p>
-                      {p.sourceLocators.map((span, i) => (
-                        <button
-                          className="text-button"
-                          key={i}
-                          onClick={() =>
-                            setSelection({ kind: "source", id: span.sourceId })
-                          }
-                        >
-                          {span.locator}
-                        </button>
-                      ))}
-                    </article>
-                  ))}
-                </details>
-              )}
+              {(snapshot.bookPassages.length > 0 || snapshot.run?.initialSavedAt) && <BookPreview previewUrl={api.bookPreviewUrl?.(snapshot.projectId)} snapshot={snapshot} busy={download || busy} downloaded={downloaded || snapshot.run?.phase === "completed"} onDownload={downloadBook} onPrepare={api.prepareFamilyBook && !closed ? () => void perform(() => api.prepareFamilyBook!(snapshot.projectId)) : undefined} onSource={(id) => setSelection({kind: "source", id})} />}
               <div className="canvas-footer">
                 <button
-                  disabled={busy || !snapshot.history.length}
+                  disabled={busy || closed || !snapshot.history.length}
                   onClick={() =>
                     void perform(() =>
                       api.mutateGraph(snapshot.projectId, {
@@ -395,9 +418,10 @@ export function RootsApp({
                   ↶ Undo last change
                 </button>
                 <span>
-                  PDF, editable project, evidence & originals in one ZIP
+                  PDF, editable project and source evidence in one ZIP
                 </span>
               </div>
+              </>}
               {selection && (
                 <EvidenceDrawer
                   key={`${selection.kind}-${selection.id}`}
@@ -409,6 +433,7 @@ export function RootsApp({
                     setFocusedProposalId(id);
                     setPanel("human");
                   }}
+                  readOnly={closed}
                   onEdit={(operation, entityId) => {
                     setEditor({ operation, entityId });
                     setSelection(null);
@@ -420,7 +445,7 @@ export function RootsApp({
                   key={`${editor.operation}-${editor.entityId || "new"}`}
                   snapshot={snapshot}
                   {...editor}
-                  busy={busy}
+                  busy={busy || download || closed}
                   onClose={() => setEditor(null)}
                   onSave={async (mutation) => {
                     if (
@@ -441,7 +466,7 @@ export function RootsApp({
             <HumanContributionPanel
               snapshot={snapshot}
               selectedId={selection?.kind === "person" ? selection.id : null}
-              busy={busy}
+              busy={busy || closed}
               focusedProposalId={focusedProposalId}
               onFocusProposal={setFocusedProposalId}
               onContribute={(input) =>

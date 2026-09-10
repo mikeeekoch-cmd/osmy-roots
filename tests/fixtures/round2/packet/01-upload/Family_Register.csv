@@ -1,0 +1,36 @@
+person_id,full_name,aliases,birth,birth_precision,death,death_precision,places,source_refs,status,notes
+F001,Rowan Vale,,1990,year,unknown,unknown,Harbourfield,fictional-ledger:F001,reported,Fictional supplied prior family record.
+F002,Cedric Vale,,1858,year,unknown,unknown,unknown,fictional-ledger:F002,candidate,Fictional supplied prior family record.
+F003,Ada Vale,,1860,year,unknown,unknown,unknown,fictional-ledger:F003,candidate,Fictional supplied prior family record.
+F004,Jasper Vale,,1881,year,unknown,unknown,unknown,fictional-ledger:F004,candidate,Fictional supplied prior family record.
+F005,Alder Vale,,1885,approximate,1961,approximate,"Willowford, Northmere",fictional-ledger:F005,reported,Approximate life years. Fictional register records residence in Willowford throughout life.
+F006,Felix Vale,,1887,year,unknown,unknown,unknown,fictional-ledger:F006,reported,Fictional supplied prior family record.
+F007,Quentin Vale,,1890,year,unknown,unknown,unknown,fictional-ledger:F007,candidate,Fictional supplied prior family record.
+F008,Silas Vale,,1892,year,unknown,unknown,unknown,fictional-ledger:F008,reported,Fictional supplied prior family record.
+F009,Nora Ash,,1887,year,unknown,unknown,unknown,fictional-ledger:F009,candidate,Fictional supplied prior family record.
+F010,Elspeth Vale,,1889,year,unknown,unknown,unknown,fictional-ledger:F010,reported,Fictional supplied prior family record.
+F011,Beatrice Vale,,1907,year,unknown,unknown,unknown,fictional-ledger:F011,reported,Fictional supplied prior family record.
+F012,Hugo Pike,,1905,year,unknown,unknown,unknown,fictional-ledger:F012,reported,Fictional supplied prior family record.
+F013,Mira Vale,,1909,year,unknown,unknown,unknown,fictional-ledger:F013,reported,Distinct from Mira Vale F018. Do not merge matching names.
+F014,Gareth Vale,,1910,year,unknown,unknown,unknown,fictional-ledger:F014,reported,Fictional supplied prior family record.
+F015,Ellis Vale,,1912,year,1980,year,Willowford until about 1936; Harbourfield about 1936-1980,fictional-ledger:F015,reported,"Recorded in Willowford until about 1936, then Harbourfield about 1936-1980. Exact moving date unknown."
+F016,Otis Vale,,1918,year,unknown,unknown,unknown,fictional-ledger:F016,reported,Fictional supplied prior family record.
+F017,Clara Vale,Clara Reed,unknown,unknown,unknown,unknown,Fernbridge (birth); Harbourfield (later residence),fictional-ledger:F017,reported,Fictional ledger says 1911; its margin note reports 1909. No original birth certificate is supplied. Leave birth year unresolved.
+F018,Mira Vale,,1932,year,unknown,unknown,unknown,fictional-ledger:F018,reported,Distinct from Mira Vale F013. Do not merge matching names.
+F019,Martin Vale,,1934,year,unknown,unknown,unknown,fictional-ledger:F019,reported,Fictional supplied prior family record.
+F020,Theo Vale,,1936,year,unknown,unknown,unknown,fictional-ledger:F020,reported,Fictional supplied prior family record.
+F021,Dorian Vale,,1940,year,unknown,unknown,unknown,fictional-ledger:F021,reported,Fictional supplied prior family record.
+F022,Iris Lane,Iris Vale; Aunt Iris,1945,year,unknown,unknown,unknown,fictional-ledger:F022,reported,Fictional supplied prior family record.
+F023,Warren Reed,,1890,year,unknown,unknown,unknown,fictional-ledger:F023,reported,Fictional supplied prior family record.
+F024,Celia Reed,,1892,approximate,unknown,unknown,unknown,fictional-ledger:F024,reported,Fictional supplied prior family record.
+F025,Jonah Vale,,1962,year,unknown,unknown,unknown,fictional-ledger:F025,reported,Fictional supplied prior family record.
+F026,Hazel Vale,,1965,year,unknown,unknown,unknown,fictional-ledger:F026,reported,Fictional supplied prior family record.
+F027,Luca Vale,,2001,year,unknown,unknown,unknown,fictional-ledger:F027,reported,Fictional supplied prior family record.
+F028,Sylvie Vale,,1935,year,unknown,unknown,unknown,fictional-ledger:F028,reported,Birth year reported by prior register; exact date unknown.
+F029,June Moss,,1967,year,unknown,unknown,unknown,fictional-ledger:F029,reported,Fictional supplied prior family record.
+F030,Robin Vale,,1991,approximate,unknown,unknown,unknown,fictional-ledger:F030,reported,Fictional supplied prior family record.
+F031,Emmett Vale,,2011,approximate,unknown,unknown,unknown,fictional-ledger:F031,reported,"Half-sibling of Rowan F001, sharing father F025. Mother is F032. Not a child of Rowan."
+F032,Wren Vale,,1976,year,unknown,unknown,unknown,fictional-ledger:F032,reported,Recorded as Jonah F025 partner or spouse; legal marital status unverified.
+F033,Bram Ash,,1938,year,unknown,unknown,unknown,fictional-ledger:F033,reported,Fictional supplied prior family record.
+F034,Vera Birch,,1915,year,unknown,unknown,unknown,fictional-ledger:F034,reported,Fictional supplied prior family record.
+F035,Edmund Birch,,1912,year,unknown,unknown,unknown,fictional-ledger:F035,reported,Parent and spouse links remain probable.

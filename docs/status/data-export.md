@@ -1,3 +1,36 @@
+# Round 2 data/export status, September 10, 2026
+
+Execution owner: Codex data/export subagent covering the Claude assignment. No claim of execution in Claude Code. Lead integrates changes on codex/engineering; the original codex/data-export history is preserved.
+
+Engineering T0: 18:18:15 UTC. Contracts: 18:28:15. P0: 19:13:15. Freeze: 19:28:15. Final deadline: 19:48:15.
+
+Implemented and verified during the engineering window:
+
+- Ordinary PDF/CSV/TXT/photo/three-chat-ZIP packet parsing reconstructs the actual selected 35 people and 56 normalized relationships from the supplied files. No internal JSON seed is used.
+- Actual PDF extraction uses local Poppler pdftotext (10 seconds, 2 MB extracted-text cap, at most 10 pages), with original PDF bytes retained. Images remain stored assets without OCR or face recognition.
+- CSV quotes, embedded newlines, exact offsets, source references, same-name IDs, candidate relationships, uncertain dates, duplicate normalization, missing endpoints and parent-cycle rejection are covered.
+- Chat ZIPs validate central and local directories, CRC/size, safe paths, no symlinks, no nested/executable content, 200 entries, 100 MB total expansion and ratio <=200. UTF-8 undated or dated scaffolding is parsed; actual recollection attribution, per-message roots, original hashes and reconstruction metadata remain separate.
+- Canonical private packet: 16 selected files; 35 people; 56 relationships; 16 sources; 19 retained original/extracted assets; 8 photo annotations; zero parser issues. Actual PDF and 3 ZIPs parsed in 130 ms. No private filenames, hashes or source text appear in this status.
+- Fictional twin: same shared schemas and 35/56 coverage. Both actual and twin results pass ProjectSnapshotSchema and validateSnapshot with exact imported claim spans.
+- Export keeps the strict lead bundle adapter untouched. Four-page PDF now includes a small branch and the entire 35-person register; HTML includes all supplied photos and accepted recollections. All photo and source bytes remain hash-verifiable. Current data layout generation took 151 ms for a roughly 9 MB bundle.
+- Visual inspection of all four initial-layout pages found and fixed long open-question overflow into the footer; the corrected page 4 was rendered and inspected again. The initial layout intentionally contains no unreviewed story. Final integrated current-book visual QA remains required after real Astra review.
+- Merge checkpoint: 118 focused ingestion/export/research tests passed across both owners. The runtime parseFamilyPacket is retained; optional ingestDemoPacket is preserved in raw-packet.mjs with its own raw-format tests. The canonical checker validates actual manifest hashes, seven exact supports and the supplied batch schedule; it does not invent a plan. The PDF retains the already visually checked full-register layout, plus source guard reporting and the external ToUnicode text-extraction fix.
+- Earlier 54 focused ingestion/export/research tests passed. Mocked retrieval unit tests now inject DNS as well as HTTP and retain an explicit private-DNS rejection case; production DNS checks are unchanged.
+
+V2 prose checkpoint: parseFamilyNotesPacket({files,identityKeys}) now reads ordinary person headings, human-readable dates, relative/partner sentences and photo notes. Actual private v2 passes parser, ProjectSnapshotSchema, validateSnapshot, every photo span, exact app startRound2 photo comparison, manifest hashes, all seven question supports and full staged coverage: 20 uploads, 35 people, 56 relationships (42 accepted, 14 proposed), 14 original photo annotations and all 12 reconstructed chat messages. Identity mappings cannot add hidden facts. Unsupported graph grammar fails. Date conflicts retain both values with unknown precision; missing dates remain unknown. Only explicit left-to-right lines create photo positions. Four fictional-prose tests cover graph reconstruction, extra identity rejection, unpositioned group photos, unknown labels, relative direction, scoped identities, partner meaning and date qualifiers. All 122 focused data/export/research tests and TypeScript checks pass after this change. V1 is preserved.
+
+Interfaces: parseFamilyPacket({files}) and parseFamilyNotesPacket({files,identityKeys}) from server/ingestion/index.mjs return roots-v1 graph/sources/assets plus assetBytes, files, photoAnnotations, relationshipReconciliation and counts. prepareManifestBatches and readSavedSourceJob in server/research validate supplied staging without timers or new facts. Lead currently owns active batch execution.
+
+Photo renderer follow-up: HTML includes every resolved original image, its supplied caption, explicit identity-review label and exact citation. PDF uses a caption-associated fallback only when the selected chapter person has no confirmed photo, clearly labels the unreviewed identity and cites its source. It never mutates person.photoIds or revives an unresolved ordered identity. Synthetic cover/chapter renders were visually checked; the new regression verifies all 14 gallery photos and extracted PDF evidence labels. All 123 focused data/export/research tests and TypeScript checks pass.
+
+Final output QA completed on tested application code a627436. Two actual browser rehearsals produced separate current books using live Astra analysis and passage generation. Browser receipts were measured at 104.174 seconds and 104.747 seconds after Submit; the second included a refresh and resume. All eight rendered PDF pages were visually inspected with no overlap or clipping. Both PDFs contain all 35 names, the current accepted passage, source citations, per-message narrator attribution, unknown values and uncertain dates. Each portable project retains all 56 relationships and the full exact recollection quote. Each HTML edition contains all 14 original photos with supplied captions and review labels: 13 unreviewed, one confirmed. All 23 saved asset hashes validate, and all 20 uploaded originals are byte-identical to the frozen packet. The archive-wrapper attribution issue was fixed and verified in both final outputs. The lead's isolated-store reopen, edit and book-invalidation checks also passed. Private screenshots, PDF renders, timing receipts and exact QA reports remain in ignored local storage; no private source text or photographs are included in this public status.
+
+The data/export gates are complete. The four-page PDF intentionally summarizes source and open-question lists; the complete register and remaining material are preserved in HTML and portable JSON. Standalone editable HTML map remains deferred as recorded by the lead.
+
+---
+
+## Preserved round 1 data/export handoff
+
 # Claude Code Mike: ingestion, retrieval and export
 
 Owner: Claude Code Mike. Branch: `codex/data-export`. Modules: `server/ingestion`, `server/research`, `server/export`.

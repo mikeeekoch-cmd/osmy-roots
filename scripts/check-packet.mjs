@@ -1,102 +1,44 @@
 #!/usr/bin/env node
-/**
- * Packet validator for Product.
- *
- * Runs the exact production parsers over a candidate 01-upload folder and prints
- * what would happen in the demo. Generic unzip or a spreadsheet preview is not
- * enough: this is the code the app actually runs.
- *
- * Usage:
- *   node scripts/check-packet.mjs <01-upload dir> [--manifest <DEMO_MANIFEST.json>]
- *
- * Exit code 0 means the packet parses with no errors. 1 means at least one error.
- */
-
-import fs from 'node:fs';
+/** Validate the same strict roots-v1 parser used by the app. No model/network calls. */
+import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
-import { ingestDemoPacket, SUPPORTED_INPUTS } from '../server/ingestion/packet.mjs';
-import { UPLOAD_POLICY } from '../server/ingestion/archive.mjs';
-import { planInitialBranch, planStagedBatches, validateBatchPlan } from '../server/research/staged.mjs';
+import { createHash } from 'node:crypto';
+import { parseFamilyPacket, parseFamilyNotesPacket } from '../server/ingestion/index.mjs';
+import { prepareManifestBatches } from '../server/research/staged-sources.mjs';
+import { DemoManifestSchema } from '../packages/contracts/round2.ts';
 
-const dir = process.argv[2];
-const mIdx = process.argv.indexOf('--manifest');
-const manifestPath = mIdx !== -1 ? process.argv[mIdx + 1] : null;
-
-if (!dir || !fs.existsSync(dir)) {
-  console.error('Usage: node scripts/check-packet.mjs <01-upload dir> [--manifest <DEMO_MANIFEST.json>]');
-  console.error('\nSupported inputs:');
-  for (const [key, spec] of Object.entries(SUPPORTED_INPUTS)) {
-    console.error(`  ${String(key).padEnd(18)} ${String(spec.pattern)}  ${spec.role}${spec.required ? '  (REQUIRED)' : ''}`);
+const directory = process.argv[2], manifestFlag = process.argv.indexOf('--manifest');
+if (!directory) { console.error('Usage: node scripts/check-packet.mjs <01-upload directory> [--manifest <DEMO_MANIFEST.json>]'); process.exit(2); }
+try {
+  const files = await Promise.all((await readdir(directory)).filter(name => !name.startsWith('.')).map(async originalName => ({ originalName, bytes: await readFile(path.join(directory, originalName)) })));
+  const manifestPath = manifestFlag === -1 ? undefined : process.argv[manifestFlag + 1];
+  if (manifestFlag !== -1 && !manifestPath) throw new Error('--manifest requires a file path');
+  const manifest = manifestPath ? DemoManifestSchema.parse(JSON.parse(await readFile(manifestPath, 'utf8'))) : undefined;
+  const parser = manifest?.inputFormat === 'family_notes' ? parseFamilyNotesPacket : parseFamilyPacket;
+  const startedAt = Date.now(), parsed = await parser({ files, identityKeys: manifest?.identityKeys });
+  const failures = [...parsed.issues, ...parsed.files.filter(f => f.status === 'failed').map(f => `${f.originalName}: ${f.reason}`)];
+  let batches;
+  if (manifest) {
+    const uploaded = new Map(files.map(f => [f.originalName, f]));
+    for (const item of manifest.files) {
+      const file = item.path.startsWith('01-upload/') ? uploaded.get(path.posix.basename(item.path)) : { bytes: await readFile(path.resolve(path.dirname(manifestPath), item.path)) };
+      if (!file || file.bytes.length !== item.bytes || createHash('sha256').update(file.bytes).digest('hex') !== item.sha256) throw new Error(`Manifest file size/hash mismatch: ${item.path}`);
+    }
+    if (manifest.files.filter(item => item.path.startsWith('01-upload/')).length !== files.length) throw new Error('Selected file count differs from the frozen manifest');
+    for (const question of manifest.questions) for (const span of question.support) {
+      const source = parsed.sources.find(s => s.id === span.sourceId);
+      if (!source || source.originalLocator !== span.locator || !source.originalText.includes(span.quote)) throw new Error(`Question ${question.id} has an unresolved source span`);
+    }
+    batches = prepareManifestBatches({ manifest, packet: parsed });
+    const scheduled = new Set(batches.flatMap(batch => batch.relationshipIds));
+    if (scheduled.size !== parsed.relationships.length) throw new Error('Manifest staged relationships omit part of the parsed graph');
   }
-  process.exit(2);
-}
-
-const names = fs.readdirSync(dir).filter((n) => !n.startsWith('.'));
-const files = names.map((n) => ({ originalName: n, bytes: fs.readFileSync(path.join(dir, n)) }));
-const manifest = manifestPath && fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : null;
-
-const totalBytes = files.reduce((a, f) => a + f.bytes.length, 0);
-console.log(`Packet: ${dir}`);
-console.log(`Files: ${files.length} (limit ${UPLOAD_POLICY.maxFiles}), total ${(totalBytes / 1024 / 1024).toFixed(2)} MB (limit ${(UPLOAD_POLICY.maxTotalBytes / 1024 / 1024).toFixed(0)} MB)\n`);
-
-const t0 = Date.now();
-const r = await ingestDemoPacket({ files, manifest });
-const ms = Date.now() - t0;
-
-console.log('FILE OUTCOMES');
-for (const f of r.files) {
-  const detail = f.format ? `format ${f.format}, ${f.messages} message(s)`
-    : f.extractionMode ? `${f.extractionMode}, ${f.words || 0} word(s)`
-    : f.rows != null ? `${f.rows} row(s)`
-    : f.segments != null ? `${f.segments} paragraph(s)`
-    : f.reason || '';
-  console.log(`  ${String(f.status).padEnd(12)} ${String(f.originalName).padEnd(32)} ${detail}`);
-}
-
-console.log('\nCOVERAGE');
-const c = r.report.counts;
-console.log(`  people ${c.people} | relationships ${c.relationships} | sources ${c.sources} | photos ${c.assets} | stories ${c.stories} | evidence roots ${c.evidenceRoots}`);
-const rec = r.report.reconciliation;
-console.log(`  relationships: ${rec.rawRows} raw rows -> ${rec.normalized} normalized (${rec.mergedCount} merged, ${rec.excludedCount} excluded)`);
-for (const m of rec.merged) console.log(`    merged  ${m.relationshipId} into ${m.mergedInto} at ${m.locator} (${m.reason})`);
-for (const e of rec.excluded) console.log(`    EXCLUDED ${e.relationshipId} at ${e.locator}: ${e.reason}`);
-console.log(`  PDF: ${r.report.pdfExtraction ? r.report.pdfExtraction.mode : 'no Family_Overview.pdf supplied'}`);
-
-console.log('\nPHOTOS');
-for (const a of r.assets) {
-  const who = a.personIds?.length ? a.personIds.join(', ') : 'nobody identified';
-  const order = a.orderIsSupplied ? 'left-to-right supplied' : a.positionsUnknown ? 'positions unknown' : '';
-  console.log(`  ${String(a.originalName).padEnd(32)} ${who}${order ? `  (${order})` : ''}${a.caption ? '' : '  NO CAPTION'}`);
-}
-
-const errors = r.issues.filter((i) => i.severity === 'error');
-const warns = r.issues.filter((i) => i.severity !== 'error');
-if (errors.length) {
-  console.log(`\nERRORS (${errors.length}) - these block the demo`);
-  for (const e of errors) console.log(`  ! ${e.code}: ${e.message}`);
-}
-if (warns.length) {
-  console.log(`\nISSUES (${warns.length})`);
-  for (const w of warns) console.log(`  - ${w.code}: ${w.message}`);
-}
-if (r.warnings.length) {
-  console.log(`\nPARSER NOTES (${r.warnings.length})`);
-  for (const w of r.warnings) console.log(`  - ${w}`);
-}
-
-// Staged coverage: can every person be released safely in six batches?
-if (r.people.length) {
-  const snap = { people: r.people, relationships: r.relationships, claims: r.claims, stories: r.stories, assets: r.assets, sources: r.sources, layout: r.layout };
-  const youngest = [...r.people].sort((a, b) => (r.layout.positions[b.id]?.generation ?? 0) - (r.layout.positions[a.id]?.generation ?? 0))[0];
-  const init = planInitialBranch(snap, { focusPersonId: youngest.id, size: 5 });
-  const plan = planStagedBatches({ snapshot: snap, releasedIds: init.personIds });
-  const check = validateBatchPlan({ snapshot: snap, releasedIds: init.personIds, batches: plan.batches });
-  console.log('\nSTAGED RELEASE');
-  console.log(`  initial branch: ${init.personIds.join(', ')}`);
-  for (const b of plan.batches) console.log(`  batch ${b.index} @ ${b.offsetSeconds}s  +${b.personIds.length} -> ${b.cumulativeTotal}`);
-  console.log(`  dependency-safe: ${check.ok}${check.problems.length ? `\n    ${check.problems.join('\n    ')}` : ''}`);
-  if (check.unreachable.length) console.log(`  NOT REACHED: ${check.unreachable.join(', ')}`);
-}
-
-console.log(`\nParsed in ${ms} ms. ${errors.length ? `${errors.length} error(s).` : 'No errors.'}`);
-process.exit(errors.length ? 1 : 0);
+  const report = {
+    parser: `${parser.name} (runtime roots-v1)`, status: failures.length ? 'FAIL' : 'PASS',
+    coverage: parsed.counts, files: parsed.files.map(f => ({ name: f.originalName, status: f.status })),
+    photoAnnotations: parsed.photoAnnotations.length, chatMessages: parsed.sources.filter(s => s.kind === 'reconstructed_chat' || s.kind === 'uploaded_chat').reduce((n, s) => n + (s.segments?.length || 0), 0),
+    manifestValidated: !!batches, batches: batches?.map(b => ({ id: b.id, people: b.personIds.length, relationships: b.relationshipIds.length, releaseOffsetSeconds: b.releaseOffsetSeconds })),
+    errors: failures, elapsedMs: Date.now() - startedAt,
+  };
+  console.log(JSON.stringify(report, null, 2)); process.exitCode = failures.length ? 1 : 0;
+} catch (error) { console.error(`Packet validation FAILED: ${error.message}`); process.exitCode = 1; }

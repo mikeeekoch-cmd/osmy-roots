@@ -1,92 +1,43 @@
-/**
- * RFC 4180 CSV reader: quoted fields, embedded commas, embedded newlines and
- * doubled quotes. Registers arrive as CSV, so a naive split would corrupt any
- * caption or note containing a comma.
- */
-
-/** @returns {string[][]} rows of raw cell strings */
-export function parseCsv(text, options = {}) {
-  const delimiter = options.delimiter || ',';
-  const src = String(text).replace(/^﻿/, '');   // strip BOM
-  const rows = [];
-  let row = [];
-  let field = '';
-  let inQuotes = false;
-  let started = false;
-
-  for (let i = 0; i < src.length; i += 1) {
-    const ch = src[i];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (src[i + 1] === '"') { field += '"'; i += 1; continue; }
-        inQuotes = false;
-        continue;
-      }
-      field += ch;
-      continue;
-    }
-    if (ch === '"' && field === '') { inQuotes = true; started = true; continue; }
-    if (ch === delimiter) { row.push(field); field = ''; started = true; continue; }
-    if (ch === '\r') continue;
-    if (ch === '\n') {
-      row.push(field);
-      rows.push(row);
-      row = []; field = ''; started = false;
-      continue;
-    }
-    field += ch;
-    started = true;
+/** RFC 4180-style CSV with source offsets, quoted commas and embedded newlines. */
+function readCsvRows(text, delimiter = ',') {
+  text = String(text).replace(/^\uFEFF/, '');
+  const records = []; let fields = [], field = '', quoted = false, afterQuote = false, start = 0, line = 1, startLine = 1;
+  const push = (end) => { fields.push(field); if (fields.length > 100 || end - start > 100_000 || records.length > 10_000) throw new Error('CSV row, column or record limit exceeded'); if (fields.some((v) => v !== '')) records.push({ fields, raw: text.slice(start, end), start, end, startLine, endLine: line }); fields = []; field = ''; afterQuote = false; };
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) { if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else { quoted = false; afterQuote = true; } } else { field += c; if (c === '\n') line++; } continue; }
+    if (c === '"') { if (field || afterQuote) throw new Error(`Malformed CSV quote at line ${line}`); quoted = true; continue; }
+    if (c === delimiter) { fields.push(field); field = ''; afterQuote = false; continue; }
+    if (c === '\r' || c === '\n') { push(i); if (c === '\r' && text[i + 1] === '\n') i++; line++; start = i + 1; startLine = line; continue; }
+    if (afterQuote) throw new Error(`Unexpected content after CSV quote at line ${line}`);
+    field += c;
   }
-  if (inQuotes) {
-    const err = new Error('CSV ended inside a quoted field');
-    err.code = 'ECSVUNTERMINATED';
-    throw err;
-  }
-  if (started || field || row.length) { row.push(field); rows.push(row); }
-  return rows.filter((r) => r.length && !(r.length === 1 && r[0].trim() === ''));
+  if (quoted) throw Object.assign(new Error('Unterminated CSV quoted field'), { code: 'ECSVUNTERMINATED' });
+  if (field || fields.length) push(text.length);
+  return records;
 }
 
-/** Normalize a header cell to a comparable key. */
-export function headerKey(name) {
-  return String(name || '').trim().toLowerCase().replace(/[\s\-]+/g, '_').replace(/[^a-z0-9_]/g, '');
+/** Runtime CSV records include exact source offsets and preserve cell text. */
+export function parseCsvWithSpans(text) {
+  const records = readCsvRows(text);
+  if (!records.length) return [];
+  const headers = records.shift().fields.map((h) => h.trim().toLowerCase());
+  if (new Set(headers).size !== headers.length || headers.some((h) => !h)) throw new Error('CSV has empty or duplicate headers');
+  return records.map((r) => { if (r.fields.length !== headers.length) throw new Error(`CSV line ${r.startLine} has ${r.fields.length} values, expected ${headers.length}`); return { ...r, values: Object.fromEntries(headers.map((h, i) => [h, r.fields[i]])) }; });
 }
 
-/**
- * Parse to objects keyed by normalized header, keeping the 1-based source line
- * of each record so a locator like `Family_Register.csv#row:12` resolves.
- */
+/** Preserved raw-import API: matrix rows, including the header. */
+export function parseCsv(text, options = {}) { return readCsvRows(text, options.delimiter || ',').map((r) => r.fields); }
+export function headerKey(name) { return String(name || '').trim().toLowerCase().replace(/[\s\-]+/g, '_').replace(/[^a-z0-9_]/g, ''); }
 export function parseCsvRecords(text) {
-  const rows = parseCsv(text);
+  const rows = readCsvRows(text);
   if (!rows.length) return { headers: [], records: [], warnings: ['CSV is empty.'] };
-  const headers = rows[0].map(headerKey);
-  const warnings = [];
-  const seenHeader = new Set();
-  headers.forEach((h, i) => {
-    if (!h) warnings.push(`Column ${i + 1} has an empty header.`);
-    else if (seenHeader.has(h)) warnings.push(`Duplicate column header "${h}".`);
-    seenHeader.add(h);
+  const headers = rows.shift().fields.map(headerKey), warnings = [];
+  if (new Set(headers).size !== headers.length) warnings.push('Duplicate column headers.');
+  const records = rows.map((row, i) => {
+    if (row.fields.length !== headers.length) warnings.push(`Row ${i + 2} has ${row.fields.length} cells but the header declares ${headers.length}.`);
+    return { ...Object.fromEntries(headers.filter(Boolean).map((h) => [h, String(row.fields[headers.indexOf(h)] || '').trim()])), __row: i + 2 };
   });
-
-  const records = [];
-  for (let r = 1; r < rows.length; r += 1) {
-    const cells = rows[r];
-    if (cells.every((c) => String(c).trim() === '')) continue;
-    if (cells.length !== headers.length) {
-      warnings.push(`Row ${r + 1} has ${cells.length} cells but the header declares ${headers.length}.`);
-    }
-    const obj = {};
-    headers.forEach((h, i) => { if (h) obj[h] = cells[i] == null ? '' : String(cells[i]).trim(); });
-    obj.__row = r + 1;
-    records.push(obj);
-  }
   return { headers, records, warnings };
 }
-
-/** First present value among candidate header names. */
-export function pick(record, ...names) {
-  for (const n of names) {
-    const k = headerKey(n);
-    if (record[k] != null && record[k] !== '') return record[k];
-  }
-  return '';
-}
+export function pick(record, ...names) { for (const name of names) { const key = headerKey(name); if (record[key] != null && record[key] !== '') return record[key]; } return ''; }

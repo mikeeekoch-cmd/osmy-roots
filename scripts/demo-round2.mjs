@@ -20,10 +20,11 @@ const argOf = (flag, fallback) => {
   const i = process.argv.indexOf(flag);
   return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : fallback;
 };
+if (!process.argv.includes('--raw-fixture')) { console.error('This preserved raw-format harness is not a runtime rehearsal. Use scripts/check-packet.mjs for the canonical packet, or explicitly pass --raw-fixture for the legacy generated fixture.'); process.exit(2); }
 const PACKET = argOf('--packet', process.env.ROOTS_PACKET || '');
 const OUT = argOf('--out', path.join(process.cwd(), 'exports'));
 if (!PACKET) {
-  console.error('Supply the frozen packet: node scripts/demo-round2.mjs --packet <01-upload dir>');
+  console.error('Supply a compatible raw-format fixture: node scripts/demo-round2.mjs --packet <01-upload dir>');
   console.error('For the fictional twin: node scripts/make-test-packet.mjs /tmp/twin && node scripts/demo-round2.mjs --packet /tmp/twin/01-upload');
   process.exit(2);
 }
@@ -39,6 +40,7 @@ const step = async (label, fn) => {
   return value;
 };
 
+console.log('RAW-FORMAT FIXTURE HARNESS. No live Astra or browser rehearsal is performed.');
 console.log(`Packet: ${PACKET}\n`);
 const files = fs.readdirSync(PACKET)
   .filter((n) => !n.startsWith('.'))

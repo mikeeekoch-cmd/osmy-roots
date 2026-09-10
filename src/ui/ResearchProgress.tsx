@@ -39,7 +39,7 @@ export function ResearchProgress({
       : event.finding;
   return (
     <aside className="research-progress">
-      <span className="eyebrow">Roots is working with you</span>
+      <span className="eyebrow">Osmy Roots is working with you</span>
       <h2>Following the clues</h2>
       <div className={`run-status ${busy ? "working" : ""}`}>
         {busy && <span className="spinner" />}
@@ -48,14 +48,28 @@ export function ResearchProgress({
             ? "Working…"
             : storedOriginal(latest)
               ? "Original saved"
-              : label(latest?.state || "Ready")}
+              : snapshot.run?.phase === "questions"
+                ? "Your turn"
+                : snapshot.run?.phase === "growing"
+                  ? "Adding supplied records"
+                  : snapshot.run?.phase === "completed"
+                    ? "Book download sent"
+                    : "Up to date"}
         </strong>
       </div>
       <p className="current-action" aria-live="polite">
-        {(latest && findingText(latest)) ||
-          (latest
-            ? operationText[latest.operation]
-            : "Ready for your family material.")}
+        {!busy
+          ? snapshot.run?.phase === "questions"
+            ? "Check the source-backed answers. Unknowns can stay open."
+            : snapshot.run?.phase === "growing"
+              ? "Saved family records will appear here as they are added. You can explore the map."
+              : snapshot.run?.phase === "completed"
+                ? "This edition is saved. Your download was sent to the browser."
+                : "Up to date. Add another clue while you review."
+          : (latest && findingText(latest)) ||
+            (latest
+              ? operationText[latest.operation]
+              : "Ready for your family material.")}
       </p>
       <div className="metrics">
         {(
@@ -96,6 +110,29 @@ export function ResearchProgress({
             </article>
           ))}
         </details>
+      )}
+      {snapshot.sources.some((source) =>
+        ["saved_folder", "saved_correspondence"].includes(source.kind),
+      ) && (
+        <div className="source-connection-cards">
+          {snapshot.sources
+            .filter((source) =>
+              ["saved_folder", "saved_correspondence"].includes(source.kind),
+            )
+            .map((source) => (
+              <button key={source.id} onClick={() => onSource(source.id)}>
+                <strong>
+                  {source.kind === "saved_folder" ? "Google Drive" : "Email"}
+                </strong>
+                <span>
+                  {source.kind === "saved_folder"
+                    ? "Saved family folder"
+                    : "Saved family correspondence"}
+                </span>
+                <small>Supplied copy · Inspect source ↗</small>
+              </button>
+            ))}
+        </div>
       )}
       <h3>Research activity</h3>
       <ol className="activity">

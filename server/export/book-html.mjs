@@ -3,7 +3,7 @@
  * Photos are referenced by relative path inside the bundle, never by host path.
  */
 
-import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText, displayText } from './select.mjs';
+import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText, displayText, photoReviewLabel } from './select.mjs';
 import { UNKNOWN_LABEL } from '../contracts/types.mjs';
 
 const esc = (s) => String(s ?? '')
@@ -14,7 +14,7 @@ export function renderBookHtml({ snapshot, passages = [], branch, assetPaths = n
   const people = new Map((snapshot.people || []).map((p) => [p.id, p]));
   const focusId = options.focusPersonId || branch?.focusPersonId || (snapshot.people || [])[0]?.id;
   const focus = people.get(focusId);
-  const title = options.title || 'Roots: The Family Book';
+  const title = (options.title || 'Osmy Roots: The Family Book').replace(/^Roots(?=:)/, 'Osmy Roots');
   const dedication = options.dedication || 'For Dad.';
 
   const register = new Map();
@@ -33,6 +33,11 @@ export function renderBookHtml({ snapshot, passages = [], branch, assetPaths = n
   const photo = (id) => {
     const rel = assetPaths.get(id);
     return rel ? `<figure><img src="${esc(rel)}" alt="Family photograph"></figure>` : '';
+  };
+  const galleryPhoto = (asset) => {
+    const annotation = snapshot.photoAnnotations?.find(a => a.assetId === asset.id);
+    const caption = annotation?.caption || asset.caption || asset.originalName || 'Supplied family photograph';
+    return `<figure><img src="${esc(assetPaths.get(asset.id))}" alt="${esc(asset.originalName || 'Supplied family photograph')}"><figcaption>${esc(caption)}<p class="subtitle">${esc(photoReviewLabel(snapshot, asset.id))} ${cite((annotation?.support || []).map(span => span.sourceId))}</p>${(annotation?.support || []).length ? `<div class="locator">${[...new Set(annotation.support.map(span => span.locator))].map(esc).join('; ')}</div>` : ''}</figcaption></figure>`;
   };
 
   const levels = branch?.levels || new Map();
@@ -111,12 +116,19 @@ ${focus && (focus.photoIds || [])[0] ? photo(focus.photoIds[0]) : ''}
 ${branchHtml || '<p class="subtitle">No branch was selected.</p>'}
 <p class="note">Bracketed numbers cite the numbered sources below. Unknown values are shown as “Unknown” rather than filled in. This branch shows ${byLevel.size ? [...byLevel.values()].reduce((a, b) => a + b.length, 0) : 0} people; the full project retains ${(snapshot.people || []).length}.</p>
 
+<h2>Complete family register</h2>
+<table>${[...people.values()].map((p) => `<tr id="person-${esc(p.id)}"><td>${esc(p.id)}</td><td>${esc(p.displayNameEn)}<br><span class="subtitle">${esc(p.lifeYears?.label || UNKNOWN_LABEL)}</span></td><td>${cite((snapshot.claims || []).filter((c) => c.subjectId === p.id).flatMap((c) => c.sourceIds || []))}</td></tr>`).join('')}</table>
+
 ${focus ? `<h2>${esc(focus.displayNameEn)}</h2>
 ${(focus.photoIds || []).length > 1 ? `<div class="photos">${(focus.photoIds || []).slice(0, 4).map(photo).join('')}</div>` : ''}
 ${facts.length ? `<table>${facts.map((c) => `<tr><td>${esc(String(c.predicate || '').replace(/^relationship_/, '').replace(/_/g, ' '))}</td><td>${esc(claimText(c, people).replace(/^[a-z ]+: /, ''))} ${cite(c.sourceIds)}</td></tr>`).join('')}</table>` : '<p class="subtitle">No accepted facts are recorded for this person yet.</p>'}
 ${current.length ? `${current.filter((p) => !p.personId || p.personId === focusId).map((p) => `<div class="passage">${esc(p.text)}${(p.sourceLocators || []).length ? `<div class="locator">Source: ${esc((p.sourceLocators || []).join('; '))}</div>` : ''}</div>`).join('')}` : ''}
 ${stories.length ? `<h2>Family recollections</h2><ul>${stories.map((s) => `<li>${s.attributedTo ? `<em>Remembered by ${esc(s.attributedTo)}.</em> ` : '<em>Family recollection.</em> '}${esc(displayText(s.text))} ${cite(s.sourceIds)}</li>`).join('')}</ul>` : ''}
 ` : ''}
+
+<h2>Family photographs</h2>
+<div class="photos">${(snapshot.assets || []).filter((a) => String(a.mediaType).startsWith('image/') && assetPaths.has(a.id)).map(galleryPhoto).join('')}</div>
+${(snapshot.stories || []).some((s) => s.subjectId !== focusId && s.status === 'accepted') ? `<h2>Other reviewed recollections</h2><ul>${(snapshot.stories || []).filter((s) => s.subjectId !== focusId && s.status === 'accepted').map((s) => `<li><strong>${esc(people.get(s.subjectId)?.displayNameEn || s.subjectId)}.</strong> ${s.attributedTo ? `Remembered by ${esc(s.attributedTo)}. ` : 'Family recollection. '}${esc(s.text)} ${cite(s.sourceIds)}</li>`).join('')}</ul>` : ''}
 
 <h2>Sources</h2>
 <ol>${[...register.values()].sort((a, b) => a.number - b.number).map(({ source }) => `<li><strong>${esc(source.title || source.id)}</strong><div class="locator">${esc(source.kind || 'source')}${source.origin ? ` · ${esc(source.origin)}` : ''} · ${esc(source.originalLocator || '')}${source.unresolved ? ' · original document not supplied' : ''}</div></li>`).join('')}</ol>

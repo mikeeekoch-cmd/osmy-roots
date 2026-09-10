@@ -1,0 +1,924 @@
+{
+  "fictional-ledger": {
+    "people": [
+      {
+        "person_id": "F001",
+        "full_name": "Rowan Vale",
+        "aliases": "",
+        "birth": 1990,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "Harbourfield",
+        "source_refs": "fictional-ledger:F001",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F002",
+        "full_name": "Cedric Vale",
+        "aliases": "",
+        "birth": 1858,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F002",
+        "status": "candidate",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F003",
+        "full_name": "Ada Vale",
+        "aliases": "",
+        "birth": 1860,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F003",
+        "status": "candidate",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F004",
+        "full_name": "Jasper Vale",
+        "aliases": "",
+        "birth": 1881,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F004",
+        "status": "candidate",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F005",
+        "full_name": "Alder Vale",
+        "aliases": "",
+        "birth": 1885,
+        "birth_precision": "approximate",
+        "death": 1961,
+        "death_precision": "approximate",
+        "places": "Willowford, Northmere",
+        "source_refs": "fictional-ledger:F005",
+        "status": "reported",
+        "notes": "Approximate life years. Fictional register records residence in Willowford throughout life."
+      },
+      {
+        "person_id": "F006",
+        "full_name": "Felix Vale",
+        "aliases": "",
+        "birth": 1887,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F006",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F007",
+        "full_name": "Quentin Vale",
+        "aliases": "",
+        "birth": 1890,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F007",
+        "status": "candidate",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F008",
+        "full_name": "Silas Vale",
+        "aliases": "",
+        "birth": 1892,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F008",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F009",
+        "full_name": "Nora Ash",
+        "aliases": "",
+        "birth": 1887,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F009",
+        "status": "candidate",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F010",
+        "full_name": "Elspeth Vale",
+        "aliases": "",
+        "birth": 1889,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F010",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F011",
+        "full_name": "Beatrice Vale",
+        "aliases": "",
+        "birth": 1907,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F011",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F012",
+        "full_name": "Hugo Pike",
+        "aliases": "",
+        "birth": 1905,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F012",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F013",
+        "full_name": "Mira Vale",
+        "aliases": "",
+        "birth": 1909,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F013",
+        "status": "reported",
+        "notes": "Distinct from Mira Vale F018. Do not merge matching names."
+      },
+      {
+        "person_id": "F014",
+        "full_name": "Gareth Vale",
+        "aliases": "",
+        "birth": 1910,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F014",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F015",
+        "full_name": "Ellis Vale",
+        "aliases": "",
+        "birth": 1912,
+        "birth_precision": "year",
+        "death": 1980,
+        "death_precision": "year",
+        "places": "Willowford until about 1936; Harbourfield about 1936-1980",
+        "source_refs": "fictional-ledger:F015",
+        "status": "reported",
+        "notes": "Recorded in Willowford until about 1936, then Harbourfield about 1936-1980. Exact moving date unknown."
+      },
+      {
+        "person_id": "F016",
+        "full_name": "Otis Vale",
+        "aliases": "",
+        "birth": 1918,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F016",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F017",
+        "full_name": "Clara Vale",
+        "aliases": "Clara Reed",
+        "birth": "unknown",
+        "birth_precision": "unknown",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "Fernbridge (birth); Harbourfield (later residence)",
+        "source_refs": "fictional-ledger:F017",
+        "status": "reported",
+        "notes": "Fictional ledger says 1911; its margin note reports 1909. No original birth certificate is supplied. Leave birth year unresolved."
+      },
+      {
+        "person_id": "F018",
+        "full_name": "Mira Vale",
+        "aliases": "",
+        "birth": 1932,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F018",
+        "status": "reported",
+        "notes": "Distinct from Mira Vale F013. Do not merge matching names."
+      },
+      {
+        "person_id": "F019",
+        "full_name": "Martin Vale",
+        "aliases": "",
+        "birth": 1934,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F019",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F020",
+        "full_name": "Theo Vale",
+        "aliases": "",
+        "birth": 1936,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F020",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F021",
+        "full_name": "Dorian Vale",
+        "aliases": "",
+        "birth": 1940,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F021",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F022",
+        "full_name": "Iris Lane",
+        "aliases": "Iris Vale; Aunt Iris",
+        "birth": 1945,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F022",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F023",
+        "full_name": "Warren Reed",
+        "aliases": "",
+        "birth": 1890,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F023",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F024",
+        "full_name": "Celia Reed",
+        "aliases": "",
+        "birth": 1892,
+        "birth_precision": "approximate",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F024",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F025",
+        "full_name": "Jonah Vale",
+        "aliases": "",
+        "birth": 1962,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F025",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F026",
+        "full_name": "Hazel Vale",
+        "aliases": "",
+        "birth": 1965,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F026",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F027",
+        "full_name": "Luca Vale",
+        "aliases": "",
+        "birth": 2001,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F027",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F028",
+        "full_name": "Sylvie Vale",
+        "aliases": "",
+        "birth": 1935,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F028",
+        "status": "reported",
+        "notes": "Birth year reported by prior register; exact date unknown."
+      },
+      {
+        "person_id": "F029",
+        "full_name": "June Moss",
+        "aliases": "",
+        "birth": 1967,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F029",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F030",
+        "full_name": "Robin Vale",
+        "aliases": "",
+        "birth": 1991,
+        "birth_precision": "approximate",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F030",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F031",
+        "full_name": "Emmett Vale",
+        "aliases": "",
+        "birth": 2011,
+        "birth_precision": "approximate",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F031",
+        "status": "reported",
+        "notes": "Half-sibling of Rowan F001, sharing father F025. Mother is F032. Not a child of Rowan."
+      },
+      {
+        "person_id": "F032",
+        "full_name": "Wren Vale",
+        "aliases": "",
+        "birth": 1976,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F032",
+        "status": "reported",
+        "notes": "Recorded as Jonah F025 partner or spouse; legal marital status unverified."
+      },
+      {
+        "person_id": "F033",
+        "full_name": "Bram Ash",
+        "aliases": "",
+        "birth": 1938,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F033",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F034",
+        "full_name": "Vera Birch",
+        "aliases": "",
+        "birth": 1915,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F034",
+        "status": "reported",
+        "notes": "Fictional supplied prior family record."
+      },
+      {
+        "person_id": "F035",
+        "full_name": "Edmund Birch",
+        "aliases": "",
+        "birth": 1912,
+        "birth_precision": "year",
+        "death": "unknown",
+        "death_precision": "unknown",
+        "places": "unknown",
+        "source_refs": "fictional-ledger:F035",
+        "status": "reported",
+        "notes": "Parent and spouse links remain probable."
+      }
+    ],
+    "relationships": [
+      {
+        "relationship_id": "FR001",
+        "from_person_id": "F002",
+        "to_person_id": "F003",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR001",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR002",
+        "from_person_id": "F002",
+        "to_person_id": "F004",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR002",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR003",
+        "from_person_id": "F002",
+        "to_person_id": "F005",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR003",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR004",
+        "from_person_id": "F002",
+        "to_person_id": "F006",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR004",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR005",
+        "from_person_id": "F002",
+        "to_person_id": "F007",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR005",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR006",
+        "from_person_id": "F002",
+        "to_person_id": "F008",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR006",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR007",
+        "from_person_id": "F003",
+        "to_person_id": "F004",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR007",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR008",
+        "from_person_id": "F003",
+        "to_person_id": "F005",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR008",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR009",
+        "from_person_id": "F003",
+        "to_person_id": "F006",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR009",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR010",
+        "from_person_id": "F003",
+        "to_person_id": "F007",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR010",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR011",
+        "from_person_id": "F003",
+        "to_person_id": "F008",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR011",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR012",
+        "from_person_id": "F005",
+        "to_person_id": "F009",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR012",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR013",
+        "from_person_id": "F005",
+        "to_person_id": "F010",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR013",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR014",
+        "from_person_id": "F005",
+        "to_person_id": "F011",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR014",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR015",
+        "from_person_id": "F009",
+        "to_person_id": "F011",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR015",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR016",
+        "from_person_id": "F005",
+        "to_person_id": "F013",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR016",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR017",
+        "from_person_id": "F010",
+        "to_person_id": "F013",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR017",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR018",
+        "from_person_id": "F005",
+        "to_person_id": "F014",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR018",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR019",
+        "from_person_id": "F010",
+        "to_person_id": "F014",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR019",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR020",
+        "from_person_id": "F005",
+        "to_person_id": "F015",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR020",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR021",
+        "from_person_id": "F010",
+        "to_person_id": "F015",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR021",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR022",
+        "from_person_id": "F005",
+        "to_person_id": "F016",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR022",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR023",
+        "from_person_id": "F010",
+        "to_person_id": "F016",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR023",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR024",
+        "from_person_id": "F011",
+        "to_person_id": "F012",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR024",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR025",
+        "from_person_id": "F015",
+        "to_person_id": "F017",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR025",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR026",
+        "from_person_id": "F015",
+        "to_person_id": "F018",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR026",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR027",
+        "from_person_id": "F017",
+        "to_person_id": "F018",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR027",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR028",
+        "from_person_id": "F015",
+        "to_person_id": "F019",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR028",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR029",
+        "from_person_id": "F017",
+        "to_person_id": "F019",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR029",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR030",
+        "from_person_id": "F015",
+        "to_person_id": "F020",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR030",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR031",
+        "from_person_id": "F017",
+        "to_person_id": "F020",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR031",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR032",
+        "from_person_id": "F015",
+        "to_person_id": "F021",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR032",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR033",
+        "from_person_id": "F017",
+        "to_person_id": "F021",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR033",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR034",
+        "from_person_id": "F015",
+        "to_person_id": "F022",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR034",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR035",
+        "from_person_id": "F017",
+        "to_person_id": "F022",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR035",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR036",
+        "from_person_id": "F025",
+        "to_person_id": "F001",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR036",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR037",
+        "from_person_id": "F026",
+        "to_person_id": "F001",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR037",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR038",
+        "from_person_id": "F025",
+        "to_person_id": "F026",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR038",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR039",
+        "from_person_id": "F019",
+        "to_person_id": "F025",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR039",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR040",
+        "from_person_id": "F025",
+        "to_person_id": "F027",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR040",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR041",
+        "from_person_id": "F026",
+        "to_person_id": "F027",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR041",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR042",
+        "from_person_id": "F023",
+        "to_person_id": "F024",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR042",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR043",
+        "from_person_id": "F023",
+        "to_person_id": "F017",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR043",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR044",
+        "from_person_id": "F024",
+        "to_person_id": "F017",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR044",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR045",
+        "from_person_id": "F019",
+        "to_person_id": "F028",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR045",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR046",
+        "from_person_id": "F019",
+        "to_person_id": "F025",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR046",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR047",
+        "from_person_id": "F028",
+        "to_person_id": "F025",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR047",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR048",
+        "from_person_id": "F019",
+        "to_person_id": "F029",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR048",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR049",
+        "from_person_id": "F028",
+        "to_person_id": "F029",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR049",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR050",
+        "from_person_id": "F001",
+        "to_person_id": "F030",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR050",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR051",
+        "from_person_id": "F025",
+        "to_person_id": "F031",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR051",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR052",
+        "from_person_id": "F032",
+        "to_person_id": "F031",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR052",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR053",
+        "from_person_id": "F025",
+        "to_person_id": "F032",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR053",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR054",
+        "from_person_id": "F033",
+        "to_person_id": "F026",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR054",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR055",
+        "from_person_id": "F034",
+        "to_person_id": "F035",
+        "type": "spouse",
+        "source_refs": "fictional-ledger:FR055",
+        "status": "candidate"
+      },
+      {
+        "relationship_id": "FR056",
+        "from_person_id": "F034",
+        "to_person_id": "F028",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR056",
+        "status": "reported"
+      },
+      {
+        "relationship_id": "FR057",
+        "from_person_id": "F035",
+        "to_person_id": "F028",
+        "type": "parent_child",
+        "source_refs": "fictional-ledger:FR057",
+        "status": "candidate"
+      }
+    ]
+  },
+  "fictional-memory:17": {
+    "attribution": "Aunt Iris in the invented source register",
+    "locator": "fictional notebook passage 17",
+    "text": "I remember Alder Vale working beside the river. He repaired wooden boats for neighbours. [Transcription gap.] People brought him cracked hulls and loose seats, and he kept working until the boats were ready to use again."
+  }
+}

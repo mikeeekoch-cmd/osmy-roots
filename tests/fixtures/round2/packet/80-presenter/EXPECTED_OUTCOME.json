@@ -1,0 +1,57 @@
+{
+  "fictional": true,
+  "people": 35,
+  "relationships": 56,
+  "rawRelationships": 57,
+  "duplicate": {
+    "rawId": "FR046",
+    "retainedId": "FR039"
+  },
+  "initialPeople": [
+    "F005",
+    "F015",
+    "F019",
+    "F025",
+    "F001"
+  ],
+  "initialRelationships": [
+    "FR020",
+    "FR028",
+    "FR036",
+    "FR039"
+  ],
+  "batchTotals": [
+    10,
+    15,
+    20,
+    25,
+    30,
+    35
+  ],
+  "batchOffsetsSeconds": [
+    44,
+    53,
+    62,
+    71,
+    80,
+    89
+  ],
+  "photos": 6,
+  "unacceptedStory": "fictional-memory:17",
+  "sameNameIds": [
+    "F013",
+    "F018"
+  ],
+  "unknownBirthYearId": "F017",
+  "requiredCategories": [
+    "photo",
+    "kinship",
+    "origin",
+    "time",
+    "movement",
+    "recollection",
+    "conflict"
+  ],
+  "sourceStatus": "supplied prior records; reconstructed chats; generated non-family images",
+  "packetHash": "b462765eff849b291f388ad5ddd0fb6509970a063e655dee59e10198f3902366"
+}

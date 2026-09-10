@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectSnapshot, RootsApi } from "./types";
-import { branchIds, familyLayout, isParent, years } from "./model";
+import { branchIds, familyLayout, stableFamilyLayout, isParent, years } from "./model";
 import { OriginalPhoto } from "./OriginalPhotos";
 import { SourceConnection, type SavedConnection } from "./SourceConnection";
 export function FamilyCanvas({
@@ -9,6 +9,8 @@ export function FamilyCanvas({
   selectedId,
   highlightId,
   savedConnection,
+  progressive = false,
+  readOnly = false,
   onSelect,
   onRelationship,
   onAdd,
@@ -18,16 +20,30 @@ export function FamilyCanvas({
   selectedId: string | null;
   highlightId: string | null;
   savedConnection?: SavedConnection | null;
+  progressive?: boolean;
+  readOnly?: boolean;
   onSelect: (id: string) => void;
   onRelationship: (id: string) => void;
   onAdd: () => void;
 }) {
-  const [all, setAll] = useState(false),
+  const [all, setAll] = useState(progressive),
     [branchPersonId, setBranchPersonId] = useState<string | undefined>(),
     [query, setQuery] = useState(""),
     [scale, setScale] = useState(0.8),
     [offset, setOffset] = useState({ x: 20, y: 20 });
   const viewport = useRef<HTMLDivElement>(null);
+  const cameraTouched = useRef(false);
+  const savedPositions = useRef<Record<string, {x: number; y: number}>>({});
+  const seenPeople = useRef(new Set(snapshot.people.map((p) => p.id)));
+  const [arriving, setArriving] = useState<string[]>([]);
+  useEffect(() => {
+    const ids = snapshot.people.filter((p) => !seenPeople.current.has(p.id)).map((p) => p.id);
+    snapshot.people.forEach((p) => seenPeople.current.add(p.id));
+    if (!ids.length) return;
+    setArriving(ids);
+    const timer = setTimeout(() => setArriving([]), 2400);
+    return () => clearTimeout(timer);
+  }, [snapshot.people.map((p) => p.id).join("|")]);
   const pan = useRef<{ x: number; y: number; ox: number; oy: number } | null>(
     null,
   );
@@ -44,8 +60,8 @@ export function FamilyCanvas({
     ? snapshot.people
     : snapshot.people.filter((p) => branch.has(p.id));
   const layout = useMemo(() => {
-    const full = familyLayout(people, snapshot.relationships);
-    if (all) return full;
+    const full = progressive && all ? stableFamilyLayout(people, snapshot.relationships, savedPositions.current) : {...familyLayout(people, snapshot.relationships), minX: 0, minY: 0};
+    if (all) { if (progressive) savedPositions.current = full.positions; return full; }
     const ordered = [...people].sort(
       (a, b) => full.positions[a.id].y - full.positions[b.id].y,
     );
@@ -53,11 +69,11 @@ export function FamilyCanvas({
       positions: Object.fromEntries(
         ordered.map((p, i) => [p.id, { x: 30, y: 16 + i * 78 }]),
       ),
+      minX: 0, minY: 0,
       width: 320,
       height: Math.max(1, ordered.length) * 78 + 16,
     };
-  }, [people, snapshot.relationships, all]);
-  const layoutKey = JSON.stringify(layout.positions);
+  }, [people, snapshot.relationships, all, progressive]);
   const fit = () => {
     if (!viewport.current) return;
     const rect = viewport.current.getBoundingClientRect();
@@ -73,18 +89,23 @@ export function FamilyCanvas({
     );
     setScale(next);
     setOffset({
-      x: (rect.width - layout.width * next) / 2,
-      y: Math.max(15, (rect.height - layout.height * next) / 2),
+      x: (rect.width - layout.width * next) / 2 - layout.minX * next,
+      y: Math.max(15, (rect.height - layout.height * next) / 2) - layout.minY * next,
     });
   };
+  const fitRef = useRef(fit);
+  fitRef.current = fit;
+  const viewKey = all ? "all" : branchPersonId || "default";
   useEffect(() => {
-    fit();
+    cameraTouched.current = false;
+    fitRef.current();
     if (!viewport.current) return;
-    const observer = new ResizeObserver(() => fit());
+    const observer = new ResizeObserver(() => { if (!cameraTouched.current) fitRef.current(); });
     observer.observe(viewport.current);
     return () => observer.disconnect();
-  }, [all, layoutKey]);
+  }, [viewKey, snapshot.projectId]);
   const focus = (id: string, inspect = true) => {
+    cameraTouched.current = true;
     setBranchPersonId(id);
     const p = layout.positions[id];
     if (!p) {
@@ -102,12 +123,6 @@ export function FamilyCanvas({
     }
     if (inspect) onSelect(id);
   };
-  useEffect(() => {
-    if (highlightId) {
-      if (!layout.positions[highlightId]) setAll(true);
-      else focus(highlightId, false);
-    }
-  }, [highlightId, all]);
   const results = query.trim()
     ? snapshot.people.filter((p) =>
         `${p.displayNameEn} ${p.originalName || ""}`
@@ -122,7 +137,7 @@ export function FamilyCanvas({
           <span className="eyebrow">The connections you keep</span>
           <h2>Your family map</h2>
         </div>
-        <button onClick={onAdd}>+ Add</button>
+        <button disabled={readOnly} onClick={onAdd}>+ Add</button>
       </div>
       <div className="map-toolbar">
         <div className="map-search">
@@ -180,6 +195,7 @@ export function FamilyCanvas({
             (e.target as HTMLElement).closest('button,a,input,[role="button"]')
           )
             return;
+          cameraTouched.current = true;
           pan.current = {
             x: e.clientX,
             y: e.clientY,
@@ -221,9 +237,15 @@ export function FamilyCanvas({
             <span>♧</span>
             <h3>A place for your family</h3>
             <p>
-              People appear here when saved records are ready.
-              <br />
-              You can add a person or contribute another clue.
+              {snapshot.run?.sealedAt ? (
+                "This edition has no released family records. Your saved sources and open questions remain available."
+              ) : (
+                <>
+                  People appear here when saved records are ready.
+                  <br />
+                  You can add a person or contribute another clue.
+                </>
+              )}
             </p>
           </div>
         ) : (
@@ -315,7 +337,7 @@ export function FamilyCanvas({
               return (
                 <button
                   key={p.id}
-                  className={`person-node ${selectedId === p.id ? "selected" : ""} ${highlightId === p.id ? "just-saved" : ""}`}
+                  className={`person-node ${selectedId === p.id ? "selected" : ""} ${highlightId === p.id ? "just-saved" : ""} ${arriving.includes(p.id) ? "just-arrived" : ""}`}
                   style={{ left: pos.x, top: pos.y }}
                   onClick={() => onSelect(p.id)}
                 >
@@ -360,18 +382,18 @@ export function FamilyCanvas({
         <div className="zoom-tools">
           <button
             aria-label="Zoom out"
-            onClick={() => setScale((s) => Math.max(0.2, s - 0.15))}
+            onClick={() => { cameraTouched.current = true; setScale((s) => Math.max(0.2, s - 0.15)); }}
           >
             −
           </button>
           <span>{Math.round(scale * 100)}%</span>
           <button
             aria-label="Zoom in"
-            onClick={() => setScale((s) => Math.min(1.8, s + 0.15))}
+            onClick={() => { cameraTouched.current = true; setScale((s) => Math.min(1.8, s + 0.15)); }}
           >
             +
           </button>
-          <button onClick={fit}>Fit</button>
+          <button onClick={() => { cameraTouched.current = true; fit(); }}>Fit</button>
         </div>
       </div>
     </section>

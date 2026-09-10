@@ -1,4 +1,8 @@
 import { z } from "zod";
+import { RunStateSchema, PhotoAnnotationSchema, PhotoPairSchema, TranslationLineageSchema, type SetupAnswer } from "./round2";
+export * from "./round2";
+export * from "./round3";
+import { IntakeProfileSchema, Round3StateSchema, type IntakeProfile, type AutofillDraft, type ConnectionStatus, type CycleAction, type BankAnswerInput, type GraphProposalReview } from "./round3";
 
 export const SCHEMA_VERSION = "roots-v1" as const;
 export const Id = z.string().min(1).max(160);
@@ -12,6 +16,8 @@ export const EvidenceTypeSchema = z.enum([
 export const ProjectInputSchema = z
   .object({
     seedName: z.string().trim().min(1).max(200),
+    profile: IntakeProfileSchema.optional(),
+    researchMode: z.literal("round3").optional(),
     geography: z.string().trim().max(300).default(""),
     geographyUnknown: z.boolean().default(false),
     context: z.string().max(100000).default(""),
@@ -24,7 +30,7 @@ export const ProjectInputSchema = z
     publicRecordUrl: z.string().url().optional(),
   })
   .refine(
-    (x) => x.geographyUnknown || !!x.geography,
+    (x) => x.researchMode === "round3" || x.geographyUnknown || !!x.geography,
     "Supply geography or explicitly choose unknown",
   );
 export type ProjectInput = z.infer<typeof ProjectInputSchema>;
@@ -43,6 +49,12 @@ export const SourceSchema = z.object({
   url: z.string().optional(),
   language: z.string().optional(),
   extractionMethod: z.string().optional(),
+  evidenceRootIds: z.array(z.string()).optional(),
+  lineage: z.array(TranslationLineageSchema).optional(),
+  reconstructed: z.boolean().optional(),
+  evidenceRootId: z.string().optional(),
+  archiveHash: z.string().optional(),
+  reconstructionMetadata: z.unknown().optional(),
 });
 export type Source = z.infer<typeof SourceSchema>;
 export const SourceAssetSchema = z.object({
@@ -53,6 +65,7 @@ export const SourceAssetSchema = z.object({
   byteLength: z.number().int().nonnegative(),
   storageKey: z.string(),
   contentHash: z.string().optional(),
+  caption: z.string().optional(),
 });
 export type SourceAsset = z.infer<typeof SourceAssetSchema>;
 export const SourceSpanSchema = z.object({
@@ -75,6 +88,9 @@ export const PersonSchema = z.object({
   photoIds: z.array(Id).default([]),
   claimIds: z.array(Id).default([]),
   storyIds: z.array(Id).default([]),
+  aliases: z.array(z.string()).optional(),
+  recordStatus: z.string().optional(),
+  importedSourceRefs: z.array(z.string()).optional(),
 });
 export type Person = z.infer<typeof PersonSchema>;
 export const ClaimSchema = z.object({
@@ -232,6 +248,11 @@ export const ProjectSnapshotSchema = z.object({
     .default({}),
   files: z.array(FileOutcomeSchema).default([]),
   issues: z.array(z.string()).default([]),
+  run: RunStateSchema.optional(),
+  research: Round3StateSchema.optional(),
+  previousRuns: z.array(RunStateSchema).optional(),
+  photoAnnotations: z.array(PhotoAnnotationSchema).optional(),
+  photoPairs: z.array(PhotoPairSchema).optional(),
 });
 export type ProjectSnapshot = z.infer<typeof ProjectSnapshotSchema>;
 export const ReviewDecisionSchema = z.object({
@@ -270,6 +291,20 @@ export interface Contribution {
   publicRecordUrl?: string;
 }
 export interface RootsApi {
+  autofillFamilyDetails?(input: ProjectInput, files: File[]): Promise<AutofillDraft>;
+  getConnections?(): Promise<ConnectionStatus[]>;
+  connectProvider?(provider: "drive" | "gmail"): Promise<{url: string}>;
+  verifyConnection?(provider: "drive" | "gmail", selectedScope?: string[]): Promise<ConnectionStatus>;
+  disconnectProvider?(provider: "drive" | "gmail"): Promise<ConnectionStatus>;
+  importConnectedSources?(projectId: string, provider: "drive" | "gmail", selectedIds: string[], baseVersion: number): Promise<ProjectSnapshot>;
+  researchCycle?(projectId: string, input: CycleAction): Promise<ProjectSnapshot>;
+  answerBankQuestion?(projectId: string, input: BankAnswerInput): Promise<ProjectSnapshot>;
+  reviewGraphChange?(projectId: string, input: GraphProposalReview): Promise<ProjectSnapshot>;
+  answerSetupQuestion?(projectId: string, input: SetupAnswer): Promise<ProjectSnapshot>;
+  prepareFamilyBook?(projectId: string): Promise<ProjectSnapshot>;
+  cancelRun?(projectId: string): Promise<ProjectSnapshot>;
+  bookPreviewUrl?(projectId: string): string;
+  retryAnalysis?(projectId: string): Promise<ProjectSnapshot>;
   createProject(input: ProjectInput, files?: File[]): Promise<ProjectSnapshot>;
   getSnapshot(
     projectId: string,

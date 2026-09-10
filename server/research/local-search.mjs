@@ -94,6 +94,7 @@ export async function searchLocalSources({ query, sources = [], limit = 5 } = {}
         segmentIndex: seg.index,
         origin: source.origin,
         sourceTitle: source.title || source.originalLocator,
+        evidenceRootId: seg.evidenceRootId || source.evidenceRootId || source.contentHash || source.id,
       });
     }
   }
@@ -106,5 +107,6 @@ export async function searchLocalSources({ query, sources = [], limit = 5 } = {}
     query: String(query),
     searchedSources: searched,
     totalMatches: hits.length,
+    independentEvidenceRoots: new Set(hits.map((h) => h.evidenceRootId)).size,
   };
 }

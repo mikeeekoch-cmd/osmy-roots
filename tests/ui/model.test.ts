@@ -194,3 +194,75 @@ test("explicit branch selection stays on that person and ignores rejected parent
   );
   assert.deepEqual(s.relationships.slice(0, 2), before.slice(0, 2));
 });
+
+test("round-2 upload preflight uses the shared policy and retains a valid selection over 30 MB", async () => {
+  const {validateFiles, fileSize} = await import("../../src/ui/FilePicker");
+  const {UPLOAD_LIMITS} = await import("../../packages/contracts/round2");
+  assert.equal(validateFiles([{name: "First.zip", size: 20_000_000}, {name: "Second.zip", size: 20_000_000}]), null);
+  assert.equal(validateFiles(Array.from({length: 4}, (_, i) => ({name: `${i}.zip`, size: UPLOAD_LIMITS.maxFileBytes}))), null);
+  assert.match(validateFiles([{name: "Large.zip", size: UPLOAD_LIMITS.maxFileBytes + 1}])!, /Large.zip/);
+  assert.match(validateFiles(Array.from({length: 41}, (_, i) => ({name: `${i}.txt`, size: 1})))!, /Remove 1/);
+  assert.match(validateFiles(Array.from({length: 5}, (_, i) => ({name: `${i}.zip`, size: 21_000_000})))!, /100 MB/);
+  assert.equal(fileSize(UPLOAD_LIMITS.maxTotalBytes), "100 MB");
+});
+
+test("saved map positions remain fixed and new records do not overlap existing nodes", async () => {
+  const {stableFamilyLayout} = await import("../../src/ui/model");
+  const s = snapshot();
+  const first = stableFamilyLayout(s.people.slice(0, 3), s.relationships);
+  const next = stableFamilyLayout(s.people, s.relationships, first.positions);
+  for (const person of s.people.slice(0, 3)) assert.deepEqual(next.positions[person.id], first.positions[person.id]);
+  const positions = Object.values(next.positions);
+  assert.equal(new Set(positions.map((p) => `${p.x}:${p.y}`)).size, s.people.length);
+});
+
+test("photo comparison accepts only bounded normalized crops", async () => {
+  const {usableCrop} = await import("../../src/ui/PhotoComparison");
+  assert.equal(usableCrop(undefined), true);
+  assert.equal(usableCrop([0.1, 0.1, 0.8, 0.8]), true);
+  assert.equal(usableCrop([0, 0, 0, 1]), false);
+  assert.equal(usableCrop([-0.1, 0, 1, 1]), false);
+  assert.equal(usableCrop([0.5, 0, 0.6, 1]), false);
+  assert.equal(usableCrop([NaN, 0, 1, 1]), false);
+});
+
+test("saved arrivals follow versioned entity changes, not polling or event-only updates", async () => {
+  const { savedDelta } = await import("../../src/ui/SavedArrivals");
+  const before = snapshot(),
+    after = snapshot();
+  assert.equal(savedDelta(before, after), null);
+  after.version++;
+  after.researchEvents.push(event({ eventId: "work-only" }));
+  assert.equal(savedDelta(before, after), null);
+  after.people[0].displayNameEn = "Corrected name";
+  after.people[0].photoIds = ["new-original"];
+  after.assets.push({
+    id: "new-original",
+    sourceId: after.sources[0].id,
+    mediaType: "image/png",
+    originalName: "Fictional.png",
+    byteLength: 10,
+    storageKey: "fixture",
+  });
+  after.sources.push({ ...after.sources[0], id: "unrelated-source" });
+  const result = savedDelta(before, after)!;
+  assert.deepEqual(result.personIds, [after.people[0].id]);
+  assert.deepEqual(result.photoIds, ["new-original"]);
+  assert.deepEqual(result.sourceIds, [after.sources[0].id]);
+  assert.equal(savedDelta(after, before), null);
+  after.projectId = "another-project";
+  assert.equal(savedDelta(before, after), null);
+});
+
+test("caption-associated originals are inspectable without confirming identity or photo order", async () => {
+  const {photoIdsForPerson} = await import("../../src/ui/OriginalPhotos");
+  const s = snapshot(), person = s.people[0];
+  person.photoIds = [];
+  s.assets.push({id: "caption-only", sourceId: s.sources[0].id, mediaType: "image/jpeg", originalName: "Supplied_group.jpg", byteLength: 10, storageKey: "fixture"});
+  s.photoAnnotations = [{assetId: "caption-only", file: "Supplied_group.jpg", positions: [], depictedPersonIds: [person.id], caption: "A supplied family caption; order unknown.", support: []}];
+  const before = structuredClone(s);
+  assert.deepEqual(photoIdsForPerson(s, person.id), ["caption-only"]);
+  assert.deepEqual(s, before);
+  assert.deepEqual(person.photoIds, []);
+  assert.deepEqual(s.photoAnnotations[0].positions, []);
+});

@@ -1,6 +1,6 @@
 import type { ProjectSnapshot, RootsApi, Source, GraphMutation } from "./types";
 import { label, years } from "./model";
-import { OriginalPhotos } from "./OriginalPhotos";
+import { OriginalPhotos, photoIdsForPerson } from "./OriginalPhotos";
 export function SourceEvidence({
   source,
   quote,
@@ -17,6 +17,23 @@ export function SourceEvidence({
       <span className={`origin ${source.origin}`}>{source.origin}</span>
       <h4>{source.title || source.originalLocator}</h4>
       {source.author && <small>From {source.author}</small>}
+      {source.reconstructed && (
+        <p className="source-origin-note">
+          Reconstructed correspondence based on supplied family evidence. The
+          dialogue is not an original family message.
+        </p>
+      )}
+      {!!source.lineage?.length && (
+        <p className="source-origin-note">
+          English derivative. The translation retains its original evidence
+          lineage.
+        </p>
+      )}
+      {!!source.evidenceRootIds?.length && (
+        <small>
+          Copies with the same evidence root are counted as one source.
+        </small>
+      )}
       {source.kind === "human_edit" ? (
         <details>
           <summary>Inspect original saved entry</summary>
@@ -36,6 +53,7 @@ export function EvidenceDrawer({
   onClose,
   onEdit,
   onReviewProposal,
+  readOnly = false,
 }: {
   snapshot: ProjectSnapshot;
   api: RootsApi;
@@ -43,6 +61,7 @@ export function EvidenceDrawer({
   onClose: () => void;
   onEdit: (operation: GraphMutation["operation"], id: string) => void;
   onReviewProposal: (id: string) => void;
+  readOnly?: boolean;
 }) {
   const person =
     selection.kind === "person"
@@ -64,11 +83,12 @@ export function EvidenceDrawer({
   const stories = person
     ? snapshot.stories.filter((s) => s.personId === person.id)
     : [];
+  const galleryPhotoIds = person ? photoIdsForPerson(snapshot, person.id) : [];
   const sourceIds = new Set([
     ...claims.flatMap((c) => c.sourceIds),
     ...stories.flatMap((s) => s.sourceIds),
     ...snapshot.assets
-      .filter((a) => person?.photoIds.includes(a.id))
+      .filter((a) => galleryPhotoIds.includes(a.id))
       .map((a) => a.sourceId),
   ]);
   const sources = directSource
@@ -91,12 +111,16 @@ export function EvidenceDrawer({
       {person && (
         <>
           <p className="muted">
-            {person.originalName}
-            <br />
+            {!snapshot.run && (
+              <>
+                {person.originalName}
+                <br />
+              </>
+            )}
             {years(person)}
           </p>
-          <OriginalPhotos ids={person.photoIds} snapshot={snapshot} api={api} />
-          <button onClick={() => onEdit("editPerson", person.id)}>
+          <OriginalPhotos ids={galleryPhotoIds} snapshot={snapshot} api={api} personId={person.id} />
+          <button disabled={readOnly} onClick={() => onEdit("editPerson", person.id)}>
             Edit person
           </button>
         </>
@@ -107,7 +131,7 @@ export function EvidenceDrawer({
             <span className="badge">{label(relationship.type)}</span>{" "}
             <span className="badge">{relationship.status}</span>
           </p>
-          <button onClick={() => onEdit("editRelationship", relationship.id)}>
+          <button disabled={readOnly} onClick={() => onEdit("editRelationship", relationship.id)}>
             Edit relationship
           </button>
         </>
@@ -189,7 +213,7 @@ export function EvidenceDrawer({
               .map((p) => (
                 <article className="story" key={p.id}>
                   <p>{p.text}</p>
-                  <button onClick={() => onReviewProposal(p.id)}>
+                  <button disabled={readOnly} onClick={() => onReviewProposal(p.id)}>
                     Correct interpretation
                   </button>
                 </article>
@@ -236,7 +260,7 @@ export function EvidenceDrawer({
             <article key={h.eventId}>
               <strong>{label(h.action)}</strong>
               <small>
-                {h.actor} · {new Date(h.at).toLocaleString()} · v
+                {h.actor} · {new Date(h.at).toLocaleString("en-US")} · v
                 {h.projectVersion}
               </small>
               <details>

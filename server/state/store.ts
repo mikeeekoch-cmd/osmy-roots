@@ -73,11 +73,17 @@ export async function updateProject(
     baseVersion?: number;
     invalidateBook?: boolean;
     isReplay?: (s: ProjectSnapshot) => boolean;
+    allowSealed?: boolean;
+    writeSeal?: boolean;
   } = {},
 ) {
   return withLock(id, async () => {
     const s = await loadProject(id);
     if (options.isReplay?.(s)) return s;
+    if (s.run?.phase === "cancelled")
+      throw new AppError("This run was cancelled. Start a new project to continue.", 409, "RUN_CANCELLED");
+    if (s.run?.sealedAt && !options.allowSealed)
+      throw new AppError("This run is sealed. Open a saved copy to make further changes.", 409, "RUN_SEALED");
     if (options.baseVersion !== undefined && s.version !== options.baseVersion)
       throw new AppError(
         "This project changed. Refresh and review the latest version.",
@@ -89,12 +95,20 @@ export async function updateProject(
     s.version++;
     if (options.invalidateBook) {
       s.bookStatus = s.bookPassages.length ? "stale" : "empty";
+      if (s.run) { s.run.book = {status: "empty"}; if (s.run.phase === "ready") s.run.phase = "review"; }
     } else if (s.bookStatus === "current") {
       s.bookPassages.forEach((p) => (p.acceptedStateVersion = s.version));
+    }
+    if (options.writeSeal) {
+      const seal = join(projectDir(id), "sealed.json");
+      await writeFile(seal, JSON.stringify(s, null, 2), {mode:0o600, flag:"wx"});
     }
     await atomicSave(s);
     return s;
   });
+}
+export async function readSealedProject(id: string) {
+  return validateSnapshot(JSON.parse(await readFile(join(projectDir(id), "sealed.json"), "utf8")));
 }
 export async function saveAsset(
   projectId: string,

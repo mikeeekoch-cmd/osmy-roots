@@ -1,0 +1,28 @@
+# Round 3 published contracts
+
+Execution started 2026-09-10T20:08:05Z. The actual Zod schemas are packages/contracts/round3.ts and additive exports in packages/contracts/index.ts. Existing roots-v1 snapshots and v2 manifests remain supported. Runtime implementation follows this publication; the schemas are available now for both owners.
+
+Snapshot.research is roots-research-v3. Existing snapshot.run.questions and run.answers hold the six initial checks so existing answer/photo components can be adapted. Later questions live only in research.questionBank. UI consumes authoritative research.metrics, research.cycles and research.jobs. Jobs have one mutable status; do not independently interpret the event log as counters.
+
+| Action | Route and payload |
+| --- | --- |
+| Draft autofill, no project/model | POST /api/intake/autofill multipart input JSON + files; returns AutofillDraft |
+| Continue, persist intake | POST /api/projects multipart input with researchMode: round3 + files; returns snapshot immediately; logged intake analysis resumes on GET |
+| Provider state | GET /api/connections returns ConnectionStatus[] |
+| Connect | POST /api/connections/{drive,gmail}/connect returns {url}; browser follows OAuth |
+| OAuth callback | GET /api/connections/callback; server-only state/code exchange |
+| Verify selected scope | POST /api/connections/{provider}/verify {selectedScope: string[]} |
+| Disconnect | POST /api/connections/{provider}/disconnect |
+| Import selected IDs | POST /api/projects/{id}/imports {provider,selectedIds,baseVersion} |
+| Initial or deeper | POST /api/projects/{id}/cycles {action: initial or deeper,requestId,baseVersion} |
+| Retry/pause/resume/cancel | Same route, action and cycleId; retry retains ID |
+| Initial check | Existing /answers; confirm/correct/unknown/skip plus requestId/baseVersion |
+| Bank answer | POST /api/projects/{id}/questions {questionId,action,text?,baseVersion,requestId} |
+| Graph review | POST /api/projects/{id}/graph-proposals {proposalId,action: accept or reject or unknown,baseVersion,requestId} |
+| Book | Existing /book, /book/preview, /download; research.bookEdition supplies version, status and actual page count |
+
+Example cycle request: {"action":"deeper","requestId":"click-2","baseVersion":12}. Duplicate clicks are coalesced; stale writes return 409. Refresh never starts an additional cycle.
+
+Claude: freeze roots-demo-v3 with DemoManifestV3Schema. Six questions require photoAssetId/photoEra (one modern, two old), a live recollection and conflict. Preserve effect.photoAssetId for older UI compatibility. BookPlan contains prepared English chapter text, exact support, source-book locators and coverage. PhotoPairV3 requires aligned composition, evidence root, preparation timestamp and QA. Do not promote associations because a pair exists. researchSources assigns eligible local source IDs and optional provider/public locators to ordinals 1-3; these are search scope, never forced model answers. Every root/chapter/asset stays private except fictional twin.
+
+Natalia: consume optional RootsApi methods already published. Set input.researchMode round3 for new flow. Render six questions from run; render later questions separately. Research clicks call researchCycle explicitly. File selection/autofill performs no model call. Render connections from server state only. Book status beside main Download reads research.bookEdition.

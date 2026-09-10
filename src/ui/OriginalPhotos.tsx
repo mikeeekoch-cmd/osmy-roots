@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ProjectSnapshot, RootsApi } from "./types";
+import { PhotoComparison } from "./PhotoComparison";
 export function OriginalPhoto({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
@@ -12,29 +13,52 @@ export function OriginalPhoto({ src, alt }: { src: string; alt: string }) {
       Original unavailable
     </span>
   ) : (
-    <img src={src} alt={alt} onError={() => setFailed(true)} />
+    <img key={src} src={src} alt={alt} onError={() => setFailed(true)} />
   );
+}
+/** Caption associations are view-only and never become confirmed portrait IDs. */
+export function photoIdsForPerson(snapshot: ProjectSnapshot, personId: string): string[] {
+  const person = snapshot.people.find((p) => p.id === personId);
+  const fromCaptions = (snapshot.photoAnnotations || []).filter((a) => a.positions.some((p) => p.personId === personId) || a.depictedPersonIds?.includes(personId)).map((a) => a.assetId);
+  const enhanced = new Set((snapshot.photoPairs || []).map((pair) => pair.enhancedAssetId));
+  return [...new Set([...(person?.photoIds || []), ...fromCaptions])].filter((id) => !enhanced.has(id) && snapshot.assets.some((asset) => asset.id === id && asset.mediaType.startsWith("image/")));
 }
 export function OriginalPhotos({
   ids,
   snapshot,
   api,
+  personId,
+  comparisonFor,
 }: {
   ids: string[];
   snapshot: ProjectSnapshot;
   api: RootsApi;
+  personId?: string;
+  comparisonFor?: (originalId: string) => {enhancedUrl: string; aligned: boolean} | undefined;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [comparing, setComparing] = useState(false);
+  const pairs = (snapshot.photoPairs || []).filter((pair) => (!personId || pair.personIds.includes(personId)) && snapshot.assets.some((a) => a.id === pair.originalAssetId && a.mediaType.startsWith("image/")) && snapshot.assets.some((a) => a.id === pair.enhancedAssetId && a.mediaType.startsWith("image/")));
+  const pair = pairs.find((item) => item.originalAssetId === selected);
+  const suppliedPair = selected ? comparisonFor?.(selected) : undefined;
+  const candidateIds = personId ? [...new Set([...ids, ...photoIdsForPerson(snapshot, personId)])] : ids;
+  const galleryIds = candidateIds.filter((id) => !pairs.some((item) => item.enhancedAssetId === id));
+  useEffect(() => { setSelected(null); setComparing(false); }, [personId]);
   const close = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const open = selected !== null;
-  const move = (delta: number) =>
+  const idsRef = useRef(galleryIds);
+  idsRef.current = galleryIds;
+  useEffect(() => { if (selected && !galleryIds.includes(selected)) { setSelected(null); setComparing(false); } }, [galleryIds.join("|"), selected]);
+  const move = (delta: number) => {
+    setComparing(false);
     setSelected((current) =>
       current
-        ? ids[(ids.indexOf(current) + delta + ids.length) % ids.length]
+        ? idsRef.current[(idsRef.current.indexOf(current) + delta + idsRef.current.length) % idsRef.current.length]
         : null,
     );
+  };
   useEffect(() => {
     if (!open) return;
     close.current?.focus();
@@ -45,13 +69,16 @@ export function OriginalPhotos({
       }
       if (e.key === "Tab") {
         const buttons = [
-          ...(dialog.current?.querySelectorAll<HTMLButtonElement>(
-            "button:not([disabled])",
+          ...(dialog.current?.querySelectorAll<HTMLElement>(
+            "button:not([disabled]), input:not([disabled]), a[href], select:not([disabled]), textarea:not([disabled])",
           ) || []),
         ];
         const first = buttons[0],
           last = buttons.at(-1);
-        if (e.shiftKey && document.activeElement === first) {
+        if (!dialog.current?.contains(document.activeElement)) {
+          e.preventDefault();
+          first?.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last?.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
@@ -59,6 +86,7 @@ export function OriginalPhotos({
           first?.focus();
         }
       }
+      if ((e.target as HTMLElement)?.matches('input, textarea, select, [role="slider"]')) return;
       if (e.key === "ArrowRight") {
         e.preventDefault();
         move(1);
@@ -73,20 +101,21 @@ export function OriginalPhotos({
       window.removeEventListener("keydown", listener, true);
       opener.current?.focus();
     };
-  }, [open, ids.join("|")]);
-  if (!ids.length) return null;
+  }, [open]);
+  if (!galleryIds.length) return null;
   const name = (id: string) =>
     snapshot.assets.find((a) => a.id === id)?.originalName ||
     "Original photograph";
   return (
     <>
       <div className="photo-gallery">
-        {ids.map((id) => (
+        {galleryIds.map((id) => (
           <figure key={id}>
             <button
               className="photo-open"
               onClick={(event) => {
                 opener.current = event.currentTarget;
+                setComparing(false);
                 setSelected(id);
               }}
               aria-label={`Enlarge ${name(id)}`}
@@ -96,11 +125,13 @@ export function OriginalPhotos({
                 alt={name(id)}
               />
             </button>
+            {(pairs.some((pair) => pair.originalAssetId === id) || comparisonFor?.(id)) && <button className="compare-photo-button" onClick={(event) => { opener.current = event.currentTarget; setSelected(id); setComparing(true); }}>Compare photos</button>}
             <figcaption>
               {name(id)}
               <br />
               Original file
             </figcaption>
+            <PhotoCaption assetId={id} snapshot={snapshot} personId={personId} />
           </figure>
         ))}
       </div>
@@ -110,7 +141,7 @@ export function OriginalPhotos({
           className="photo-lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label="Original photograph"
+          aria-label={comparing ? "Original and enhanced photographs" : "Original photograph"}
           onClick={() => setSelected(null)}
         >
           <button
@@ -121,15 +152,17 @@ export function OriginalPhotos({
             ×
           </button>
           <div onClick={(e) => e.stopPropagation()}>
-            <OriginalPhoto
+            {comparing && pair ? <PhotoComparison key={pair.id} pair={pair} originalUrl={api.assetUrl(snapshot.projectId, pair.originalAssetId)} enhancedUrl={api.assetUrl(snapshot.projectId, pair.enhancedAssetId)} /> : comparing && suppliedPair ? <PhotoComparison originalUrl={api.assetUrl(snapshot.projectId, selected)} enhancedUrl={suppliedPair.enhancedUrl} aligned={suppliedPair.aligned} caption={name(selected)} /> : <OriginalPhoto
               src={api.assetUrl(snapshot.projectId, selected)}
               alt={name(selected)}
-            />
+            />}
+            {(pair || suppliedPair) && <button className="toggle-photo-comparison" onClick={() => setComparing(!comparing)}>{comparing ? "View complete original" : "Compare photos"}</button>}
             <p aria-live="polite">
-              {name(selected)} · Original {ids.indexOf(selected) + 1} of{" "}
-              {ids.length}
+              {name(selected)} · Photograph {galleryIds.indexOf(selected) + 1} of{" "}
+              {galleryIds.length}
             </p>
-            {ids.length > 1 && (
+            <PhotoCaption assetId={selected} snapshot={snapshot} personId={personId} />
+            {galleryIds.length > 1 && (
               <nav
                 className="photo-navigation"
                 aria-label="Original photo navigation"
@@ -150,4 +183,21 @@ export function OriginalPhotos({
       )}
     </>
   );
+}
+
+function PhotoCaption({ assetId, snapshot, personId }: {
+  assetId: string; snapshot: ProjectSnapshot; personId?: string;
+}) {
+  const annotation = snapshot.photoAnnotations?.find((a) => a.assetId === assetId);
+  if (!annotation) return null;
+  const reviewed = personId ? annotation.positions.some((position) => position.personId === personId && position.status === "confirmed") : annotation.positions.length > 0 && annotation.positions.every((position) => position.status === "confirmed");
+  return <div className="supplied-photo-caption">
+    <small>From the supplied caption</small>
+    {!reviewed && <small className="photo-review-status">Identity not reviewed</small>}
+    {annotation.caption && <p>{annotation.caption}</p>}
+    {annotation.positions.length ? <details className="photo-identities"><summary>People, left to right</summary><ol>{[...annotation.positions].sort((a,b) => a.position-b.position).map((position) => <li key={position.position} value={position.position}>{position.label || "Unknown"} <small>· {position.status}</small></li>)}</ol></details> : <>
+      <p className="photo-order-unknown">Left-to-right order is unknown.</p>
+      {!!annotation.depictedPersonIds?.length && <details className="photo-identities"><summary>People named in the caption</summary><ul>{annotation.depictedPersonIds.map((id) => <li key={id}>{snapshot.people.find((person) => person.id === id)?.displayNameEn || "Person not yet in this branch"}</li>)}</ul></details>}
+    </>}
+  </div>;
 }
