@@ -3,7 +3,7 @@
  * Photos are referenced by relative path inside the bundle, never by host path.
  */
 
-import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText, displayText } from './select.mjs';
+import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText, displayText, photoReviewLabel } from './select.mjs';
 import { UNKNOWN_LABEL } from '../contracts/types.mjs';
 
 const esc = (s) => String(s ?? '')
@@ -33,6 +33,11 @@ export function renderBookHtml({ snapshot, passages = [], branch, assetPaths = n
   const photo = (id) => {
     const rel = assetPaths.get(id);
     return rel ? `<figure><img src="${esc(rel)}" alt="Family photograph"></figure>` : '';
+  };
+  const galleryPhoto = (asset) => {
+    const annotation = snapshot.photoAnnotations?.find(a => a.assetId === asset.id);
+    const caption = annotation?.caption || asset.caption || asset.originalName || 'Supplied family photograph';
+    return `<figure><img src="${esc(assetPaths.get(asset.id))}" alt="${esc(asset.originalName || 'Supplied family photograph')}"><figcaption>${esc(caption)}<p class="subtitle">${esc(photoReviewLabel(snapshot, asset.id))} ${cite((annotation?.support || []).map(span => span.sourceId))}</p>${(annotation?.support || []).length ? `<div class="locator">${[...new Set(annotation.support.map(span => span.locator))].map(esc).join('; ')}</div>` : ''}</figcaption></figure>`;
   };
 
   const levels = branch?.levels || new Map();
@@ -122,7 +127,7 @@ ${stories.length ? `<h2>Family recollections</h2><ul>${stories.map((s) => `<li>$
 ` : ''}
 
 <h2>Family photographs</h2>
-<div class="photos">${(snapshot.assets || []).filter((a) => String(a.mediaType).startsWith('image/') && assetPaths.has(a.id)).map((a) => `<figure><img src="${esc(assetPaths.get(a.id))}" alt="${esc(a.caption || a.originalName || 'Supplied family photograph')}"><figcaption>${esc(a.caption || a.originalName || 'Supplied family photograph')}</figcaption></figure>`).join('')}</div>
+<div class="photos">${(snapshot.assets || []).filter((a) => String(a.mediaType).startsWith('image/') && assetPaths.has(a.id)).map(galleryPhoto).join('')}</div>
 ${(snapshot.stories || []).some((s) => s.subjectId !== focusId && s.status === 'accepted') ? `<h2>Other reviewed recollections</h2><ul>${(snapshot.stories || []).filter((s) => s.subjectId !== focusId && s.status === 'accepted').map((s) => `<li><strong>${esc(people.get(s.subjectId)?.displayNameEn || s.subjectId)}.</strong> ${s.attributedTo ? `Remembered by ${esc(s.attributedTo)}. ` : 'Family recollection. '}${esc(s.text)} ${cite(s.sourceIds)}</li>`).join('')}</ul>` : ''}
 
 <h2>Sources</h2>

@@ -236,6 +236,16 @@ export async function generatePassage(
     );
   const started = Date.now();
   try {
+    const quotedSpans=claims.flatMap(claim=>claim.spans);
+    const values=(items:string[])=>[...new Set(items)] as [string,...string[]];
+    const outputSchema=Passage.extend({
+      claimIds:z.array(z.enum(values(claims.map(claim=>claim.id)))).min(1),
+      sourceLocators:z.array(Span.extend({
+        sourceId:z.enum(values(quotedSpans.map(span=>span.sourceId))),
+        locator:z.enum(values(quotedSpans.map(span=>span.locator))),
+        quote:z.enum(values(quotedSpans.map(span=>span.quote))),
+      })).min(1),
+    });
     const response = await client().responses.parse({
       model: "gpt-6-astra",
       store: false,
@@ -255,7 +265,7 @@ export async function generatePassage(
             st.claimIds.some((id) => claims.some((c) => c.id === id)),
         ),
       }),
-      text: { format: zodTextFormat(Passage, "cited_family_passage") },
+      text: { format: zodTextFormat(outputSchema, "cited_family_passage") },
     });
     const out = response.output_parsed;
     if (!out || out.claimIds.some((id) => !claims.some((c) => c.id === id)))

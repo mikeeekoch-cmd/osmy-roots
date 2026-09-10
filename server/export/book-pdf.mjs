@@ -13,7 +13,7 @@
 
 import { PdfDocument, A4 } from './pdf/document.mjs';
 import { selectFont } from './pdf/ttf.mjs';
-import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText } from './select.mjs';
+import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText, displayPhotoIds, photoReviewLabel } from './select.mjs';
 import { UNKNOWN_LABEL } from '../contracts/types.mjs';
 import { hasNonLatinScript } from './english.mjs';
 
@@ -93,6 +93,12 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
 
   const focusId = options.focusPersonId || branch?.focusPersonId || (snapshot.people || [])[0]?.id;
   const focus = people.get(focusId);
+  const focusPhotoIds = displayPhotoIds(snapshot, focusId);
+  const photoCaption = (id) => {
+    const annotation = snapshot.photoAnnotations?.find(a => a.assetId === id);
+    const citations = [...new Set((annotation?.support || []).map(span => `${markersFor([span.sourceId], register)} ${span.locator}`))];
+    return `${photoReviewLabel(snapshot, id)}${citations.length ? ` Source: ${citations.join('; ')}` : ''}`;
+  };
   const dedication = options.dedication || 'For Dad.';
   const title = (options.title || 'Osmy Roots: The Family Book').replace(/^Roots(?=:)/, 'Osmy Roots');
 
@@ -143,12 +149,13 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
   p1.setStroke(ACCENT).setLineWidth(1.2).line(MARGIN, 92, p1.width - MARGIN, 92);
   p1.text({ x: MARGIN, y: 80, text: title, font: 'sans', size: 26, color: INK });
 
-  const portraitId = (focus?.photoIds || [])[0];
+  const portraitId = focusPhotoIds[0];
   const portrait = putImage(portraitId);
   let cursor = 132;
   if (portrait) {
     const box = p1.image(portrait, { x: MARGIN, y: cursor, width: p1.width - MARGIN * 2, height: 380 });
-    cursor = (box ? box.y + box.h : cursor + 380) + 26;
+    cursor = (box ? box.y + box.h : cursor + 380) + 16;
+    cursor = p1.paragraph({ x: MARGIN, y: cursor, maxWidth: p1.width - MARGIN * 2, font: 'sans', size: 8, color: MUTED, text: photoCaption(portraitId), leading: 11 }) + 25;
   } else {
     p1.setFill(CARD).rect(MARGIN, cursor, p1.width - MARGIN * 2, 150);
     p1.text({ x: p1.width / 2, y: cursor + 80, text: 'No portrait supplied for this person', font: 'sans', size: 10, color: MUTED, align: 'center' });
@@ -269,7 +276,7 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
   if (focus?.originalName) p3.text({ x: MARGIN, y: 100, text: `${focus.originalName} · ${yearsLabel(focus)}`, font: 'serif', size: 10.5, color: MUTED });
 
   let y3 = 124;
-  const photoIds = (focus?.photoIds || []).slice(0, 3);
+  const photoIds = focusPhotoIds.slice(0, 3);
   if (photoIds.length) {
     const gap = 10;
     const boxW = (p3.width - MARGIN * 2 - gap * (photoIds.length - 1)) / photoIds.length;
@@ -279,7 +286,10 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
       const rec = putImage(pid);
       if (rec) {
         const box = p3.image(rec, { x: px, y: y3, width: boxW, height: 190 });
-        if (box) maxBottom = Math.max(maxBottom, box.y + box.h);
+        if (box) {
+          const bottom = p3.paragraph({ x: px, y: box.y + box.h + 12, maxWidth: boxW, font: 'sans', size: 7, color: MUTED, text: photoCaption(pid), leading: 9 });
+          maxBottom = Math.max(maxBottom, bottom);
+        }
       } else {
         p3.setFill(CARD).rect(px, y3, boxW, 120);
         p3.text({ x: px + boxW / 2, y: y3 + 64, text: 'Photo unavailable', font: 'sans', size: 8, color: MUTED, align: 'center' });

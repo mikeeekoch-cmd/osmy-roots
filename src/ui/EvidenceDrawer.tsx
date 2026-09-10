@@ -1,6 +1,6 @@
 import type { ProjectSnapshot, RootsApi, Source, GraphMutation } from "./types";
 import { label, years } from "./model";
-import { OriginalPhotos } from "./OriginalPhotos";
+import { OriginalPhotos, photoIdsForPerson } from "./OriginalPhotos";
 export function SourceEvidence({
   source,
   quote,
@@ -83,11 +83,12 @@ export function EvidenceDrawer({
   const stories = person
     ? snapshot.stories.filter((s) => s.personId === person.id)
     : [];
+  const galleryPhotoIds = person ? photoIdsForPerson(snapshot, person.id) : [];
   const sourceIds = new Set([
     ...claims.flatMap((c) => c.sourceIds),
     ...stories.flatMap((s) => s.sourceIds),
     ...snapshot.assets
-      .filter((a) => person?.photoIds.includes(a.id))
+      .filter((a) => galleryPhotoIds.includes(a.id))
       .map((a) => a.sourceId),
   ]);
   const sources = directSource
@@ -118,7 +119,7 @@ export function EvidenceDrawer({
             )}
             {years(person)}
           </p>
-          <OriginalPhotos ids={person.photoIds} snapshot={snapshot} api={api} personId={person.id} />
+          <OriginalPhotos ids={galleryPhotoIds} snapshot={snapshot} api={api} personId={person.id} />
           <button disabled={readOnly} onClick={() => onEdit("editPerson", person.id)}>
             Edit person
           </button>

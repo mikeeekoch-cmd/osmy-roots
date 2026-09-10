@@ -5,6 +5,8 @@ import path from 'node:path';
 import { importPreparedFamily, ingestContribution } from '../../server/ingestion/index.mjs';
 import { buildFamilyBundle, selectBranch } from '../../server/export/index.mjs';
 import { readZip } from './unzip-helper.mjs';
+import { extractPdfText } from '../../server/ingestion/pdf-text.mjs';
+import { displayPhotoIds } from '../../server/export/select.mjs';
 
 const FIXTURES = path.join(process.cwd(), 'fixtures/public');
 const seedJson = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'synthetic-family.json'), 'utf8'));
@@ -33,6 +35,29 @@ const resolverFor = (snapshot) => (id) => {
 };
 
 const OPTS = { focusPersonId: 'P004', branchRootId: 'P001', title: 'Test Book', dedication: 'For Dad.' };
+
+test('caption-associated PDF photos stay explicitly unreviewed and the HTML retains all originals', async () => {
+  const snapshot = await makeSnapshot();
+  for (const person of snapshot.people) person.photoIds = [];
+  const original = snapshot.assets.find(a => a.mediaType.startsWith('image/'));
+  snapshot.assets = Array.from({length:14}, (_,i) => ({...original,id:`fictional-photo-${i}`,originalName:`fictional-photo-${i}.png`,caption:`Fictional supplied caption ${i}.`}));
+  const source = {id:'fictional-photo-notes',kind:'prepared_text',origin:'prepared',language:'en',originalLocator:'Fictional photo notes.txt#L1-L14',originalText:'A fictional caption names Alex.',contentHash:'fixture'};
+  snapshot.sources.push(source);
+  snapshot.photoAnnotations = snapshot.assets.map(a => ({assetId:a.id,positions:[],depictedPersonIds:['P004'],caption:a.caption,support:[{sourceId:source.id,locator:source.originalLocator,quote:source.originalText}]}));
+  const before = JSON.stringify(snapshot);
+  const out = await buildFamilyBundle({snapshot,passages:[],resolveAsset:resolverFor(snapshot),options:{...OPTS,includeAssets:'all'}});
+  assert.equal(JSON.stringify(snapshot),before,'rendering never confirms identities or mutates person.photoIds');
+  const files = readZip(out.bytes), html=files.get('book.html').toString('utf8'), pdf=files.get('book.pdf');
+  assert.equal((html.match(/<figcaption>/g)||[]).length,14);
+  assert.match(html,/Supplied caption; identity not yet reviewed/);
+  assert.match(html,/Fictional photo notes.txt#L1-L14/);
+  assert.match(pdf.toString('latin1'),/\/Subtype\s*\/Image/);
+  const extracted=extractPdfText(pdf);assert.equal(extracted.ok,true);
+  assert.match(extracted.text,/Supplied caption; identity not yet reviewed/);
+  assert.match(extracted.text,/Fictional photo notes.txt#L1-L14/);
+  snapshot.photoAnnotations=[{assetId:original.id,positions:[{position:1,personId:null,status:'unresolved'}],depictedPersonIds:['P004']}];
+  assert.deepEqual(displayPhotoIds(snapshot,'P004'),[],'an unresolved ordered identity does not fall back to an old caption association');
+});
 
 test('bundle contains every contracted file and passes integrity checks', async () => {
   const snapshot = await makeSnapshot();

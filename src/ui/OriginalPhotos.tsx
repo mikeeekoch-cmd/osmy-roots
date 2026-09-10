@@ -16,6 +16,13 @@ export function OriginalPhoto({ src, alt }: { src: string; alt: string }) {
     <img key={src} src={src} alt={alt} onError={() => setFailed(true)} />
   );
 }
+/** Caption associations are view-only and never become confirmed portrait IDs. */
+export function photoIdsForPerson(snapshot: ProjectSnapshot, personId: string): string[] {
+  const person = snapshot.people.find((p) => p.id === personId);
+  const fromCaptions = (snapshot.photoAnnotations || []).filter((a) => a.positions.some((p) => p.personId === personId) || a.depictedPersonIds?.includes(personId)).map((a) => a.assetId);
+  const enhanced = new Set((snapshot.photoPairs || []).map((pair) => pair.enhancedAssetId));
+  return [...new Set([...(person?.photoIds || []), ...fromCaptions])].filter((id) => !enhanced.has(id) && snapshot.assets.some((asset) => asset.id === id && asset.mediaType.startsWith("image/")));
+}
 export function OriginalPhotos({
   ids,
   snapshot,
@@ -34,7 +41,8 @@ export function OriginalPhotos({
   const pairs = (snapshot.photoPairs || []).filter((pair) => (!personId || pair.personIds.includes(personId)) && snapshot.assets.some((a) => a.id === pair.originalAssetId && a.mediaType.startsWith("image/")) && snapshot.assets.some((a) => a.id === pair.enhancedAssetId && a.mediaType.startsWith("image/")));
   const pair = pairs.find((item) => item.originalAssetId === selected);
   const suppliedPair = selected ? comparisonFor?.(selected) : undefined;
-  const galleryIds = ids.filter((id) => !pairs.some((item) => item.enhancedAssetId === id));
+  const candidateIds = personId ? [...new Set([...ids, ...photoIdsForPerson(snapshot, personId)])] : ids;
+  const galleryIds = candidateIds.filter((id) => !pairs.some((item) => item.enhancedAssetId === id));
   useEffect(() => { setSelected(null); setComparing(false); }, [personId]);
   const close = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
@@ -94,7 +102,7 @@ export function OriginalPhotos({
       opener.current?.focus();
     };
   }, [open]);
-  if (!ids.length) return null;
+  if (!galleryIds.length) return null;
   const name = (id: string) =>
     snapshot.assets.find((a) => a.id === id)?.originalName ||
     "Original photograph";
@@ -123,7 +131,7 @@ export function OriginalPhotos({
               <br />
               Original file
             </figcaption>
-            <PhotoCaption assetId={id} snapshot={snapshot} />
+            <PhotoCaption assetId={id} snapshot={snapshot} personId={personId} />
           </figure>
         ))}
       </div>
@@ -153,6 +161,7 @@ export function OriginalPhotos({
               {name(selected)} · Photograph {galleryIds.indexOf(selected) + 1} of{" "}
               {galleryIds.length}
             </p>
+            <PhotoCaption assetId={selected} snapshot={snapshot} personId={personId} />
             {galleryIds.length > 1 && (
               <nav
                 className="photo-navigation"
@@ -176,29 +185,19 @@ export function OriginalPhotos({
   );
 }
 
-function PhotoCaption({
-  assetId,
-  snapshot,
-}: {
-  assetId: string;
-  snapshot: ProjectSnapshot;
+function PhotoCaption({ assetId, snapshot, personId }: {
+  assetId: string; snapshot: ProjectSnapshot; personId?: string;
 }) {
-  const annotation = snapshot.photoAnnotations?.find(
-    (a) => a.assetId === assetId,
-  );
-  if (!annotation?.positions.length) return null;
-  return (
-    <details className="photo-identities">
-      <summary>People, left to right</summary>
-      <ol>
-        {[...annotation.positions]
-          .sort((a, b) => a.position - b.position)
-          .map((position) => (
-            <li key={position.position} value={position.position}>
-              {position.label || "Unknown"} <small>· {position.status}</small>
-            </li>
-          ))}
-      </ol>
-    </details>
-  );
+  const annotation = snapshot.photoAnnotations?.find((a) => a.assetId === assetId);
+  if (!annotation) return null;
+  const reviewed = personId ? annotation.positions.some((position) => position.personId === personId && position.status === "confirmed") : annotation.positions.length > 0 && annotation.positions.every((position) => position.status === "confirmed");
+  return <div className="supplied-photo-caption">
+    <small>From the supplied caption</small>
+    {!reviewed && <small className="photo-review-status">Identity not reviewed</small>}
+    {annotation.caption && <p>{annotation.caption}</p>}
+    {annotation.positions.length ? <details className="photo-identities"><summary>People, left to right</summary><ol>{[...annotation.positions].sort((a,b) => a.position-b.position).map((position) => <li key={position.position} value={position.position}>{position.label || "Unknown"} <small>· {position.status}</small></li>)}</ol></details> : <>
+      <p className="photo-order-unknown">Left-to-right order is unknown.</p>
+      {!!annotation.depictedPersonIds?.length && <details className="photo-identities"><summary>People named in the caption</summary><ul>{annotation.depictedPersonIds.map((id) => <li key={id}>{snapshot.people.find((person) => person.id === id)?.displayNameEn || "Person not yet in this branch"}</li>)}</ul></details>}
+    </>}
+  </div>;
 }

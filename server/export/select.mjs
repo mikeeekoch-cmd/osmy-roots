@@ -29,6 +29,26 @@ export function displayText(text) {
 
 export function isAccepted(record) { return record && record.status === ACCEPTED; }
 
+/** Presentation candidates never change a person's reviewed photo assignments. */
+export function displayPhotoIds(snapshot, personId) {
+  const confirmed = snapshot.people?.find(p => p.id === personId)?.photoIds || [];
+  if (confirmed.length) return [...confirmed];
+  return [...new Set((snapshot.photoAnnotations || []).filter(a =>
+    (a.positions || []).some(p => p.personId === personId && ['proposed','confirmed'].includes(p.status)) ||
+    (!(a.positions || []).length && (a.depictedPersonIds || []).includes(personId))
+  ).map(a => a.assetId))];
+}
+
+export function photoReviewLabel(snapshot, assetId) {
+  const annotation = snapshot.photoAnnotations?.find(a => a.assetId === assetId);
+  if (!annotation) return 'Supplied family photograph; identity review is not recorded.';
+  const positions = annotation.positions || [], confirmed = positions.filter(p => p.personId && p.status === 'confirmed');
+  if (!confirmed.length) return 'Supplied caption; identity not yet reviewed.';
+  const confirmedIds = new Set(confirmed.map(p => p.personId));
+  if (positions.some(p => p.status !== 'confirmed') || (annotation.depictedPersonIds || []).some(id => !confirmedIds.has(id))) return 'Supplied caption; some identities remain unreviewed.';
+  return 'Photo identities confirmed by family.';
+}
+
 const REL_WORD = {
   partner: 'partner of',
   parent_child: 'parent of',

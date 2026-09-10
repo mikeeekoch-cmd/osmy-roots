@@ -87,6 +87,7 @@ try{
   if(/[\u0400-\u04ff]/u.test(text))throw Error('Cyrillic text was rendered in the English demo.');
   if(/\b(countdown|seconds remaining|120.second demo|time remaining|elapsed session)\b/i.test(text))throw Error('Internal timing leaked into product UI.');
   if(latest.relationships.length!==manifest.expectedRelationshipCount)throw Error('Final relationship coverage mismatch.');
+  if(manifest.photos.some(photo=>!latest.photoAnnotations?.some(saved=>saved.assetId===photo.assetId)))throw Error('A supplied photo caption is missing from the saved family.');
   if(latest.run.modelStatus!=='completed'||!latest.run.analysis||!latest.stories.some(s=>s.status==='accepted'&&s.evidenceType==='family_recollection'))throw Error('A live reviewed recollection is missing.');
   if(log.batches.length!==6||Date.parse(log.batches[5].savedAt)-Date.parse(log.batches[0].savedAt)<45000)throw Error('Six distinct saved batches did not span 45 seconds.');
   const downloadPromise=page.waitForEvent('download',{timeout:30000});

@@ -265,7 +265,7 @@ function releaseGraph(s: ProjectSnapshot, stage: Stage, ids: string[]) {
   }
   appendUnique(s.relationships,rels);
   for(const a of stage.manifest.photos) {
-    if(!(a.positions||[]).some(pos=>pos.personId&&all.has(pos.personId)))continue;
+    if(!(a.positions||[]).some(pos=>pos.personId&&all.has(pos.personId)) && !(a.depictedPersonIds||[]).some(id=>all.has(id)))continue;
     if(!(s.photoAnnotations||[]).some(x=>x.assetId===a.assetId)) (s.photoAnnotations ||= []).push(structuredClone(a));
     // A supplied confirmed photo annotation retains its attribution. Unreviewed
     // filename hints stay proposals and never identify faces automatically.
@@ -289,17 +289,24 @@ export async function answerSetupQuestion(id:string, raw:unknown) {
   return updateProject(id,s=>{
     const run=s.run!;const q=run.questions.find(q=>q.id===input.questionId);
     if(!q)throw new AppError('Question not found.',404);
+    const previous=run.answers.find(a=>a.questionId===q.id);
+    const definition=(question:typeof q)=>JSON.stringify([question.prompt,question.recommendation,question.support,question.personIds,question.effect]);
+    const original=stage.manifest.questions.find(question=>question.id===q.id)!;
+    const unchangedPreparedFirstAnswer=!run.initialSavedAt&&!previous&&!q.requiresAstra&&q.origin==='prepared'&&input.action!=='correct'&&definition(q)===definition(original);
+    // Background model events may advance the global version while a different,
+    // unchanged prepared question is on screen. Never rebase a changed answer.
+    if(input.baseVersion!==s.version && !(input.baseVersion>=1&&input.baseVersion<s.version&&unchangedPreparedFirstAnswer))
+      throw new AppError('This answer changed. Refresh and review its latest version.',409,'STALE_VERSION');
     if(run.phase==='cancelled')throw new AppError('This run was cancelled.',409);
     if(input.action!=='unknown'&&q.status==='waiting')throw new AppError('Wait for the source interpretation or choose I do not know.',409);
     if(input.action!=='unknown'&&q.requiresAstra&&run.modelStatus!=='completed')throw new AppError('A live source interpretation is not available. Retry analysis or keep this answer unresolved.',409);
     if(input.action==='confirm'&&q.requiresAstra&&(!run.analysis?.personId||run.analysis.candidatePersonIds.length!==1))throw new AppError('The recollection has unresolved identity candidates. Keep it unresolved.',409);
-    const previous=run.answers.find(a=>a.questionId===q.id);
     const answer={...input,savedAt:at(),originalRecommendation:q.recommendation,savedText:input.action==='unknown'?'Unresolved':input.action==='correct'?input.text!:q.recommendation,sourceIds:[...new Set(q.support.map(s=>s.sourceId))]};
     run.answers=run.answers.filter(a=>a.questionId!==q.id);run.answers.push(answer);q.status='answered';
     s.history.push({eventId:input.requestId,at:answer.savedAt,actor:'local-user',action:`setup:${input.action}`,before:previous||null,after:answer,sourceIds:answer.sourceIds,claimIds:[],projectVersion:s.version+1});
     if(run.initialSavedAt)applySavedAnswer(s,stage,q.id);
     event(s,{runId:run.runId,operation:'apply_review',origin:'live',state:'completed',finding:input.action==='unknown'?'Saved an explicitly unresolved answer.':`Saved your ${q.category} answer.`});
-  },{baseVersion:input.baseVersion,invalidateBook:true,isReplay:s=>s.history.some(h=>h.eventId===input.requestId)});
+  },{invalidateBook:true,isReplay:s=>s.history.some(h=>h.eventId===input.requestId)});
 }
 async function releaseEligible(id:string, options:RoundOptions={}) {
   const stage=await readStage(id), now=options.nowMs??Date.now();

@@ -21,6 +21,8 @@ V2 prose checkpoint: parseFamilyNotesPacket({files,identityKeys}) now reads ordi
 
 Interfaces: parseFamilyPacket({files}) and parseFamilyNotesPacket({files,identityKeys}) from server/ingestion/index.mjs return roots-v1 graph/sources/assets plus assetBytes, files, photoAnnotations, relationshipReconciliation and counts. prepareManifestBatches and readSavedSourceJob in server/research validate supplied staging without timers or new facts. Lead currently owns active batch execution.
 
+Photo renderer follow-up: HTML includes every resolved original image, its supplied caption, explicit identity-review label and exact citation. PDF uses a caption-associated fallback only when the selected chapter person has no confirmed photo, clearly labels the unreviewed identity and cites its source. It never mutates person.photoIds or revives an unresolved ordered identity. Synthetic cover/chapter renders were visually checked; the new regression verifies all 14 gallery photos and extracted PDF evidence labels. All 123 focused data/export/research tests and TypeScript checks pass.
+
 Pending integration gates: full current-book export after actual review, two real-browser Submit-to-Download rehearsals, portable reopen, actual download timing and final shared regression gate. Do not interpret this parser/export status as integrated demo readiness.
 
 ---

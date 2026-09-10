@@ -60,6 +60,24 @@ test('manifest cannot forge a photo citation or replace the identity in uploaded
   await assert.rejects(()=>startRound2({seedName:'Fictional',geographyUnknown:true},files,{manifest:identity}),/photo annotation differs/i);
 });
 
+test('background model status cannot invalidate an unchanged first prepared answer, but conflicting answers still fail',async()=>{
+  const root=await mkdtemp(join(tmpdir(),'roots-r2-answer-race-'));const old=process.env.ROOTS_DATA_DIR;process.env.ROOTS_DATA_DIR=root;
+  try{
+    const {manifest,files}=await setup();let s=await startRound2({seedName:'Fictional',geographyUnknown:true},files,{manifest});
+    const displayedVersion=s.version,question=s.run!.questions[0];
+    let entered!:()=>void,finish!:(value:any)=>void;
+    const started=new Promise<void>(resolve=>entered=resolve);
+    const pending=pumpRound2(s.projectId,{analyze:(async()=>{entered();return new Promise(resolve=>finish=resolve)}) as any});
+    await started;
+    s=await answerSetupQuestion(s.projectId,{questionId:question.id,action:'confirm',baseVersion:displayedVersion,requestId:'first-answer-during-analysis'});
+    assert.equal(s.run!.answers.length,1);assert.equal(s.people.length,0);
+    await assert.rejects(()=>answerSetupQuestion(s.projectId,{questionId:question.id,action:'unknown',baseVersion:displayedVersion,requestId:'conflicting-old-answer'}),/answer changed/);
+    const stage=JSON.parse(await readFile(join(root,s.projectId,'staging.json'),'utf8'));
+    finish(await analysis(stage.graph,stage.graph.sources.find((source:any)=>source.id==='chat-family'),[],undefined));
+    await pending;
+  }finally{process.env.ROOTS_DATA_DIR=old;await rm(root,{recursive:true,force:true});}
+});
+
 test('unanswered checks cannot reveal graph; cancelled run never starts model or batches',async()=>{
   const root=await mkdtemp(join(tmpdir(),'roots-r2-cancel-'));const old=process.env.ROOTS_DATA_DIR;process.env.ROOTS_DATA_DIR=root;
   try{const {manifest,files}=await setup();const t=Date.now();let s=await startRound2({seedName:'Fictional',geographyUnknown:true},files,{manifest,nowMs:t});

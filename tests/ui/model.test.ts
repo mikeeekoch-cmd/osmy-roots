@@ -253,3 +253,16 @@ test("saved arrivals follow versioned entity changes, not polling or event-only 
   after.projectId = "another-project";
   assert.equal(savedDelta(before, after), null);
 });
+
+test("caption-associated originals are inspectable without confirming identity or photo order", async () => {
+  const {photoIdsForPerson} = await import("../../src/ui/OriginalPhotos");
+  const s = snapshot(), person = s.people[0];
+  person.photoIds = [];
+  s.assets.push({id: "caption-only", sourceId: s.sources[0].id, mediaType: "image/jpeg", originalName: "Supplied_group.jpg", byteLength: 10, storageKey: "fixture"});
+  s.photoAnnotations = [{assetId: "caption-only", file: "Supplied_group.jpg", positions: [], depictedPersonIds: [person.id], caption: "A supplied family caption; order unknown.", support: []}];
+  const before = structuredClone(s);
+  assert.deepEqual(photoIdsForPerson(s, person.id), ["caption-only"]);
+  assert.deepEqual(s, before);
+  assert.deepEqual(person.photoIds, []);
+  assert.deepEqual(s.photoAnnotations[0].positions, []);
+});
