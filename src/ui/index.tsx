@@ -24,6 +24,7 @@ export function RootsApp({
 }) {
   const [snapshot, setSnapshot] = useState<ProjectSnapshot | null>(null),
     [busy, setBusy] = useState(false),
+    [contributionsRunning, setContributionsRunning] = useState(0),
     [error, setError] = useState<string | null>(null),
     [download, setDownload] = useState(false),
     [downloaded, setDownloaded] = useState(false),
@@ -83,7 +84,7 @@ export function RootsApp({
     if (!snapshot) return;
     let cancelled = false;
     const timer = setInterval(async () => {
-      if (active.current || download) return;
+      if (document.visibilityState === "hidden") return;
       try {
         const next = await api.getSnapshot(snapshot.projectId);
         if (!cancelled) saveSnapshot(next);
@@ -114,10 +115,14 @@ export function RootsApp({
   async function perform(
     action: () => Promise<ProjectSnapshot>,
     changedId?: string,
+    background = false,
   ): Promise<boolean> {
-    if (active.current) return false;
-    active.current = true;
-    setBusy(true);
+    if (!background && active.current) return false;
+    if (background) setContributionsRunning((n) => n + 1);
+    else {
+      active.current = true;
+      setBusy(true);
+    }
     setError(null);
     try {
       const next = await action();
@@ -131,8 +136,12 @@ export function RootsApp({
       if (mounted.current) setError(errorMessage(e));
       return false;
     } finally {
-      active.current = false;
-      if (mounted.current) setBusy(false);
+      if (background) {
+        if (mounted.current) setContributionsRunning((n) => Math.max(0, n - 1));
+      } else {
+        active.current = false;
+        if (mounted.current) setBusy(false);
+      }
     }
   }
   async function downloadBook() {
@@ -159,11 +168,13 @@ export function RootsApp({
   }
   const running =
     busy ||
+    contributionsRunning > 0 ||
     !!snapshot?.researchEvents.some(
       (e) =>
         e.state === "running" &&
         !snapshot.researchEvents.some(
           (other) =>
+            other.runId === e.runId &&
             other.operation === e.operation &&
             other.sequence > e.sequence &&
             other.state !== "running",
@@ -306,6 +317,29 @@ export function RootsApp({
                   setSelection(null);
                 }}
               />
+              {snapshot.bookPassages.length > 0 && (
+                <details className="book-passage">
+                  <summary>
+                    Current family-book passage · {snapshot.bookStatus}
+                  </summary>
+                  {snapshot.bookPassages.map((p) => (
+                    <article key={p.id}>
+                      <p>{p.text}</p>
+                      {p.sourceLocators.map((span, i) => (
+                        <button
+                          className="text-button"
+                          key={i}
+                          onClick={() =>
+                            setSelection({ kind: "source", id: span.sourceId })
+                          }
+                        >
+                          {span.locator}
+                        </button>
+                      ))}
+                    </article>
+                  ))}
+                </details>
+              )}
               <div className="canvas-footer">
                 <button
                   disabled={busy || !snapshot.history.length}
@@ -366,11 +400,14 @@ export function RootsApp({
               selectedId={selection?.kind === "person" ? selection.id : null}
               busy={busy}
               onContribute={(input) =>
-                perform(() =>
-                  api.addContribution(snapshot.projectId, {
-                    ...input,
-                    requestId: crypto.randomUUID(),
-                  }),
+                perform(
+                  () =>
+                    api.addContribution(snapshot.projectId, {
+                      ...input,
+                      requestId: crypto.randomUUID(),
+                    }),
+                  undefined,
+                  true,
                 )
               }
               onReview={(input) => {

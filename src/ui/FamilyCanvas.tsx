@@ -33,10 +33,20 @@ export function FamilyCanvas({
   const people = all
     ? snapshot.people
     : snapshot.people.filter((p) => branch.has(p.id));
-  const layout = useMemo(
-    () => familyLayout(people, snapshot.relationships),
-    [people, snapshot.relationships],
-  );
+  const layout = useMemo(() => {
+    const full = familyLayout(people, snapshot.relationships);
+    if (all) return full;
+    const ordered = [...people].sort(
+      (a, b) => full.positions[a.id].y - full.positions[b.id].y,
+    );
+    return {
+      positions: Object.fromEntries(
+        ordered.map((p, i) => [p.id, { x: 30, y: 16 + i * 78 }]),
+      ),
+      width: 320,
+      height: Math.max(1, ordered.length) * 78 + 16,
+    };
+  }, [people, snapshot.relationships, all]);
   const fit = () => {
     if (!viewport.current) return;
     const rect = viewport.current.getBoundingClientRect();
@@ -58,6 +68,10 @@ export function FamilyCanvas({
   };
   useEffect(() => {
     fit();
+    if (!viewport.current) return;
+    const observer = new ResizeObserver(() => fit());
+    observer.observe(viewport.current);
+    return () => observer.disconnect();
   }, [all, snapshot.people.length]);
   const focus = (id: string) => {
     const p = layout.positions[id];
@@ -67,13 +81,21 @@ export function FamilyCanvas({
     }
     if (viewport.current) {
       const r = viewport.current.getBoundingClientRect();
+      const next = Math.max(0.85, scale);
+      setScale(next);
       setOffset({
-        x: r.width / 2 - (p.x + 96) * scale,
-        y: r.height / 2 - (p.y + 64) * scale,
+        x: r.width / 2 - (p.x + (all ? 96 : 130)) * next,
+        y: r.height / 2 - (p.y + (all ? 64 : 30)) * next,
       });
     }
     onSelect(id);
   };
+  useEffect(() => {
+    if (highlightId) {
+      if (!layout.positions[highlightId]) setAll(true);
+      else focus(highlightId);
+    }
+  }, [highlightId, all]);
   const results = query.trim()
     ? snapshot.people.filter((p) =>
         `${p.displayNameEn} ${p.originalName || ""}`
@@ -161,7 +183,7 @@ export function FamilyCanvas({
           </div>
         ) : (
           <div
-            className="map-stage"
+            className={`map-stage ${all ? "" : "focused-generation"}`}
             style={{
               width: layout.width,
               height: layout.height,
@@ -178,12 +200,14 @@ export function FamilyCanvas({
               {snapshot.relationships.map((r) => {
                 const a = layout.positions[r.fromPersonId],
                   b = layout.positions[r.toPersonId];
-                if (!a || !b) return null;
+                if (!a || !b || r.status === "rejected") return null;
                 const parent = isParent(r),
-                  x1 = a.x + (parent ? 96 : 192),
-                  y1 = a.y + (parent ? 146 : 70),
-                  x2 = b.x + (parent ? 96 : 0),
-                  y2 = b.y + (parent ? 0 : 70);
+                  cardWidth = all ? 192 : 260,
+                  cardHeight = all ? 146 : 60,
+                  x1 = a.x + (parent ? cardWidth / 2 : cardWidth),
+                  y1 = a.y + (parent ? cardHeight : cardHeight / 2),
+                  x2 = b.x + (parent ? cardWidth / 2 : 0),
+                  y2 = b.y + (parent ? 0 : cardHeight / 2);
                 const d = parent
                   ? `M${x1} ${y1} V${(y1 + y2) / 2} H${x2} V${y2}`
                   : `M${x1} ${y1} L${x2} ${y2}`;

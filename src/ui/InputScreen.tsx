@@ -63,7 +63,7 @@ export function InputScreen({
         <p>
           Start with a name, a photograph, a memory.
           <br />
-          Keep the stories — and the sources behind them.
+          Keep the stories – and the sources behind them.
         </p>
       </div>
       <form className="intake" onSubmit={submit} noValidate>
@@ -85,10 +85,11 @@ export function InputScreen({
               checked={input.preparedPacket}
               onChange={(e) => field("preparedPacket", e.target.checked)}
             />
-            Use the configured prepared family packet
+            Use the prepared example family (synthetic)
           </label>
           <small className="muted">
-            Existing family records will be labeled as an import.
+            For your own family, upload a prepared project JSON. Existing
+            records are labeled as an import.
           </small>
           <div className="connections">
             <span className="eyebrow">Optional connections</span>

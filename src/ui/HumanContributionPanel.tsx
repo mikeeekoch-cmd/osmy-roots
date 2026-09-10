@@ -22,7 +22,11 @@ export function HumanContributionPanel({
     [attach, setAttach] = useState(true),
     [correcting, setCorrecting] = useState(false),
     [correction, setCorrection] = useState(""),
-    [personId, setPersonId] = useState("");
+    [personId, setPersonId] = useState(""),
+    [correctionVersion, setCorrectionVersion] = useState(snapshot.version),
+    [pendingInputs, setPendingInputs] = useState<
+      { id: string; text: string; files: File[]; failed: boolean }[]
+    >([]);
   const pending = snapshot.proposals.find((p) => p.status === "pending");
   const unknown = snapshot.proposals.filter((p) => p.status === "unknown");
   const selected = snapshot.people.find((p) => p.id === selectedId);
@@ -31,7 +35,7 @@ export function HumanContributionPanel({
     onReview({
       proposalId: pending.id,
       action,
-      baseVersion: snapshot.version,
+      baseVersion: action === "correct" ? correctionVersion : snapshot.version,
       corrections:
         action === "correct"
           ? {
@@ -43,16 +47,26 @@ export function HumanContributionPanel({
     setCorrecting(false);
   };
   const contribute = async () => {
-    if (
-      await onContribute({
-        text: text.trim() || undefined,
-        files,
-        targetPersonId: attach && selected ? selected.id : undefined,
-      })
-    ) {
-      setText("");
-      setFiles([]);
-    }
+    if (!text.trim() && !files.length) return;
+    const item = {
+      id: crypto.randomUUID(),
+      text: text.trim(),
+      files: [...files],
+      failed: false,
+    };
+    setPendingInputs((items) => [...items, item]);
+    setText("");
+    setFiles([]);
+    const ok = await onContribute({
+      text: item.text || undefined,
+      files: item.files,
+      targetPersonId: attach && selected ? selected.id : undefined,
+    });
+    setPendingInputs((items) =>
+      ok
+        ? items.filter((p) => p.id !== item.id)
+        : items.map((p) => (p.id === item.id ? { ...p, failed: true } : p)),
+    );
   };
   return (
     <aside className="human-panel">
@@ -122,6 +136,7 @@ export function HumanContributionPanel({
                 disabled={busy}
                 onClick={() => {
                   setCorrecting(true);
+                  setCorrectionVersion(snapshot.version);
                   setCorrection(pending.text);
                   setPersonId(pending.personId || "");
                 }}
@@ -164,6 +179,33 @@ export function HumanContributionPanel({
       )}
       <section className="contribute">
         <h3>Add a clue, anytime</h3>
+        {pendingInputs.length > 0 && (
+          <ul className="pending-inputs">
+            {pendingInputs.map((item) => (
+              <li key={item.id}>
+                <strong>
+                  {item.failed ? "Not saved" : "Saving & analyzing"}
+                </strong>
+                <p>{item.text || item.files.map((f) => f.name).join(", ")}</p>
+                {item.failed ? (
+                  <button
+                    onClick={() => {
+                      setText(item.text);
+                      setFiles(item.files);
+                      setPendingInputs((items) =>
+                        items.filter((p) => p.id !== item.id),
+                      );
+                    }}
+                  >
+                    Restore this draft
+                  </button>
+                ) : (
+                  <small>Your next clue can be added below.</small>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
         <label className="field">
           <span className="sr-only">New family memory or clue</span>
           <textarea
