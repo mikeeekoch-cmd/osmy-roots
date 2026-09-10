@@ -24,6 +24,7 @@ import {
   type IngestionResult,
 } from "../../packages/contracts";
 import { AppError } from "../state/validation";
+import { buildRuntimeBundle } from "./bundle";
 // Compatibility boundary for Claude's dependency-free ESM modules. Public runtime
 // schemas remain authoritative; no worker-owned implementation is rewritten here.
 type Raw = Record<string, any>;
@@ -334,11 +335,5 @@ export const dataModules: DataModules = {
       error: typeof out.error === "string" ? out.error : out.error?.message,
     };
   },
-  async buildFamilyBundle() {
-    throw new AppError(
-      "The current-state export module is awaiting Claude's handoff.",
-      503,
-      "EXPORT_NOT_INTEGRATED",
-    );
-  },
+  buildFamilyBundle: buildRuntimeBundle,
 };
