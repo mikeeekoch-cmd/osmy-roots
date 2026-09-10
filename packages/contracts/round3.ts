@@ -131,6 +131,9 @@ export const ResearchJobSchema = z.object({
   origin: z.enum(["live", "prepared", "cached"]).default("live"),
 });
 export type ResearchJob = z.infer<typeof ResearchJobSchema>;
+// Saved originals, validated derivatives and extracted attachments are restored
+// together; this does not increase the 40-new-source intake limit.
+export const PORTABLE_RESTORE_MAX_PARTS = 202;
 export const ResearchPlanSchema = z.object({
   id: Id,
   cycleId: Id,

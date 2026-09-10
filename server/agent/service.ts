@@ -262,7 +262,7 @@ export async function createProject(
     });
   }
   // Preserve the uploaded seed bytes separately from normalized JSON extraction.
-  if (json) {
+  if (json && !(reopenedFrom && s.research)) {
     const original = await modules.ingestContribution({ files: [json] });
     mergeIngestion(s, original);
     for (const bytes of original.assetBytes)
@@ -314,6 +314,18 @@ export async function createProject(
         ? `Imported ${s.people.length} existing people. ${!seed ? "Fictional synthetic example." : "Prepared family evidence."}`
         : "Saved the supplied starting person. Planning uses the supplied evidence.",
   });
+  if (reopenedFrom && s.research) {
+    const stageFile = files.find(file => file.originalName === "research-stage.json");
+    if(stageFile) await (await import("./round2")).restoreResearchStage(s, JSON.parse(new TextDecoder().decode(stageFile.bytes)));
+    else {
+      try {
+        const original = await (await import("./round2")).readStage(reopenedFrom);
+        await (await import("./round2")).restoreResearchStage(s, original);
+      } catch {
+        s.issues.push("The original intake history was not included. Add research-stage.json with the saved project to revisit initial checks or resume unfinished rounds.");
+      }
+    }
+  }
   await createSavedProject(s);
   // Reopening restores reviewed state and originals. It must not re-run old source
   // text as a new investigation or charge for model calls during a portable import.

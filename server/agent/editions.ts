@@ -55,6 +55,15 @@ async function buildEdition(id: string) {
     );
   if (!s.people.length)
     throw new AppError("Start research before preparing the book.", 409);
+  const remainingPeople = s.research.bookPlan.selectedPersonIds.filter(
+    (id) => !s.people.some((person) => person.id === id),
+  );
+  if (remainingPeople.length)
+    throw new AppError(
+      `${remainingPeople.length} selected family records are still awaiting research. Complete the remaining rounds before preparing the full edition.`,
+      409,
+      "BOOK_COVERAGE_INCOMPLETE",
+    );
   const key = researchFingerprint(s);
   if (
     s.research.bookEdition?.fingerprint === key &&

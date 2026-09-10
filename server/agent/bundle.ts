@@ -211,6 +211,21 @@ export async function buildRuntimeBundle({
     })),
   });
   entries.set("project.json", Buffer.from(JSON.stringify(portable, null, 2)));
+  if (snapshot.research) {
+    const stage = await (
+      await import("./round2")
+    ).readStage(snapshot.projectId);
+    entries.set(
+      "research-stage.json",
+      Buffer.from(
+        JSON.stringify(
+          { graph: stage.graph, manifest: stage.manifest },
+          null,
+          2,
+        ),
+      ),
+    );
+  }
   entries.set(
     "sources.json",
     Buffer.from(
@@ -227,7 +242,7 @@ export async function buildRuntimeBundle({
   entries.set(
     "README.md",
     Buffer.from(
-      `# Osmy Roots family project\n\nCurrent project version ${snapshot.version}.\n\nOpen book.pdf or book.html to read the illustrated English book. project.json retains every person, relationship, source, claim, story, decision and history event. sources.json preserves exact evidence text. research-notes.json retains warnings and unresolved questions. photos/ and uploads/ contain every saved original, unchanged.\n\nTo reopen on another machine, select project.json together with all files from photos/ and uploads/ using Open saved project in Osmy Roots. Reopening a complete project ZIP is not supported; the supplied chat ZIP format is supported. On the original machine, saved originals can also be recovered by the old project and asset IDs. Missing files are reported explicitly.\n\nAccepted recollections remain family memories. Prepared or synthetic inputs are labeled in their source records; no new archive discovery is implied. ${snapshot.research ? "This English edition uses supplied source-backed chapters with current reviewed changes. See the coverage ledger for chapter and asset provenance." : "The PDF uses a compact four-page layout; the HTML and editable JSON retain material omitted from those pages."} The standalone editable HTML map is deferred.\n`,
+      `# Osmy Roots family project\n\nCurrent project version ${snapshot.version}.\n\nOpen book.pdf or book.html to read the illustrated English book. project.json retains every person, relationship, source, claim, story, decision and history event. sources.json preserves exact evidence text. research-notes.json retains warnings and unresolved questions. photos/ and uploads/ contain every saved original, unchanged.\n\nTo reopen on another machine, select project.json${snapshot.research ? " and research-stage.json" : ""} together with all files from photos/ and uploads/ using Open saved project in Osmy Roots. Reopening a complete project ZIP is not supported; the supplied chat ZIP format is supported. On the original machine, saved originals can also be recovered by the old project and asset IDs. Missing files are reported explicitly.\n\nAccepted recollections remain family memories. Prepared or synthetic inputs are labeled in their source records; no new archive discovery is implied. ${snapshot.research ? "This English edition uses supplied source-backed chapters with current reviewed changes. See the coverage ledger for chapter and asset provenance." : "The PDF uses a compact four-page layout; the HTML and editable JSON retain material omitted from those pages."} The standalone editable HTML map is deferred.\n`,
     ),
   );
   const notes = JSON.parse(entries.get("research-notes.json")!.toString());

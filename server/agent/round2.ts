@@ -37,6 +37,18 @@ export async function readStage(id: string): Promise<Stage> {
   const raw = JSON.parse(await readFile(stagePath(id), 'utf8'));
   return {graph: validateSnapshot(raw.graph), manifest: parseManifest(raw.manifest), packetRoot:raw.packetRoot};
 }
+export async function restoreResearchStage(snapshot: ProjectSnapshot, raw: unknown) {
+  if(!snapshot.research || !raw || typeof raw !== 'object') throw new AppError('This saved intake does not belong to a round-3 project.');
+  const incoming = raw as Record<string, unknown>;
+  const graph = validateSnapshot(incoming.graph), manifest = parseManifest(incoming.manifest);
+  if(manifest.schemaVersion !== 'roots-demo-v3' || manifest.packetVersion !== snapshot.research.packetVersion || hash(JSON.stringify(manifest)) !== snapshot.research.packetHash) throw new AppError('Saved intake manifest differs from this project.');
+  for(const source of graph.sources) if(!snapshot.sources.some(saved => saved.id === source.id && saved.contentHash === source.contentHash && saved.originalText === source.originalText)) throw new AppError('Saved intake evidence differs from the portable project.');
+  for(const asset of graph.assets) if(!snapshot.assets.some(saved => saved.id === asset.id && saved.contentHash === asset.contentHash)) throw new AppError('Saved intake asset differs from the portable project.');
+  for(const question of manifest.questions) validateSpans(question.support, graph);
+  graph.projectId = snapshot.projectId;
+  await mkdir(join(dataRoot(), snapshot.projectId), {recursive: true, mode: 0o700});
+  await writeFile(stagePath(snapshot.projectId), JSON.stringify({graph, manifest}), {mode: 0o600});
+}
 function assertEnglish(value: unknown) {
   if (/[\u0400-\u04ff]/u.test(JSON.stringify(value)))
     throw new AppError('This English packet contains non-English source text or filenames. Keep original-language audit material outside the upload selection.', 400, 'ENGLISH_PACKET_REQUIRED');
@@ -165,7 +177,8 @@ export async function startRound2(raw: unknown, files: InputFile[], options: Rou
     s.photoAnnotations=manifest.photos;
     for(const file of s.files){const jobId=`intake-parse-${hash(file.uploadId).slice(0,24)}`;s.research.jobs.push({id:jobId,stage:'intake',kind:'parse',tool:'packet-ingestion',objective:`Read ${file.originalName}`,sourceIds:file.sourceIds,urls:[],status:file.status==='parsed'?'completed':file.status==='failed'?'failed':'blocked',attempt:1,completedAt:at(),inputFingerprint:packetHash,resultIds:file.sourceIds,summary:`${file.originalName}: ${file.status}`,origin:'live'});s.research.intake.jobIds.push(jobId);}
 
-    for(const asset of s.assets){asset.role=manifest.photoPairs.some(p=>p.enhancedAssetId===asset.id)?'derivative':'original'; if(asset.mediaType.startsWith('image/')) asset.indexedAt=at(started); const pair=manifest.photoPairs.find(p=>p.enhancedAssetId===asset.id);if(pair){asset.parentAssetId=pair.originalAssetId;asset.parentHash=pair.originalHash;asset.evidenceRootId=pair.evidenceRootId;}}
+    const originalHashes = new Set(manifest.files.map(file => file.sha256));
+    for(const asset of s.assets){asset.role=manifest.photoPairs.some(p=>p.enhancedAssetId===asset.id)?'derivative':originalHashes.has(asset.contentHash || '')?'original':'extracted'; if(asset.mediaType.startsWith('image/')) asset.indexedAt=at(started); const pair=manifest.photoPairs.find(p=>p.enhancedAssetId===asset.id);if(pair){asset.parentAssetId=pair.originalAssetId;asset.parentHash=pair.originalHash;asset.evidenceRootId=pair.evidenceRootId;const parent=s.assets.find(a=>a.id===pair.originalAssetId)!;parent.evidenceRootId=pair.evidenceRootId;}}
   }
   for (const file of s.files) event(s,{eventId:`parse-${file.uploadId}`,runId:id,operation:'parse_file',origin:'live',state:file.status==='parsed'?'completed':'blocked',sourceId:file.sourceIds[0],assetId:file.assetIds[0],finding:`${file.originalName}: ${file.status}`});
   event(s,{runId:id,operation:'normalize_entity',origin:'prepared',state:'completed',finding:`Read ${full.people.length} supplied family records into a review queue. They are not new archive discoveries.`});

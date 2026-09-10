@@ -25,7 +25,9 @@ import {
   reviewGraphProposal,
   pumpResearch,
 } from "../server/agent/research";
-import { loadProject, updateProject } from "../server/state/store";
+import { loadProject, updateProject, readAsset } from "../server/state/store";
+import { createProject } from "../server/agent/service";
+import { multipart } from "../server/agent/http";
 import {
   digest,
   researchFingerprint,
@@ -664,6 +666,120 @@ test("an unconfigured public provider records a blocked job with no network sear
     assert.equal(s.research!.metrics!.totals.pagesRetrieved, 0);
     assert.equal(s.research!.metrics!.totals.searchAttempts, 1);
   } finally {
+    await waitForResearch(start.projectId);
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("portable round-3 restore retains intake edits and resumes later rounds in an empty store", async () => {
+  const { s: start, root } = await ready();
+  let restoredRoot: string | undefined, restoredId: string | undefined;
+  try {
+    await cycleAction(
+      start.projectId,
+      {
+        action: "initial",
+        requestId: "before-restore",
+        baseVersion: start.version,
+      },
+      deps,
+    );
+    const s = await waitForResearch(start.projectId),
+      stage = await readStage(s.projectId);
+    const files = await Promise.all(
+      s.assets.map(async (asset) => ({
+        uploadId: asset.id,
+        originalName: asset.originalName,
+        mediaType: asset.mediaType,
+        bytes: await readAsset(s.projectId, asset.id),
+      })),
+    );
+    const projectBytes = Buffer.from(JSON.stringify(s));
+    // A complete saved artifact can have more parts than its original file count.
+    const form = new FormData();
+    form.set("input", JSON.stringify(s.input));
+    form.append("files", new File([projectBytes], "project.json"));
+    for (let i = 0; i < 41; i++)
+      form.append(
+        "files",
+        new File([Buffer.from(files[0].bytes)], `saved-${i}.bin`),
+      );
+    const parsed = await multipart(
+      new Request("http://127.0.0.1/api/projects", {
+        method: "POST",
+        body: form,
+      }),
+    );
+    assert.equal(parsed.files.length, 42);
+    form.append("files", new File(["unrelated new source"], "unrelated.txt"));
+    await assert.rejects(
+      () =>
+        multipart(
+          new Request("http://127.0.0.1/api/projects", {
+            method: "POST",
+            body: form,
+          }),
+        ),
+      /matching original and derived/,
+    );
+    restoredRoot = await mkdtemp(join(tmpdir(), "roots-r3-restore-"));
+    process.env.ROOTS_DATA_DIR = restoredRoot;
+    let restored = await createProject(s.input, [
+      {
+        uploadId: "project",
+        originalName: "project.json",
+        mediaType: "application/json",
+        bytes: projectBytes,
+      },
+      {
+        uploadId: "stage",
+        originalName: "research-stage.json",
+        mediaType: "application/json",
+        bytes: Buffer.from(
+          JSON.stringify({ graph: stage.graph, manifest: stage.manifest }),
+        ),
+      },
+      ...files,
+    ]);
+    restoredId = restored.projectId;
+    assert.equal(restored.files.length, s.files.length);
+    assert.equal(
+      restored.research!.metrics!.totals.sourcesProcessed,
+      s.research!.metrics!.totals.sourcesProcessed,
+    );
+    assert.equal((await readStage(restoredId)).packetRoot, undefined);
+    const question = restored.run!.questions[0];
+    restored = await answerSetupQuestion(restoredId, {
+      questionId: question.id,
+      action: "skip",
+      requestId: "reopened-initial-edit",
+      baseVersion: restored.version,
+    });
+    assert.equal(
+      restored.run!.answers.find((answer) => answer.questionId === question.id)!
+        .action,
+      "skip",
+    );
+    await cycleAction(
+      restoredId,
+      {
+        action: "deeper",
+        requestId: "after-restore",
+        baseVersion: restored.version,
+      },
+      deps,
+    );
+    restored = await waitForResearch(restoredId);
+    assert.equal(restored.research!.cycles[1].status, "completed");
+    assert.equal(restored.run!.answers.length, 6);
+    assert.deepEqual(
+      Buffer.from(await readAsset(restoredId, s.assets[0].id)),
+      Buffer.from(files[0].bytes),
+    );
+  } finally {
+    if (restoredId) await waitForResearch(restoredId);
+    if (restoredRoot) await rm(restoredRoot, { recursive: true, force: true });
+    process.env.ROOTS_DATA_DIR = root;
     await waitForResearch(start.projectId);
     await rm(root, { recursive: true, force: true });
   }
