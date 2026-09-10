@@ -59,7 +59,10 @@ function contentKey(s: ProjectSnapshot) {
     assets:s.assets.map(a => ({id:a.id,hash:a.contentHash})), photos:s.photoAnnotations, pairs:s.photoPairs}));
 }
 export function isRound2Input(files: InputFile[]) {
-  return !files.some(f=>f.originalName==='project.json') && files.some(f => ['family_register.csv','family notes.txt'].includes(f.originalName.toLowerCase()));
+  return !files.some(f=>f.originalName==='project.json') && (
+    files.some(f => ['family_register.csv','family notes.txt'].includes(f.originalName.toLowerCase())) ||
+    (!!(process.env.ROOTS_ROUND3_MANIFEST || process.env.ROOTS_DEMO_MANIFEST) && files.length > 0)
+  );
 }
 export function recollectionAttribution(source: Source | undefined, quotes: string[]) {
   if (!source) return 'Family contributor';
@@ -81,15 +84,15 @@ export function recollectionAttribution(source: Source | undefined, quotes: stri
 }
 async function manifestFor(files: InputFile[], supplied?: RuntimeManifest) {
   let manifest = supplied;
+  let manifestPath = process.env.ROOTS_ROUND3_MANIFEST || process.env.ROOTS_DEMO_MANIFEST || join(dataRoot(), 'demo-artefacts', 'DEMO_MANIFEST.json');
   if (!manifest) {
-    const path = process.env.ROOTS_ROUND3_MANIFEST || process.env.ROOTS_DEMO_MANIFEST || join(dataRoot(), 'demo-artefacts', 'DEMO_MANIFEST.json');
-    try { manifest = parseManifest(JSON.parse(await readFile(path, 'utf8'))); }
+    try { manifest = parseManifest(JSON.parse(await readFile(manifestPath, 'utf8'))); }
     catch { throw new AppError('The source packet manifest is not configured or validated yet. Your selected files have been retained; finish packet preparation and retry.', 409, 'PACKET_NOT_READY'); }
   }
   manifest = parseManifest(manifest);
   const expected = manifest.files.filter(f => f.path.startsWith('01-upload/') || !f.path.includes('/'));
-  if (!supplied && manifest.schemaVersion === 'roots-demo-v3' && process.env.ROOTS_DEMO_CONNECTIONS === 'true' && process.env.ROOTS_ROUND3_MANIFEST) {
-    const root = dirname(process.env.ROOTS_ROUND3_MANIFEST);
+  if (!supplied && manifest.schemaVersion === 'roots-demo-v3') {
+    const root = dirname(manifestPath);
     const prepared: InputFile[] = await Promise.all(expected.map(async file => {
       const path = join(root, file.path), info = await lstat(path);
       if (!info.isFile() || info.isSymbolicLink()) throw new AppError('A prepared demo source is unavailable.');
