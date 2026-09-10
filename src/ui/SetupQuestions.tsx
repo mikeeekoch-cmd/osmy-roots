@@ -56,7 +56,7 @@ export function SetupQuestions({
           run.error ||
           "Bringing together the first family branch from your supplied records. Unknown answers remain open."
         }
-        active={run.phase !== "failed"}
+        active={run.phase === "preparing" || run.modelStatus === "running"}
       />
     );
   if (!question)
@@ -66,7 +66,7 @@ export function SetupQuestions({
           run.error ||
           "Reading your supplied files and checking their source references."
         }
-        active={run.phase !== "failed"}
+        active={run.phase === "preparing" || run.modelStatus === "running"}
       />
     );
   return (
@@ -193,10 +193,12 @@ function Question({
         )}
       {waiting ? (
         <p className="question-pending" role="status">
-          <span className="spinner" />
+          {snapshot.run!.modelStatus === "running" && (
+            <span className="spinner" />
+          )}
           {snapshot.run!.modelStatus === "running"
             ? "Astra is checking the source quotation."
-            : "Preparing a source-backed suggestion."}
+            : "Waiting for a source-backed suggestion."}
         </p>
       ) : failed ? (
         <p className="error">

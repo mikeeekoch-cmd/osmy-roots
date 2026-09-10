@@ -17,6 +17,7 @@ This report separates the actual application from the isolated contract harness.
 - Harness: holding createProject displayed preparation immediately. Deliberately failing that promise restored the intact name, unknown-location selection and selected file. No file needed re-selection.
 - Harness: deliberate download failure displayed retry and never displayed completion or generated a pretend ZIP.
 - Comparison: two distinct code-generated placeholder pairs (portrait and landscape), full-original/50–50/full-enhanced, Home/End, next-photo reset, unpaired ordinary gallery, unaligned side-by-side, and missing-enhanced original fallback.
+- Mobile pointer: dragging the 44 px divider handle changed the native range from 50% to 78% without paging or moving the map; the original aspect ratio was preserved.
 - Gallery keyboard: slider arrows did not page the gallery; Escape closed the lightbox and restored focus to Compare photos. The focus trap includes range inputs. Enlarging/closing and comparison only change local view state.
 
 ## Integration still required
