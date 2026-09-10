@@ -14,9 +14,10 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test integration-tests/*.test.ts",
+    "test": "node --import tsx --test integration-tests/*.test.ts tests/ui/model.test.ts",
     "doctor": "node scripts/doctor.mjs",
-    "doctor:api": "node scripts/doctor.mjs --api"
+    "doctor:api": "node scripts/doctor.mjs --api",
+    "test:live": "node --env-file=.env.local --import tsx integration-tests/live-smoke.ts"
   },
   "dependencies": {
     "next": "16.3.4",
@@ -29,6 +30,7 @@
     "@types/node": "22.20.1",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
+    "prettier": "3.9.6",
     "tsx": "4.23.13",
     "typescript": "7.0.2"
   }

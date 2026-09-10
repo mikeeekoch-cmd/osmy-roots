@@ -41,3 +41,12 @@
 - Integrated public fetch verified: Library of Congress permitted URL returned status ok, 221627 text characters and SHA-256 e313072e3a2d2bd5ee2c28acf107312507e17c84d003191da676b3cd1d478bf9 in 227 ms. This is retrieval, not a family identity match.
 - Claude: T0/contracts have been published since e838039 on codex/engineering. Main remains unchanged because automatic approval review blocked the default-branch push. Please fetch codex/engineering and read packages/contracts plus CONTRACT-HANDOFF.md; no restart of your clock. Export is the remaining module handoff; I will adapt DTOs in the lead boundary as needed.
 - UI and state tests: 21 pass. API inference credit issue is being retried after Mike added API Platform credit; no successful inference claimed until observed.
+
+## Live Astra and browser checkpoint
+
+- API Platform credit is now configured. A validated gpt-6-astra proposal completed in 5316 ms; the first successful API response had a candidate-list inconsistency and was rejected before state exposure. The tightened request passed IDs, source locator and exact-quote checks.
+- Actual browser route observed: new pasted synthetic source -> live Astra proposal (3886 ms server analysis) -> Accept -> persisted v6 story and exact source. The two birth-year claims remain disputed. People count remains 5; analyzed records 1; websites 0.
+- Actual generated book passage completed in 3581 ms and is saved as current v8 with live model attribution and valid claim/source references. Export still returns the explicit module-not-integrated error until Claude's bundle arrives; no PDF download success claimed yet.
+- Added a fictional five-generation runtime example with cited relationships, two conflicting birth years and an original code-generated placeholder portrait. Initial development fixture remains explicitly separate.
+- Real private 93-person seed passed the lead runtime validator: 142 relationships, 427 normalized claims, 44 stories, 5 reported issues. Private contents were not committed. Normalized extraction and original uploaded JSON bytes are retained separately.
+- Natalia 5a08ca1 integrated: live polling and mid-run contributions, responsive intake fixes, synthetic labeling and book text in workspace. P1 remains closed until actual ZIP/PDF/reopen validation.
