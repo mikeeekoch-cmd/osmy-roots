@@ -10,7 +10,7 @@ Working P0: actual Astra interpretation, exact source spans, review/correction/u
 
 New work is required for ordinary uploaded files to produce new people, seven setup questions, staged graph growth, supported chat ZIPs, an English demo pack and an English-only display/export projection. The existing model function can only select existing person IDs; adding a loader alone cannot implement the requested journey.
 
-The three-minute target is the presenter journey, not an engineering deadline. Begin round 2 only when the owner prompts are executed. The lead records its start and checkpoints; do not reuse or silently reset the expired round-1 deadline. Publish round-2 interfaces within ten minutes of actual execution, integrate the first file-to-question-to-map path before polishing, and freeze features before final rehearsals.
+The 120-second target is the application journey from Submit/Start to Download family book, not an engineering deadline. Read NARRATIVE-DATA-CONTRACT.md for the controlling timing, complete input coverage and script alignment. Opening narration before Submit and closing narration after Download are outside that clock. Begin round 2 only when the owner prompts are executed. The lead records its start and checkpoints; do not reuse or silently reset the expired round-1 deadline. Publish round-2 interfaces within ten minutes of actual execution, integrate the first file-to-question-to-map path before polishing, and freeze features before final rehearsals.
 
 ## The product Mike will present
 
@@ -54,17 +54,17 @@ Do not hardcode real family answers in public code. The seven questions must spa
 
 When all seven questions are confirmed, corrected or explicitly skipped, reveal a coherent initial branch from saved state. Unresolved answers must not block showing the rest of the family. Unsupported relatives and relationships can appear as proposals with their review state; they cannot become verified facts on a timer.
 
-## Three-minute progression
+## Two-minute progression
 
-Target timings for the normal presenter script, measured from Start to a successfully received ZIP:
+Target timings for the normal presenter script, measured from Submit/Start to Download click. The bundle must be current and ready before the click; also measure actual file receipt. The detailed schedule in NARRATIVE-DATA-CONTRACT.md controls:
 
-| Elapsed         | Observable state                                                                                                                                                                                                                                                                            |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Before Start    | File selection and size checks only. No model requests, ingestion run, discovery queue or progress counters start.                                                                                                                                                                          |
-| 0-10 seconds    | Upload/parse activity and immediate loader. No empty one-person graph. First available question appears promptly.                                                                                                                                                                           |
-| 10-55 seconds   | Seven varied questions with concise suggested answers. Parsing/analysis can continue in parallel. Budget roughly 5-6 seconds per recommended answer.                                                                                                                                        |
-| 55-140 seconds  | Show the initial reviewed branch, then release roughly 8 meaningful batches at 8-12 second intervals as eligible source work completes. Grow toward the supplied 35-person project where evidence supports it. Each batch can add people, links, photos, stories or an unresolved proposal. |
-| 140-180 seconds | Book ready for review; Mike clicks Download family book, receives a current PDF/HTML/project ZIP, and the session enters Completed.                                                                                                                                                         |
+| Elapsed        | Observable state                                                                                                                                                                                                                          |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Before Start   | File selection and size checks only. No model requests, ingestion run, discovery queue or progress counters start.                                                                                                                        |
+| 0-8 seconds    | Upload/parse activity and immediate loader. No empty one-person graph. First available question appears promptly.                                                                                                                         |
+| 8-35 seconds   | Seven varied questions with concise suggested answers. Parsing/analysis can continue in parallel. Budget roughly 3-4 seconds per explicit answer.                                                                                         |
+| 35-90 seconds  | Show a coherent five-person branch, then six eligible saved batches at seconds 44, 53, 62, 71, 80 and 89. Grow toward the supplied 35-person project with actual evidence and preserved review states. Include links, photos and stories. |
+| 90-120 seconds | Prepare the current English book and ZIP by second 108. Mike reviews and clicks Download by second 115, no later than 120. Verify receipt separately and mark Completed only after success.                                               |
 
 These are presentation targets, not permission to fabricate results or answer for the user. Human pauses may extend elapsed time. Never advance a dependent batch before its data is parsed, validated and permitted by review state. If a real model call is slow, show that state or an explicit prepared-source fallback; do not relabel cached output as live.
 
@@ -74,11 +74,11 @@ Distribute arrivals across the map phase instead of one giant burst. Keep existi
 
 During map review, Mike can pan, zoom, inspect photos/stories, edit relationships and add another clue. A fresh clue actually enters ingestion/Astra processing and produces a reviewable update. Late analysis must not overwrite a human correction. When the queue is empty, show "Up to date. Add another clue while you review." Do not imply a model is still working when no request is running.
 
-Download is the finishing action. Seal the current run, stop admitting new scheduled demo batches, safely finish or cancel in-flight work, and export one consistent accepted-state version. A successful download marks Completed; a failed export remains retryable and must not claim completion. Clicking early can export the current reviewed state with unresolved/pending work disclosed. Nothing should mutate the sealed state after the exported version was chosen. Repeated clicks must not start duplicate export jobs.
+Prepare and hash-bind the current book before the planned Download click, invalidating it after relevant state changes. Download is the finishing action. Seal the current run, stop admitting new scheduled demo batches, safely finish or cancel in-flight work, and export one consistent accepted-state version. A successful download marks Completed; a failed export remains retryable and must not claim completion. Clicking early can export the current reviewed state with unresolved/pending work disclosed. Nothing should mutate the sealed state after the exported version was chosen. Repeated clicks must not start duplicate export jobs.
 
 ## File pack and English-only boundary
 
-Claude owns the private artifact pack in an ignored local demo-artefacts folder. Suggested structure:
+The product/content agent owns the private artifact pack in ignored .roots-data/demo-artefacts. Claude implements and validates the parsers and exporter against this pack. NARRATIVE-DATA-CONTRACT.md defines the complete required inventory, manifest and source coverage. Simplified structure:
 
 ```text
 demo-artefacts/
@@ -86,19 +86,23 @@ demo-artefacts/
   01-upload/
     01__Person_Name.jpg        # 6-10 selected photos, English filenames
     Family_Overview.pdf        # a readable one-page English summary
+    Family_Register.csv        # all 35 selected people, stable IDs and sources
+    Family_Relationships.csv   # complete supported links and uncertainty
     Family_Recollections.txt   # concise source-backed English context
+    Photo_Captions.txt         # supported identity/order and source locators
     WhatsApp_Mom.zip
     WhatsApp_Dad.zip
     WhatsApp_Family.zip
   02-background/
     saved-family-folder/
     saved-family-correspondence/
-    staged-sources.json
   03-output/
+  80-presenter/                # script, seven answers and narrative/source matrix
   90-private-provenance/
+  DEMO_MANIFEST.json
 ```
 
-Keep all upload files directly inside 01-upload so Mike can select them together with Select all. The illustrated photo filename is a pattern, not a real person's name. Do not require directory-upload support. Do not ask him to upload an internal project JSON, the full old book, output ZIPs, provenance files or the entire archive. The finished pack should total at most 20 MB and use at most 20 user-selected files. The background folder contains selected English derivatives loaded in the staged run, not files claimed to be found online.
+Keep all upload files directly inside 01-upload so Mike can select them together with Select all. The illustrated photo filename is a pattern, not a real person's name. Do not require directory-upload support. Do not ask him to upload an internal project JSON, the full old book, output ZIPs, provenance files or the entire archive. The finished pack should total at most 20 MB and use at most 20 user-selected files. The background folder contains selected English derivatives loaded in the staged run, not files claimed to be found online. Essential coverage of all 35 people and intended final facts must already be present in the starting upload selection. Repeated saved copies retain their original evidence root.
 
 All visible strings are English: filenames, names/transliterations, captions, buttons, questions, answers, tool summaries, sources, warnings, history summaries, previews and PDF/HTML. Rename copies of Cyrillic filenames; preserve the original private masters. Select photos without prominent readable Cyrillic inscriptions for this demo instead of altering the evidence image to conceal text.
 
@@ -124,7 +128,7 @@ The lead publishes actual TypeScript/Zod interfaces first. The following respons
 - Connection/source state: saved bundle versus real verified connection, and what source job is actually executing.
 - API: start returns promptly with a persisted run; polling after sequence or SSE delivers actual deltas; answer setup questions; add clue; seal/download. Extend existing RootsApi without duplicating state in UI.
 
-Prefer an explicit, resumable pump driven by the existing polling path or a bounded local worker over an untracked fire-and-forget promise inside a route. Refresh must resume the same run and sequence, not restart the three-minute animation. Cancel/New project must stop the old run's pending work. Preserve old roots-v1 projects through optional defaults or a tested migration.
+Prefer an explicit, resumable pump driven by the existing polling path or a bounded local worker over an untracked fire-and-forget promise inside a route. Refresh must resume the same run and sequence, not restart the two-minute progression. Cancel/New project must stop the old run's pending work. Preserve old roots-v1 projects through optional defaults or a tested migration.
 
 ## Ownership and handoff
 
@@ -132,11 +136,12 @@ Prefer an explicit, resumable pump driven by the existing polling path or a boun
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Codex Mike       | contracts, API/run orchestration, seven questions and graph proposals, state/review/translation integration, server upload limits, export sealing, title/metadata wiring, dependencies, integration and final acceptance |
 | Codex Natalia    | intake and naming guidance, logo, connection presentation, loader/question/map states, English-only rendering, progressive animations, user controls, client size checks and UI tests                                    |
-| Claude Code Mike | private English demo pack and source mapping, ordered-photo manifest, three reconstructed chat archives, supported parsers, staged source/retrieval modules, English book/export projection and data/export tests        |
+| Claude Code Mike | supported document/register/chat parsers, staged source/retrieval modules, English book/export projection and data/export tests against the product owner's frozen packet                                                |
+| Product/content  | private input files and translations, full roster coverage, photo annotations, reconstructed chat contents, manifest values, seven-answer sheet and presenter script alignment                                           |
 
 Work in separate clones on the existing owned branches. You are not alone in the codebase: preserve other owners' work and never force-push. Worker-owned modules are edited by their owners until handoff. Only Mike changes packages/contracts, package manifests and lockfiles. Natalia also owns assets/roots-mark.svg for this round; Mike owns src/app metadata/favicon integration. Coordinate through pushed commits and per-owner status, not assumed shared local files. Preserve the lead's strict portable-state adapter; an older alternative export adapter is not a replacement for it.
 
-The private pack is handed to Mike locally. Natalia receives a public-safe fictional twin with the same shapes, sizes, seven categories and staged cadence. No family files or private Drive URLs go into public GitHub. Folder creation or prompt publication does not dispatch an agent or mean the round is implemented.
+The product/content agent additionally owns the actual private pack, fact/photo mapping, reconstructed archive content, manifest values, seven-answer sheet and revised presenter cue script. It edits no application modules. Its canonical assignment is docs/prompts/07_PRODUCT_DEMO_INPUTS.md. The private pack is handed to Mike locally. Natalia receives a public-safe fictional twin with the same shapes, sizes, seven categories and staged cadence. No family files or private Drive URLs go into public GitHub. Folder creation or prompt publication does not dispatch an agent or mean the round is implemented.
 
 ## Demo-ready release gate
 
@@ -144,13 +149,13 @@ Do not declare round 2 ready until the integrated candidate passes all of the fo
 
 1. All 74 baseline tests still pass; add focused tests for new state, ZIP parsing, translations, limits and sequence behavior. Typecheck and production build pass.
 2. Fresh start from just personal details and the exact 01-upload files. No manual JSON import, console command, hidden project injection or stale localStorage is needed to start the presenter journey.
-3. No work before Start. Immediate loader, all seven sourced questions, edit/unknown/back, coherent first map, then at least six distinct saved graph/evidence batches across at least 60 seconds. No all-at-once population or fabricated live counters.
+3. No work before Start. Immediate loader, all seven sourced questions, edit/unknown/back, coherent first map, then six distinct saved graph/evidence batches across at least 45 seconds. No all-at-once population or fabricated live counters.
 4. English-only scan of every reachable UI state, tool/error text, filenames and extracted PDF/HTML/project/source text. Visually inspect the selected photos and every PDF page; scan actual rendered content, not just static source strings.
 5. The exact supplied ZIPs parse with message/attachment provenance. Malformed ZIP, traversal, expansion cap, missing attachment, duplicate source and a >30 MB but valid upload produce the specified results.
 6. Verify confirmed photo order, unknown identity, same-name candidates and no face-based identification. Seven different question categories must be visible in the actual run.
 7. A genuine new clue triggers a real Astra request, source-backed human decision, saved graph/story change and regenerated English passage. Prepared replay can support timing but cannot count as this live pass.
 8. Refresh mid-run preserves progress. Correction during analysis survives late results. Unknown remains unresolved. No repeated source, decision or graph batch duplicates data or inflates counters. Retry and API failure remain usable and truthful.
 9. Early and normal Download seal a consistent state. Verify current PDF/HTML, ZIP integrity, exact included asset hashes and portable English-project reopen. No scheduled updates arrive after completion. Failure remains retryable.
-10. Run the normal complete presenter script twice in a real browser, from new projects, Start to received download in at most 180 seconds each. Record timings and real/prepared work separately. Slower manual exploration is not a failed timed run, but cannot be reported as a sub-three-minute rehearsal.
+10. Run the normal complete presenter script twice in a real browser, from new projects and the exact frozen input pack. Submit/Start to Download click must be at most 120 seconds each, with a current valid bundle ready before the click. Record actual file receipt as well, targeting receipt by second 120. Log question completion, all six batches, 35-person coverage, book readiness and real/prepared work separately. Human pauses remain visible; only actual timed passes count.
 
 Deliver the running local URL, exact private input folder, final tested branch/commit, a one-page English presenter script with all seven recommended answers and source locations, optional locally saved backup recording, and a truthful release report. Retain an offline prepared fallback with provenance; record if it was used. Do not publish private demo assets or send external messages. Push safe code/status; default-branch publication follows any still-applicable explicit approval restriction. If a required gate fails, report the exact failure and continue fixing it rather than calling the product demo-ready.

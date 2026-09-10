@@ -50,4 +50,4 @@ Code and original repository documentation use the [MIT license](LICENSE). This 
 
 ## Next demo improvement round
 
-The [round-2 owner prompts](docs/round-2/README.md) specify the next seven-question, English-only, progressively growing three-minute demo. They are an implementation handoff; the new journey is not yet included in the verified behavior above.
+The [four round-2 prompts](docs/round-2/README.md) assign three engineers and one private-content owner. The [narrative/data contract](docs/round-2/NARRATIVE-DATA-CONTRACT.md) aligns the complete input packet, seven questions, gradual 35-person map and current book with a maximum 120-second Submit-to-Download interaction. This is an implementation handoff; the new journey is not yet included in the verified behavior above.
