@@ -272,7 +272,7 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
   }
 
   // Facts, each keeping its evidence marker.
-  const facts = acceptedClaimsFor(snapshot.claims, focusId);
+  const facts = options.compactChapter ? [] : acceptedClaimsFor(snapshot.claims, focusId);
   if (facts.length) {
     p3.text({ x: MARGIN, y: y3, text: 'What the evidence supports', font: 'sans', size: 11, color: INK });
     y3 += 17;
@@ -304,7 +304,7 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
 
   // Attributed recollections stay labelled as recollections.
   const { accepted: acceptedStories, notes } = partitionStories(snapshot.stories, focusId);
-  if (acceptedStories.length && y3 < p3.height - 150) {
+  if (!options.compactChapter && acceptedStories.length && y3 < p3.height - 150) {
     p3.text({ x: MARGIN, y: y3, text: 'Family recollections', font: 'sans', size: 11, color: INK });
     y3 += 17;
     for (const s of acceptedStories.slice(0, 3)) {
@@ -317,16 +317,22 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
     }
   }
   if (notes.length) warnings.push(`${notes.length} unreviewed note(s) for ${personLabel(focus)} were kept out of the biography.`);
+  if (options.compactChapter) {
+    cuts.push('compact_chapter_current_passage');
+    p3.paragraph({ x: MARGIN, y: Math.min(y3 + 14, p3.height - 100), maxWidth: p3.width - MARGIN * 2, font: 'sans', size: 8, color: MUTED,
+      text: 'The HTML edition contains the other recorded facts and recollections. Exact quotations remain in project.json; the complete numbered source register is in book.html.', leading: 11 });
+  }
   footer(p3, doc, 'A recollection is evidence of memory. It is not independent archival proof.', 3);
 
   // ---------------------------------------------------------------- page 4
   const p4 = doc.addPage();
   p4.text({ x: MARGIN, y: 70, text: 'Sources', font: 'sans', size: 17, color: INK });
   p4.setStroke(RULE).setLineWidth(0.5).line(MARGIN, 82, p4.width - MARGIN, 82);
-  let y4 = 104;
+  let y4 = p4.paragraph({ x: MARGIN, y: 104, maxWidth: p4.width - MARGIN * 2, font: 'sans', size: 8.5, color: MUTED,
+    text: 'Selected entries below. Every numbered citation resolves in the complete Sources section of book.html. Original text and exact locators are preserved in sources.json and project.json.', leading: 12 }) + 14;
   const used = [...register.values()].sort((a, b) => a.number - b.number);
   for (const { number, source } of used) {
-    if (y4 > p4.height - 210) { warnings.push('Source list truncated to fit the four-page layout.'); cuts.push('source_list_truncated'); break; }
+    if (y4 > p4.height - 250) { warnings.push('Source list truncated to fit the four-page layout; the complete numbered register is in book.html.'); cuts.push('source_list_truncated'); break; }
     const origin = source.origin ? ` · ${source.origin}` : '';
     const kind = source.kind ? source.kind.replace(/_/g, ' ') : 'source';
     const head = `[${number}] ${source.title || source.originalLocator || source.id}`;

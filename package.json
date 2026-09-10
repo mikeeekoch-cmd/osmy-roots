@@ -1,14 +1,37 @@
 {
   "name": "osmy-roots",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "Evidence-backed family trees and family stories — engineering preparation",
+  "description": "Evidence-backed local family research prototype",
   "type": "module",
   "license": "MIT",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <26"
+  },
   "packageManager": "pnpm@11.19.0",
   "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test integration-tests/*.test.ts tests/ui/model.test.ts tests/data-export/*.test.mjs tests/research/*.test.mjs",
     "doctor": "node scripts/doctor.mjs",
-    "doctor:api": "node scripts/doctor.mjs --api"
+    "doctor:api": "node scripts/doctor.mjs --api",
+    "test:live": "node --env-file=.env.local --import tsx integration-tests/live-smoke.ts"
+  },
+  "dependencies": {
+    "next": "16.3.4",
+    "openai": "7.13.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "prettier": "3.9.6",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2"
   }
 }

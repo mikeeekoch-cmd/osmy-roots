@@ -1,5 +1,7 @@
 # Osmy Roots engineering instructions
 
+Current next-round handoff: read docs/round-2/README.md, DEMO-READY-SCOPE.md and NARRATIVE-DATA-CONTRACT.md before executing prompts 04-07. Their 120-second interactive demo, seven questions and four-owner split supersede older conflicting scope below. The product/content owner prepares private files; Claude implements ingestion/retrieval/export. These documents are an assignment, not proof that round 2 is implemented. Preserve the validated round-1 P0 and partial P1 baseline.
+
 Read README.md, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/EXECUTION.md, docs/PROTOTYPE-CONTRACT.md, docs/SCOPE-PRIORITIES.md, your detailed docs/prompts assignment, docs/READINESS.md and docs/BUILD-LOG.md before work. The user has started the 90-minute engineering execution phase. The bootstrap is not yet a working app. Build now using docs/EXECUTION.md and record actual work/checks.
 
 GitHub is the engineering source of truth for code, scope, contracts, decisions and per-owner status. Fetch latest docs and status before editing. At sprint start, read the latest private scope and selected needed inputs from the configured private context; refresh only relevant changed files. Do not spend the sprint recursively recrawling the entire family archive. If private access fails, report unread sources and continue from safe repository requirements and available local inputs.
