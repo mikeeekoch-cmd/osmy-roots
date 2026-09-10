@@ -225,3 +225,31 @@ test("photo comparison accepts only bounded normalized crops", async () => {
   assert.equal(usableCrop([0.5, 0, 0.6, 1]), false);
   assert.equal(usableCrop([NaN, 0, 1, 1]), false);
 });
+
+test("saved arrivals follow versioned entity changes, not polling or event-only updates", async () => {
+  const { savedDelta } = await import("../../src/ui/SavedArrivals");
+  const before = snapshot(),
+    after = snapshot();
+  assert.equal(savedDelta(before, after), null);
+  after.version++;
+  after.researchEvents.push(event({ eventId: "work-only" }));
+  assert.equal(savedDelta(before, after), null);
+  after.people[0].displayNameEn = "Corrected name";
+  after.people[0].photoIds = ["new-original"];
+  after.assets.push({
+    id: "new-original",
+    sourceId: after.sources[0].id,
+    mediaType: "image/png",
+    originalName: "Fictional.png",
+    byteLength: 10,
+    storageKey: "fixture",
+  });
+  after.sources.push({ ...after.sources[0], id: "unrelated-source" });
+  const result = savedDelta(before, after)!;
+  assert.deepEqual(result.personIds, [after.people[0].id]);
+  assert.deepEqual(result.photoIds, ["new-original"]);
+  assert.deepEqual(result.sourceIds, [after.sources[0].id]);
+  assert.equal(savedDelta(after, before), null);
+  after.projectId = "another-project";
+  assert.equal(savedDelta(before, after), null);
+});

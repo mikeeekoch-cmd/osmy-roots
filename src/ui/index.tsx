@@ -9,6 +9,7 @@ import { EvidenceDrawer } from "./EvidenceDrawer";
 import { GraphEditor } from "./GraphEditor";
 import { SetupQuestions } from "./SetupQuestions";
 import { BookPreview } from "./BookPreview";
+import {SavedArrivals, savedDelta, type SavedDelta} from "./SavedArrivals";
 import type { SavedConnection } from "./SourceConnection";
 import "./styles.css";
 export type { RootsApi } from "./types";
@@ -32,6 +33,7 @@ export function RootsApp({
     [download, setDownload] = useState(false),
     [downloaded, setDownloaded] = useState(false),
     [setupReview, setSetupReview] = useState(false),
+    [arrivals, setArrivals] = useState<SavedDelta | null>(null),
     [downloadStage, setDownloadStage] = useState<"sealing" | "delivering">("sealing"),
     [selection, setSelection] = useState<{
       kind: "person" | "relationship" | "source";
@@ -48,6 +50,14 @@ export function RootsApp({
     [focusedProposalId, setFocusedProposalId] = useState<string | null>(null),
     [panel, setPanel] = useState<"map" | "progress" | "human">("map"),
     [restoring, setRestoring] = useState(true);
+  const downloadLock = useRef(false);
+  const previousSnapshot = useRef<ProjectSnapshot | null>(null);
+  useEffect(() => {
+    if (!snapshot) { previousSnapshot.current = null; return; }
+    const prior = previousSnapshot.current; previousSnapshot.current = snapshot;
+    if (prior) { const delta = savedDelta(prior, snapshot); if (delta) setArrivals(delta); }
+  }, [snapshot?.projectId, snapshot?.version]);
+  useEffect(() => { if (!arrivals) return; const timer = setTimeout(() => setArrivals(null), 3500); return () => clearTimeout(timer); }, [arrivals?.version]);
   const active = useRef(false),
     mounted = useRef(true);
   const saveSnapshot = (next: ProjectSnapshot) => {
@@ -133,7 +143,7 @@ export function RootsApp({
     changedId?: string,
     background = false,
   ): Promise<boolean> {
-    if (!background && active.current) return false;
+    if (downloadLock.current || closed || (!background && active.current)) return false;
     if (background) setContributionsRunning((n) => n + 1);
     else {
       active.current = true;
@@ -168,7 +178,8 @@ export function RootsApp({
     }
   }
   async function downloadBook() {
-    if (!snapshot || download) return;
+    if (!snapshot || downloadLock.current) return;
+    downloadLock.current = true;
     setDownload(true);
     setDownloadStage("sealing");
     setError(null);
@@ -188,10 +199,12 @@ export function RootsApp({
     } catch (e) {
       setError(errorMessage(e));
     } finally {
+      downloadLock.current = false;
       setDownload(false);
     }
   }
-  const running =
+  const closed = !!snapshot?.run && (downloaded || !!snapshot.run.sealedAt || ["sealing", "completed", "cancelled"].includes(snapshot.run.phase));
+  const running = !closed && (
     busy ||
     contributionsRunning > 0 ||
     (snapshot?.run ? snapshot.run.modelStatus === "running" || snapshot.run.book.status === "preparing" || snapshot.run.phase === "preparing" : !!snapshot?.researchEvents.some(
@@ -204,9 +217,8 @@ export function RootsApp({
             other.sequence > e.sequence &&
             other.state !== "running",
         ),
-    ));
-  const setupVisible = !!snapshot?.run && (!snapshot.run.initialSavedAt || setupReview) && !["completed", "cancelled"].includes(snapshot.run.phase);
-  const closed = !!snapshot?.run?.sealedAt;
+    )));
+  const setupVisible = !closed && !!snapshot?.run && (!snapshot.run.initialSavedAt || setupReview) && !["completed", "cancelled"].includes(snapshot.run.phase);
   return (
     <div className="roots-app">
       <header className="roots-header">
@@ -248,6 +260,8 @@ export function RootsApp({
               setError(null);
               setDownloaded(false);
               setSetupReview(false);
+              setArrivals(null);
+              previousSnapshot.current = null;
               try {
                 localStorage.removeItem(`roots-last-project-${mode}`);
               } catch {}
@@ -365,6 +379,7 @@ export function RootsApp({
                 onClose={setupReview ? () => setSetupReview(false) : undefined}
               /> : <>
               {snapshot.run && <div className="run-arrivals" aria-live="polite"><strong>{snapshot.people.length} of {snapshot.run.targetPeople} supplied people saved</strong>{snapshot.run.batches.map((batch) => <span key={batch.id} className={`batch-dot ${batch.status}`} title={batch.status === "saved" ? "Family records saved" : batch.status === "cancelled" ? "Pending records left open" : "More supplied records to add"} />)}{snapshot.run.initialSavedAt && !closed && <button className="text-button" onClick={() => setSetupReview(true)}>Your seven answers</button>}</div>}
+              {arrivals && <SavedArrivals delta={arrivals} snapshot={snapshot} api={api} onSelect={(id) => setSelection({kind:"person", id})} onSource={(id) => setSelection({kind:"source", id})} />}
               <FamilyCanvas
                 snapshot={snapshot}
                 api={api}

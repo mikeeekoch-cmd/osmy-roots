@@ -237,9 +237,15 @@ export function FamilyCanvas({
             <span>♧</span>
             <h3>A place for your family</h3>
             <p>
-              People appear here when saved records are ready.
-              <br />
-              You can add a person or contribute another clue.
+              {snapshot.run?.sealedAt ? (
+                "This edition has no released family records. Your saved sources and open questions remain available."
+              ) : (
+                <>
+                  People appear here when saved records are ready.
+                  <br />
+                  You can add a person or contribute another clue.
+                </>
+              )}
             </p>
           </div>
         ) : (

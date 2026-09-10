@@ -136,3 +136,10 @@ The external owner reported typecheck, 77 tests and production build passing, pl
 - Ported camera interaction guards, gallery focus stability and removed-photo reset, ordered source-backed photo captions, honest empty/preparation/failure rendering and stale passage labels. The isolated external comparison harness retains its view-only adapter signature.
 - Current v2 packet intentionally has no enhanced pairs; its original photographs use the ordinary gallery. Optional comparison remains for prior projects with validated metadata.
 - Post-resolution checks: TypeScript PASS; all 10 current UI tests PASS; conflict-marker scan clean. No private model dispatch or integrated rehearsal was performed by this owner.
+
+
+## Final external UI reconciliation (e754224)
+
+- Retained external 3e7ebea and 8fea86c changes: saved person/photo/story update receipts now link to their actual source evidence, completion remains locked after a delivered file even when the status refresh fails, and pending questions move keyboard focus to their heading.
+- Added explicit photo comparison retry while preserving the shared typed pair/crop/provenance path and the ordinary v2 gallery. Unknown while editing uses the current saved version; correction drafts retain their prior-version guard.
+- Preserved current API selectors, real PDF preview, source-analysis retry and no visible clock. The root owns the two final actual packet rehearsals; no private dispatch was made by this UI owner.

@@ -28,7 +28,7 @@ export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClos
   const answer = run.answers.find((a) => a.questionId === question?.id);
   const answered = new Set(run.answers.map((a) => a.questionId)).size;
   const allAnswered = answered === run.questions.length;
-  useEffect(() => { setEditing(false); setDraft(""); setAnswerError(""); }, [question?.id]);
+  useEffect(() => { setEditing(false); setDraft(""); setAnswerError(""); heading.current?.focus(); }, [question?.id]);
   if (!question) return <PreparationState title={run.phase === "failed" ? "Your sources need attention" : "Preparing your family sources"} summary={run.error || "Reading your supplied files and checking their source references."} active={run.phase === "preparing" || run.modelStatus === "running"} />;
   if (allAnswered && !reviewing && !onClose) return <section className="setup-questions setup-complete" aria-live="polite">
     <span className="setup-complete-mark" aria-hidden="true">✓</span>
@@ -45,7 +45,7 @@ export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClos
     const correction = editing ? draft.trim() : answer?.savedText || draft.trim();
     if (action === "correct" && !correction) { setAnswerError("Write your correction or choose I don't know."); return; }
     setAnswerError("");
-    const success = await onAnswer({ questionId: question.id, action, ...(action === "correct" ? { text: correction } : {}), baseVersion: editing ? editVersion : snapshot.version, requestId: crypto.randomUUID() });
+    const success = await onAnswer({ questionId: question.id, action, ...(action === "correct" ? { text: correction } : {}), baseVersion: editing && action === "correct" ? editVersion : snapshot.version, requestId: crypto.randomUUID() });
     if (success) {
       setEditing(false);
       if (index < run.questions.length - 1) setIndex(index + 1);
@@ -59,8 +59,8 @@ export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClos
     <h2 ref={heading} tabIndex={-1}>{question.prompt}</h2>
     {photo && <figure className="setup-photo"><OriginalPhoto src={api.assetUrl(snapshot.projectId, photo.id)} alt={photo.originalName} /><figcaption>Identify people from left to right. Unknown is always an option.</figcaption></figure>}
     {!ready ? <div className="setup-waiting" role="status">
-      {question.status !== "failed" && <span className="spinner" />}
-      <strong>{question.status === "failed" ? "This interpretation needs another look" : question.requiresAstra ? "Astra is checking this source" : "Reading the supporting source"}</strong>
+      {question.status !== "failed" && run.modelStatus === "running" && <span className="spinner" />}
+      <strong>{question.status === "failed" ? "This interpretation needs another look" : question.requiresAstra ? run.modelStatus === "running" ? "Astra is checking this source" : "Waiting for a source-backed suggestion" : "Reading the supporting source"}</strong>
       <p>{question.status === "failed" ? "The analysis did not complete. You can keep this question unresolved." : "A recommendation appears after its source check completes. You can keep it unknown."}</p>
     </div> : <div className="recommended-answer">
       <span className="eyebrow">{answer ? answer.action === "unknown" ? "Saved as unresolved" : "Your saved answer" : "Recommended"}</span>

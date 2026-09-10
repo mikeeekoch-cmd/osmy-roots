@@ -25,9 +25,10 @@ function Comparison({ pair, originalUrl, enhancedUrl, caption, aligned: supplied
   const enhancedRatio = enhanced ? enhanced.width * enhancedCrop[2] / (enhanced.height * enhancedCrop[3]) : ratio;
   const aligned = (pair ? pair.alignment.mode === "aligned" : suppliedAlignment) && usableCrop(pair?.alignment.originalCrop) && usableCrop(pair?.alignment.enhancedCrop) && (!original || !enhanced || Math.abs(ratio - enhancedRatio) / ratio < 0.03);
   const load = (setter: (d: Dimensions) => void) => (e: React.SyntheticEvent<HTMLImageElement>) => setter({width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight});
-  if (originalFailed) return <p className="photo-comparison-error" role="status">The original photograph is unavailable. This pair cannot be compared.</p>;
+  const retry = () => { setOriginalFailed(false); setEnhancedFailed(false); setOriginal(null); setEnhanced(null); setPosition(50); };
+  if (originalFailed) return <div className="photo-comparison-error" role="status"><p>The original photograph is unavailable. This pair cannot be compared.</p><button onClick={retry}>Retry comparison</button></div>;
   return <section className="photo-comparison" aria-label="Compare original and enhanced photograph">
-    {enhancedFailed ? <><img className="comparison-original-fallback" src={originalUrl} alt="Original photograph" onError={() => setOriginalFailed(true)} /><p role="status">Enhanced version unavailable. Showing the original.</p></> : aligned ? <>
+    {enhancedFailed ? <><img className="comparison-original-fallback" src={originalUrl} alt="Original photograph" onError={() => setOriginalFailed(true)} /><p role="status">Enhanced version unavailable. Showing the original.</p><button onClick={retry}>Retry comparison</button></> : aligned ? <>
       <div className="comparison-viewport" style={{aspectRatio: ratio, maxWidth: `min(100%, ${62 * ratio}vh)`}} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
         <div className="comparison-layer"><img src={enhancedUrl} alt="Enhanced photograph" style={cropStyle(enhancedCrop)} onLoad={load(setEnhanced)} onError={() => setEnhancedFailed(true)} /></div>
         <div className="comparison-layer comparison-original" style={{clipPath: `inset(0 ${100-position}% 0 0)`}}><img src={originalUrl} alt="Original photograph" style={cropStyle(originalCrop)} onLoad={load(setOriginal)} onError={() => setOriginalFailed(true)} /></div>
