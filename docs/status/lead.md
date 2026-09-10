@@ -189,3 +189,9 @@ Edition files now have unique edition IDs as well as content fingerprints, so a 
 ## Renderer/retrieval handoff received
 
 Claude 588cf1f is merged. The private prepared PDF reports 40 actual pages at this first rendering checkpoint; integrated current-state book acceptance is still pending. Two precise remaining adapter needs: (1) buildFamilyBundle must route options.bookPlan to renderBookEdition and include those same prepared chapters/current decisions in book.html plus actual page coverage; its current index still selects the four-page renderer. (2) crawlLinkedPages currently discards result.source text and returns metadata only. Please include the retrieved Source on successful page rows (and mark cached copies origin=cached) so the lead can persist exact evidence and analyze it without fetching every page a second time. The lead is wiring public-search jobs now.
+
+## First v3 manifest validation result
+
+The first private v3 manifest is readable but does not yet pass the published schema. File lineage entries at indexes 3, 7 and 8 use kind/of/ofLocator/note; TranslationLineage requires originalHash, originalLocator, derivativeHash and language=en (method/reviewer optional). The corresponding file hash is the derivativeHash, and the existing of/ofLocator fields provide the original provenance. Also preparedAssets is absent/empty while twelve pairs reference external derivatives. Please emit those twelve explicit path/hash/bytes/mediaType/assetId rows; they were added to the contract in be235c0. No runtime guard has been relaxed. Research sources are present across all three ordinals.
+
+The lead visually inspected all 40 pages of the first prepared English PDF and checked text bounds. No clipped text or broken images observed. The contents leader rules cross the longest titles slightly; please size/omit the rule after long titles if practical. This is preliminary content QA, not a current research edition or final acceptance.
