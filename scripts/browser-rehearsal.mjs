@@ -145,7 +145,7 @@ if (raw.schemaVersion !== "roots-demo-v3") {
         await shot(`check-${i + 1}`);
       }
       const button =
-        q.category === "conflict"
+        q.category === "conflict" || !q.recommendation.trim()
           ? page
               .locator(".setup-actions")
               .getByRole("button", { name: "I don't know", exact: true })

@@ -175,7 +175,7 @@ export async function startRound2(raw: unknown, files: InputFile[], options: Rou
     for(const span of manifest.questions.flatMap(q=>q.support)){const source=s.sources.find(source=>source.id===span.sourceId)!;const key=hash(JSON.stringify([source.evidenceRootIds||source.contentHash,span.quote]));if(!s.research.validationOutcomes.some(v=>v.key===key))s.research.validationOutcomes.push({key,sourceId:span.sourceId,method:'deterministic',outcome:'supported',at:at()});}
     s.photoPairs=manifest.photoPairs;
     s.photoAnnotations=manifest.photos;
-    for(const file of s.files){const jobId=`intake-parse-${hash(file.uploadId).slice(0,24)}`;s.research.jobs.push({id:jobId,stage:'intake',kind:'parse',tool:'packet-ingestion',objective:`Read ${file.originalName}`,sourceIds:file.sourceIds,urls:[],status:file.status==='parsed'?'completed':file.status==='failed'?'failed':'blocked',attempt:1,completedAt:at(),inputFingerprint:packetHash,resultIds:file.sourceIds,summary:`${file.originalName}: ${file.status}`,origin:'live'});s.research.intake.jobIds.push(jobId);}
+    for(const file of s.files){const jobId=`intake-parse-${hash(file.uploadId).slice(0,24)}`;s.research.jobs.push({id:jobId,stage:'intake',kind:'parse',tool:'packet-ingestion',objective:`Read ${file.originalName}`,sourceIds:file.sourceIds,urls:[],status:['parsed','stored_only'].includes(file.status)?'completed':file.status==='failed'?'failed':'blocked',attempt:1,completedAt:at(),inputFingerprint:packetHash,resultIds:file.sourceIds,summary:file.status==='stored_only'?`${file.originalName}: original stored; no text extraction claimed.`:`${file.originalName}: ${file.status}`,origin:'live'});s.research.intake.jobIds.push(jobId);}
 
     const originalHashes = new Set(manifest.files.map(file => file.sha256));
     for(const asset of s.assets){asset.role=manifest.photoPairs.some(p=>p.enhancedAssetId===asset.id)?'derivative':originalHashes.has(asset.contentHash || '')?'original':'extracted'; if(asset.mediaType.startsWith('image/')) asset.indexedAt=at(started); const pair=manifest.photoPairs.find(p=>p.enhancedAssetId===asset.id);if(pair){asset.parentAssetId=pair.originalAssetId;asset.parentHash=pair.originalHash;asset.evidenceRootId=pair.evidenceRootId;const parent=s.assets.find(a=>a.id===pair.originalAssetId)!;parent.evidenceRootId=pair.evidenceRootId;}}
@@ -253,7 +253,7 @@ export function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: s
       const saved=structuredClone(a);
       if(s.research)for(const portrait of s.research.portraits.filter(p=>p.assetId===a.assetId)){
         if(answer.action!=='confirm')portrait.reviewed=false;
-        else if(stage.manifest.schemaVersion==='roots-demo-v3')portrait.reviewed=stage.manifest.portraits.some(p=>p.assetId===portrait.assetId&&p.personId===portrait.personId&&p.reviewed);
+        else if(stage.manifest.schemaVersion==='roots-demo-v3')portrait.reviewed=(portrait.kind==='solo' && a.positions.length===1 && a.positions[0].personId===portrait.personId) || stage.manifest.portraits.some(p=>p.assetId===portrait.assetId&&p.personId===portrait.personId&&p.reviewed);
       }
 
       for(const pos of saved.positions) {

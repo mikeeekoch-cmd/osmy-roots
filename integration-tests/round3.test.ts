@@ -799,7 +799,7 @@ test("book passage cache survives photo edits but changes with reviewed evidence
     assert.ok(story);
     const key = passageFingerprint(current);
     const changed = structuredClone(current);
-    changed.photoAnnotations[0].caption = "A revised photo caption.";
+    changed.photoAnnotations![0].caption = "A revised photo caption.";
     changed.research!.jobs[0].summary = "A completed status update.";
     assert.equal(
       passageFingerprint(changed),

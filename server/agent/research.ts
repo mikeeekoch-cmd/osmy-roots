@@ -337,6 +337,10 @@ export async function executeResearch(id: string, deps: ResearchDeps = {}) {
         (c) => c.status === "queued" || c.status === "running",
       );
       if (!c) return false;
+      // The persisted lease is authoritative across route bundles and dev reloads.
+      // A process-local promise map alone cannot serialize polling workers.
+      if (r.jobs.some(j => j.cycleId === c.id && j.status === "running" &&
+        Date.parse(j.leaseUntil || "") > Date.now())) return false;
       const j = r.jobs.find(
         (j) =>
           j.cycleId === c.id &&
@@ -417,7 +421,7 @@ export async function executeResearch(id: string, deps: ResearchDeps = {}) {
               `Search supplied records: ${query.query}`,
               {
                 query: query.query,
-                sourceIds: query.sourceIds.length ? query.sourceIds : sourceIds,
+                sourceIds: [...new Set([...query.sourceIds, ...sourceIds])],
               },
             );
             r.jobs.push(next);

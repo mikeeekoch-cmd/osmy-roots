@@ -164,6 +164,9 @@ export async function analyzeResearchRecord(
       502,
       "MODEL_OUTPUT_INVALID",
     );
+  if (!out.support.length) {
+    out.support = [...out.people.flatMap(p => p.support), ...out.relationships.flatMap(r => r.support)];
+  }
   if (!out.support.length && !out.people.length && !out.relationships.length) {
     await writePrivateDiagnostic({
       operation: "research_analysis",
@@ -187,6 +190,8 @@ export async function analyzeResearchRecord(
     );
   if (out.people.length > 3 || out.relationships.length > 4)
     throw new AppError("Astra exceeded the bounded graph change.", 502);
+  if (out.people.some(p => !p.support.length) || out.relationships.some(r => !r.support.length))
+    throw new AppError("A proposed graph addition lacks its own supporting quotation.", 502);
   const spans = [
     ...out.support,
     ...out.people.flatMap((p) => p.support),
@@ -246,11 +251,11 @@ export async function analyzeResearchRecord(
         502,
       );
     for (const date of [p.birth, p.death])
-      if (date.value && !p.support.some((x) => x.quote.includes(date.value!)))
-        throw new AppError(
-          "A proposed date is not present in its evidence.",
-          502,
-        );
+      if (date.value && !p.support.some((x) => x.quote.includes(date.value!))) {
+        date.value = null;
+        date.precision = "unknown";
+        out.uncertainty += " An unsupported proposed date was withheld; the date remains unknown.";
+      }
   }
   const endpoint = (id: string) => {
     const resolved = keys.get(id) || id;

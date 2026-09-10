@@ -68,7 +68,7 @@ export async function analyzeSource(
     }
     const outputSchema = allowedSpans?.length ? Analysis.extend({spans:z.array(Span.extend({
       sourceId:z.literal(source.id), locator:z.literal(source.originalLocator),
-      quote:z.enum(allowedSpans.map(span=>span.quote) as [string,...string[]]),
+      quote: allowedSpans.some(span => /[\r\n]/.test(span.quote)) ? z.string() : z.enum(allowedSpans.map(span=>span.quote) as [string,...string[]]),
     })).min(1).max(4)}) : Analysis;
     const response = await client().responses.parse({
       model,
@@ -138,6 +138,8 @@ export async function analyzeSource(
         "MODEL_OUTPUT_INVALID",
       );
     validateSpans(out.spans, snapshot);
+    if (allowedSpans?.length && out.spans.some(span => !allowedSpans.some(allowed => allowed.sourceId === span.sourceId && allowed.locator === span.locator && allowed.quote.includes(span.quote))))
+      throw new AppError("Astra cited text outside the selected recollection excerpt.", 502, "MODEL_OUTPUT_INVALID");
     if (
       out.evidenceType === "archive_record" &&
       out.spans.some(
@@ -181,6 +183,7 @@ export async function analyzeSource(
       success: false,
       status: (error as { status?: number }).status,
       code: (error as { code?: string }).code || "MODEL_ERROR",
+      ...(process.env.NODE_ENV !== "production" && (error as {code?:string}).code === "invalid_json_schema" ? {schemaError: (error as Error).message} : {}),
     });
     if (error instanceof AppError) throw error;
     if ((error as { code?: string }).code === "credit_balance_exhausted")
@@ -243,7 +246,7 @@ export async function generatePassage(
       sourceLocators:z.array(Span.extend({
         sourceId:z.enum(values(quotedSpans.map(span=>span.sourceId))),
         locator:z.enum(values(quotedSpans.map(span=>span.locator))),
-        quote:z.enum(values(quotedSpans.map(span=>span.quote))),
+        quote: quotedSpans.some(span => /[\r\n]/.test(span.quote)) ? z.string() : z.enum(values(quotedSpans.map(span=>span.quote))),
       })).min(1),
     });
     const response = await client().responses.parse({
