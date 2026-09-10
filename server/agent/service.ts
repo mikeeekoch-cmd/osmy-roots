@@ -151,7 +151,13 @@ export async function createProject(
     };
     if (s.run) {
       s.previousRuns = [...(s.previousRuns || []), structuredClone(s.run)];
-      delete s.run;
+      if(s.research){
+        delete s.run.sealedAt;delete s.run.sealedVersion;s.run.phase='review';s.run.book={status:'empty'};
+        for(const c of s.research.cycles)if(['running','queued','paused'].includes(c.status))c.status='cancelled';
+        for(const j of s.research.jobs)if(['running','queued','paused'].includes(j.status)){j.status='cancelled';delete j.leaseToken;delete j.leaseUntil;}
+        if(s.research.bookEdition){s.research.previousEditions.push(s.research.bookEdition);s.research.bookEdition={...s.research.bookEdition,status:'stale'};}
+        s.bookStatus='stale';
+      }else delete s.run;
     }
     s.issues.push(
       "Reopened editable project. Supply original assets with matching filenames if they are not in this local store.",

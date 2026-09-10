@@ -3,7 +3,7 @@ import {readFile, writeFile, mkdir, rename, lstat} from 'node:fs/promises';
 import {join, basename, dirname} from 'node:path';
 import {
   DemoManifestSchema, ProjectInputSchema, ProjectSnapshotSchema, SetupAnswerSchema, PhotoPairSchema, SourceSchema,
-  type DemoManifest, type InputFile, type ProjectSnapshot, type Proposal, type DataModules, type Source,
+  DemoManifestV3Schema, Round3StateSchema, type DemoManifestV3, type DemoManifest, type InputFile, type ProjectSnapshot, type Proposal, type DataModules, type Source,
 } from '../../packages/contracts';
 import {parseFamilyPacket, parseFamilyNotesPacket} from '../ingestion/index.mjs';
 import {AppError, validateSnapshot, validateSpans} from '../state/validation';
@@ -20,9 +20,11 @@ const pendingModels = new Map<string, Promise<ProjectSnapshot>>();
 const pendingBooks = new Map<string, Promise<ProjectSnapshot>>();
 const pendingDownloads = new Map<string, Promise<Awaited<ReturnType<DataModules['buildFamilyBundle']>>>>();
 const pendingSourceJobs = new Map<string,Promise<ProjectSnapshot>>();
-interface Stage { graph: ProjectSnapshot; manifest: DemoManifest; packetRoot?: string; }
+type RuntimeManifest = DemoManifest | (DemoManifestV3 & {batches: DemoManifest["batches"]; sourceJobs: DemoManifest["sourceJobs"]; initialReleaseOffsetSeconds: number});
+export interface Stage { graph: ProjectSnapshot; manifest: RuntimeManifest; packetRoot?: string; }
+function parseManifest(raw: any): RuntimeManifest { return raw?.schemaVersion === "roots-demo-v3" ? {...DemoManifestV3Schema.parse(raw), batches:[], sourceJobs:[], initialReleaseOffsetSeconds:0} : DemoManifestSchema.parse(raw); }
 interface RoundOptions {
-  manifest?: DemoManifest;
+  manifest?: RuntimeManifest;
   parse?: typeof parseFamilyPacket;
   analyze?: typeof analyzeSource;
   passage?: typeof generatePassage;
@@ -31,9 +33,9 @@ interface RoundOptions {
 }
 const stagePath = (id: string) => join(dataRoot(), id, 'staging.json');
 const cachePath = (id: string) => join(dataRoot(), id, 'prepared.zip');
-async function readStage(id: string): Promise<Stage> {
+export async function readStage(id: string): Promise<Stage> {
   const raw = JSON.parse(await readFile(stagePath(id), 'utf8'));
-  return {graph: validateSnapshot(raw.graph), manifest: DemoManifestSchema.parse(raw.manifest), packetRoot:raw.packetRoot};
+  return {graph: validateSnapshot(raw.graph), manifest: parseManifest(raw.manifest), packetRoot:raw.packetRoot};
 }
 function assertEnglish(value: unknown) {
   if (/[\u0400-\u04ff]/u.test(JSON.stringify(value)))
@@ -65,14 +67,14 @@ export function recollectionAttribution(source: Source | undefined, quotes: stri
   }
   return speakers.size === 1 ? [...speakers][0] : 'Family contributor';
 }
-async function manifestFor(files: InputFile[], supplied?: DemoManifest) {
+async function manifestFor(files: InputFile[], supplied?: RuntimeManifest) {
   let manifest = supplied;
   if (!manifest) {
-    const path = process.env.ROOTS_DEMO_MANIFEST || join(dataRoot(), 'demo-artefacts', 'DEMO_MANIFEST.json');
-    try { manifest = DemoManifestSchema.parse(JSON.parse(await readFile(path, 'utf8'))); }
+    const path = process.env.ROOTS_ROUND3_MANIFEST || process.env.ROOTS_DEMO_MANIFEST || join(dataRoot(), 'demo-artefacts', 'DEMO_MANIFEST.json');
+    try { manifest = parseManifest(JSON.parse(await readFile(path, 'utf8'))); }
     catch { throw new AppError('The source packet manifest is not configured or validated yet. Your selected files have been retained; finish packet preparation and retry.', 409, 'PACKET_NOT_READY'); }
   }
-  manifest = DemoManifestSchema.parse(manifest);
+  manifest = parseManifest(manifest);
   const expected = manifest.files.filter(f => f.path.startsWith('01-upload/') || !f.path.includes('/'));
   if (expected.length !== files.length) throw new AppError('Select the complete frozen upload folder, without presenter or audit files.', 400, 'PACKET_MISMATCH');
   for (const file of expected) {
@@ -99,7 +101,7 @@ export async function startRound2(raw: unknown, files: InputFile[], options: Rou
   const started = options.nowMs ?? Date.now();
   const input = ProjectInputSchema.parse(raw);
   const manifest = await manifestFor(files, options.manifest);
-  const manifestPath=process.env.ROOTS_DEMO_MANIFEST || join(dataRoot(),'demo-artefacts','DEMO_MANIFEST.json');
+  const manifestPath=process.env.ROOTS_ROUND3_MANIFEST || process.env.ROOTS_DEMO_MANIFEST || join(dataRoot(),'demo-artefacts','DEMO_MANIFEST.json');
   const packetHash=hash(JSON.stringify(manifest));
   const packetRoot=options.manifest?undefined:dirname(manifestPath);
   const parse = options.parse || (manifest.inputFormat === 'family_notes' ? parseFamilyNotesPacket : parseFamilyPacket);
@@ -147,12 +149,18 @@ export async function startRound2(raw: unknown, files: InputFile[], options: Rou
     run:{runId:id,startedAt:at(started),phase:'questions',nextSequence:1,packetVersion:manifest.packetVersion,packetHash,language:'en',sourceJobs:manifest.sourceJobs.map(j=>({...j,status:'pending'})),
       questions:manifest.questions.map(q => ({...q,recommendation:q.requiresAstra?'':q.recommendation,status:q.requiresAstra?'waiting':'ready',origin:'prepared'})),answers:[],
       batches:manifest.batches.map(b => ({...b,status:'pending'})),initialBranchIds:manifest.initialBranchIds,targetPeople:full.people.length,modelStatus:'pending',book:{status:'empty'}}});
+  if(manifest.schemaVersion==='roots-demo-v3') {
+    s.research=Round3StateSchema.parse({schemaVersion:'roots-research-v3',packetVersion:manifest.packetVersion,packetHash,intake:{id:`intake-${id}`,status:'questions',startedAt:at(started),inputFingerprint:packetHash,questionIds:manifest.questions.map(q=>q.id),jobIds:[]},oldPhotoAssetIds:manifest.oldPhotoAssetIds,portraits:manifest.portraits,photoPairQA:manifest.photoPairs,bookPlan:manifest.bookPlan});
+    s.photoPairs=manifest.photoPairs;
+    s.photoAnnotations=manifest.photos;
+    for(const asset of s.assets){asset.role=manifest.photoPairs.some(p=>p.enhancedAssetId===asset.id)?'derivative':'original'; if(asset.mediaType.startsWith('image/')) asset.indexedAt=at(started); const pair=manifest.photoPairs.find(p=>p.enhancedAssetId===asset.id);if(pair){asset.parentAssetId=pair.originalAssetId;asset.parentHash=pair.originalHash;asset.evidenceRootId=pair.evidenceRootId;}}
+  }
   for (const file of s.files) event(s,{eventId:`parse-${file.uploadId}`,runId:id,operation:'parse_file',origin:'live',state:file.status==='parsed'?'completed':'blocked',sourceId:file.sourceIds[0],assetId:file.assetIds[0],finding:`${file.originalName}: ${file.status}`});
   event(s,{runId:id,operation:'normalize_entity',origin:'prepared',state:'completed',finding:`Read ${full.people.length} supplied family records into a review queue. They are not new archive discoveries.`});
   return createSavedProject(s);
 }
 
-async function analyzeHeldOut(id: string, options: RoundOptions) {
+export async function analyzeHeldOut(id: string, options: RoundOptions) {
   const stage = await readStage(id);
   let started = false;
   const current = await updateProject(id, s => {
@@ -205,7 +213,7 @@ async function analyzeHeldOut(id: string, options: RoundOptions) {
   }
 }
 function appendUnique<T extends {id:string}>(to:T[], additions:T[]) { for(const row of additions) if(!to.some(x=>x.id===row.id)) to.push(structuredClone(row)); }
-function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: string) {
+export function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: string) {
   const run=s.run!; const q=run.questions.find(q=>q.id===questionId)!; const answer=run.answers.find(a=>a.questionId===questionId)!;
   if (!answer || (q.effect.kind!=='annotation' && !q.personIds.every(id=>s.people.some(p=>p.id===id)))) return;
   if (run.appliedAnswerIds.includes(answer.requestId)) return;
@@ -219,7 +227,7 @@ function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: string) 
       if(q.effect.photoAssetId && a.assetId!==q.effect.photoAssetId) continue;
       const saved=structuredClone(a);
       for(const pos of saved.positions) {
-        if (answer.action==='unknown' || answer.action==='correct') {pos.status='unresolved'; if(answer.action==='correct') pos.label=answer.savedText;}
+        if ((answer.action==='unknown'||answer.action==='skip') || answer.action==='correct') {pos.status='unresolved'; if(answer.action==='correct') pos.label=answer.savedText;}
         else if(pos.personId) pos.status='confirmed';
       }
       s.photoAnnotations=(s.photoAnnotations||[]).filter(x=>x.assetId!==saved.assetId);
@@ -235,7 +243,7 @@ function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: string) 
     if(q.effect.relationshipId) {
       const rel=s.relationships.find(r=>r.id===q.effect.relationshipId);
       if(rel) {
-        if(answer.action==='unknown') rel.status='unresolved';
+        if((answer.action==='unknown'||answer.action==='skip')) rel.status='unresolved';
         if(answer.action==='confirm')rel.status=stage.graph.relationships.find(r=>r.id===rel.id)?.status||'unresolved';
         if(answer.action==='correct') {
           rel.status='disputed';
@@ -250,7 +258,7 @@ function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: string) 
   }
   const personId=q.requiresAstra?run.analysis?.personId:q.effect.personId||q.personIds[0];
   if(!personId || !s.people.some(p=>p.id===personId)) return;
-  if(answer.action==='unknown') return;
+  if((answer.action==='unknown'||answer.action==='skip')) return;
   if(q.requiresAstra && !run.analysis) throw new AppError('A live interpretation is required before saving this story.');
   const spans=structuredClone(q.support), sourceIds=[...new Set(spans.map(x=>x.sourceId))];
   if(answer.action==='correct') {
@@ -269,7 +277,7 @@ function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: string) 
     if(run.analysis && !s.proposals.some(p=>p.id===run.analysis!.id)) s.proposals.push({...run.analysis,status:answer.action==='correct'?'corrected':'accepted'});
   }
 }
-function releaseGraph(s: ProjectSnapshot, stage: Stage, ids: string[]) {
+export function releaseGraph(s: ProjectSnapshot, stage: Stage, ids: string[]) {
   const full=stage.graph;
   const all=new Set([...s.people.map(p=>p.id),...ids]);
   const rels=full.relationships.filter(r=>all.has(r.fromPersonId)&&all.has(r.toPersonId));
@@ -296,7 +304,7 @@ function releaseGraph(s: ProjectSnapshot, stage: Stage, ids: string[]) {
     if(!(s.photoPairs||[]).some(p=>p.id===pair.id))(s.photoPairs||=[]).push(structuredClone(pair));
     const photoQuestion=s.run!.questions.find(q=>q.effect.photoAssetId===pair.originalAssetId);
     const photoAnswer=s.run!.answers.find(a=>a.questionId===photoQuestion?.id);
-    if(!photoAnswer||photoAnswer.action==='confirm')for(const id of pair.personIds){const p=s.people.find(p=>p.id===id);if(p&&!p.photoIds.includes(pair.originalAssetId))p.photoIds.push(pair.originalAssetId);}
+    if(photoAnswer?.action==='confirm')for(const id of pair.personIds){const p=s.people.find(p=>p.id===id);if(p&&!p.photoIds.includes(pair.originalAssetId))p.photoIds.push(pair.originalAssetId);}
   }
   for(const answer of s.run!.answers) applySavedAnswer(s,stage,answer.questionId);
 }
@@ -316,14 +324,14 @@ export async function answerSetupQuestion(id:string, raw:unknown) {
     if(input.baseVersion!==s.version && !(input.baseVersion>=1&&input.baseVersion<s.version&&unchangedPreparedFirstAnswer))
       throw new AppError('This answer changed. Refresh and review its latest version.',409,'STALE_VERSION');
     if(run.phase==='cancelled')throw new AppError('This run was cancelled.',409);
-    if(input.action!=='unknown'&&q.status==='waiting')throw new AppError('Wait for the source interpretation or choose I do not know.',409);
-    if(input.action!=='unknown'&&q.requiresAstra&&run.modelStatus!=='completed')throw new AppError('A live source interpretation is not available. Retry analysis or keep this answer unresolved.',409);
+    if(input.action!=='unknown'&&input.action!=='skip'&&q.status==='waiting')throw new AppError('Wait for the source interpretation or choose I do not know.',409);
+    if(input.action!=='unknown'&&input.action!=='skip'&&q.requiresAstra&&run.modelStatus!=='completed')throw new AppError('A live source interpretation is not available. Retry analysis or keep this answer unresolved.',409);
     if(input.action==='confirm'&&q.requiresAstra&&(!run.analysis?.personId||run.analysis.candidatePersonIds.length!==1))throw new AppError('The recollection has unresolved identity candidates. Keep it unresolved.',409);
-    const answer={...input,savedAt:at(),originalRecommendation:q.recommendation,savedText:input.action==='unknown'?'Unresolved':input.action==='correct'?input.text!:q.recommendation,sourceIds:[...new Set(q.support.map(s=>s.sourceId))]};
+    const answer={...input,savedAt:at(),originalRecommendation:q.recommendation,savedText:(input.action==='unknown'||input.action==='skip')?'Unresolved':input.action==='correct'?input.text!:q.recommendation,sourceIds:[...new Set(q.support.map(s=>s.sourceId))]};
     run.answers=run.answers.filter(a=>a.questionId!==q.id);run.answers.push(answer);q.status='answered';
     s.history.push({eventId:input.requestId,at:answer.savedAt,actor:'local-user',action:`setup:${input.action}`,before:previous||null,after:answer,sourceIds:answer.sourceIds,claimIds:[],projectVersion:s.version+1});
     if(run.initialSavedAt)applySavedAnswer(s,stage,q.id);
-    event(s,{runId:run.runId,operation:'apply_review',origin:'live',state:'completed',finding:input.action==='unknown'?'Saved an explicitly unresolved answer.':`Saved your ${q.category} answer.`});
+    event(s,{runId:run.runId,operation:'apply_review',origin:'live',state:'completed',finding:(input.action==='unknown'||input.action==='skip')?'Saved an explicitly unresolved answer.':`Saved your ${q.category} answer.`});
   },{invalidateBook:true,isReplay:s=>s.history.some(h=>h.eventId===input.requestId)});
 }
 async function releaseEligible(id:string, options:RoundOptions={}) {

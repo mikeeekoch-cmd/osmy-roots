@@ -1,6 +1,6 @@
 "use client";
 import {
-  ProjectSnapshotSchema,
+  ProjectSnapshotSchema, AutofillDraftSchema, ConnectionStatusSchema,
   type RootsApi,
   type ProjectSnapshot,
 } from "../../packages/contracts";
@@ -27,7 +27,17 @@ function json(input: unknown) {
     body: JSON.stringify(input),
   };
 }
+async function value(response:Response){if(!response.ok){const b=await response.json();throw new Error(b.error||"Request failed.");}return response.json();}
 export const rootsApi: RootsApi = {
+  autofillFamilyDetails:async(input,files)=>AutofillDraftSchema.parse(await value(await fetch('/api/intake/autofill',{method:'POST',body:upload(input,files)}))),
+  getConnections:async()=>ConnectionStatusSchema.array().parse(await value(await fetch('/api/connections',{cache:'no-store'}))),
+  connectProvider:async provider=>value(await fetch(`/api/connections/${provider}/connect`,json({}))),
+  verifyConnection:async(provider,selectedScope=[])=>ConnectionStatusSchema.parse(await value(await fetch(`/api/connections/${provider}/verify`,json({selectedScope})))),
+  disconnectProvider:async provider=>ConnectionStatusSchema.parse(await value(await fetch(`/api/connections/${provider}/disconnect`,json({})))),
+  importConnectedSources:async(id,provider,selectedIds,baseVersion)=>result(await fetch(`${path(id)}/imports`,json({provider,selectedIds,baseVersion}))),
+  researchCycle:async(id,input)=>result(await fetch(`${path(id)}/cycles`,json(input))),
+  answerBankQuestion:async(id,input)=>result(await fetch(`${path(id)}/questions`,json(input))),
+  reviewGraphChange:async(id,input)=>result(await fetch(`${path(id)}/graph-proposals`,json(input))),
   answerSetupQuestion: async (id, input) => result(await fetch(`${path(id)}/answers`, json(input))),
   prepareFamilyBook: async (id) => result(await fetch(`${path(id)}/book`, {method: "POST"})),
   cancelRun: async (id) => result(await fetch(`${path(id)}/cancel`, {method: "POST"})),
