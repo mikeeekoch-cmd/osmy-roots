@@ -15,6 +15,7 @@ import { PdfDocument, A4 } from './pdf/document.mjs';
 import { selectFont } from './pdf/ttf.mjs';
 import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText } from './select.mjs';
 import { UNKNOWN_LABEL } from '../contracts/types.mjs';
+import { hasNonLatinScript } from './english.mjs';
 
 const INK = [0.11, 0.11, 0.13];
 const MUTED = [0.42, 0.42, 0.47];
@@ -81,10 +82,14 @@ function footer(page, doc, text, pageNumber) {
  */
 export function renderBookPdf({ snapshot, passages = [], getImage, branch, options = {} }) {
   const warnings = [];
+  const guardFailures = [];
   const cuts = [];
   const people = new Map((snapshot.people || []).map((p) => [p.id, p]));
   const sources = snapshot.sources || [];
   const register = buildSourceRegister(sources);
+  for (const record of [...(snapshot.claims || []), ...(snapshot.stories || []), ...passages]) {
+    for (const id of record.sourceIds || []) if (!register.has(id)) guardFailures.push(`Citation target ${id} is absent from the source register.`);
+  }
 
   const focusId = options.focusPersonId || branch?.focusPersonId || (snapshot.people || [])[0]?.id;
   const focus = people.get(focusId);
@@ -114,6 +119,7 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
   const { current: currentPassages, stale, invalid } = partitionPassages(passages, snapshot.version);
   for (const s of stale) warnings.push(`STALE PASSAGE EXCLUDED: ${s.reason}`);
   for (const i of invalid) warnings.push(`INVALID PASSAGE EXCLUDED: ${i.reason}`);
+  if (options.englishOnly !== false) for (const passage of currentPassages) if (hasNonLatinScript(passage.text)) guardFailures.push(`Passage ${passage.id} contains non-English text.`);
 
   const imageCache = new Map();
   const putImage = (assetId) => {
@@ -385,5 +391,5 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
 
   const bytes = doc.toBuffer();
   warnings.push(...doc.warnings);
-  return { bytes, pages: doc.pages.length, warnings, staleFlagged: stale, invalidPassages: invalid, cuts, sourceRegister: register };
+  return { bytes, pages: doc.pages.length, warnings, guardFailures, staleFlagged: stale, invalidPassages: invalid, cuts, sourceRegister: register };
 }

@@ -3,7 +3,7 @@
  * Photos are referenced by relative path inside the bundle, never by host path.
  */
 
-import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText } from './select.mjs';
+import { partitionPassages, partitionStories, acceptedClaimsFor, openQuestionsFrom, claimText, displayText } from './select.mjs';
 import { UNKNOWN_LABEL } from '../contracts/types.mjs';
 
 const esc = (s) => String(s ?? '')
@@ -118,7 +118,7 @@ ${focus ? `<h2>${esc(focus.displayNameEn)}</h2>
 ${(focus.photoIds || []).length > 1 ? `<div class="photos">${(focus.photoIds || []).slice(0, 4).map(photo).join('')}</div>` : ''}
 ${facts.length ? `<table>${facts.map((c) => `<tr><td>${esc(String(c.predicate || '').replace(/^relationship_/, '').replace(/_/g, ' '))}</td><td>${esc(claimText(c, people).replace(/^[a-z ]+: /, ''))} ${cite(c.sourceIds)}</td></tr>`).join('')}</table>` : '<p class="subtitle">No accepted facts are recorded for this person yet.</p>'}
 ${current.length ? `${current.filter((p) => !p.personId || p.personId === focusId).map((p) => `<div class="passage">${esc(p.text)}${(p.sourceLocators || []).length ? `<div class="locator">Source: ${esc((p.sourceLocators || []).join('; '))}</div>` : ''}</div>`).join('')}` : ''}
-${stories.length ? `<h2>Family recollections</h2><ul>${stories.map((s) => `<li>${s.attributedTo ? `<em>Remembered by ${esc(s.attributedTo)}.</em> ` : '<em>Family recollection.</em> '}${esc(s.text)} ${cite(s.sourceIds)}</li>`).join('')}</ul>` : ''}
+${stories.length ? `<h2>Family recollections</h2><ul>${stories.map((s) => `<li>${s.attributedTo ? `<em>Remembered by ${esc(s.attributedTo)}.</em> ` : '<em>Family recollection.</em> '}${esc(displayText(s.text))} ${cite(s.sourceIds)}</li>`).join('')}</ul>` : ''}
 ` : ''}
 
 <h2>Family photographs</h2>
@@ -129,7 +129,7 @@ ${(snapshot.stories || []).some((s) => s.subjectId !== focusId && s.status === '
 <ol>${[...register.values()].sort((a, b) => a.number - b.number).map(({ source }) => `<li><strong>${esc(source.title || source.id)}</strong><div class="locator">${esc(source.kind || 'source')}${source.origin ? ` · ${esc(source.origin)}` : ''} · ${esc(source.originalLocator || '')}${source.unresolved ? ' · original document not supplied' : ''}</div></li>`).join('')}</ol>
 
 <h2>Still to discover</h2>
-${open.length ? `<ul>${open.slice(0, 40).map((q) => `<li>${esc(q.text)}</li>`).join('')}</ul>` : '<p class="subtitle">No unresolved items were recorded at export time.</p>'}
+${open.length ? `<ul>${open.slice(0, 40).map((q) => `<li>${esc(displayText(q.text))}</li>`).join('')}</ul>` : '<p class="subtitle">No unresolved items were recorded at export time.</p>'}
 
 ${stale.length ? `<div class="note"><strong>${stale.length} passage(s) were excluded as stale.</strong> They were written against an older project version and must be regenerated before they can be printed as current.</div>` : ''}
 ${notes.length ? `<div class="note">${notes.length} unreviewed note(s) are stored in the project but are deliberately kept out of the biography.</div>` : ''}

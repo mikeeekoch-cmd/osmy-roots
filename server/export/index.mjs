@@ -15,6 +15,8 @@ import { renderBookPdf } from './book-pdf.mjs';
 import { renderBookHtml } from './book-html.mjs';
 import { selectBranch, deepestLineFocus } from './branch.mjs';
 import { partitionPassages, openQuestionsFrom } from './select.mjs';
+import { selectEnglishSources, checkEnglishText, isEnglishFilename } from './english.mjs';
+import { preparationKey } from './preparation.mjs';
 import { SCHEMA_VERSION } from '../contracts/types.mjs';
 import { sha256 } from '../ingestion/hash.mjs';
 
@@ -23,6 +25,9 @@ export { renderBookHtml } from './book-html.mjs';
 export { selectBranch, deepestLineFocus } from './branch.mjs';
 export { createZip } from './zip.mjs';
 export { partitionPassages } from './select.mjs';
+export { preparationKey, isPreparedStillCurrent, PreparedBundleCache } from './preparation.mjs';
+export { selectEnglishSources, hasNonLatinScript } from './english.mjs';
+export { buildFamilyBundleFromContract } from './contract-adapter.mjs';
 
 const extFor = (mediaType, originalName) => {
   const m = /\.([A-Za-z0-9]+)$/.exec(String(originalName || ''));
@@ -110,6 +115,25 @@ export async function buildFamilyBundle({ snapshot, passages = [], resolveAsset,
     });
   }
 
+  // English-only demo output. `raw` keeps the general-purpose behaviour intact.
+  const englishOnly = options.englishOnly !== false && options.mode !== 'raw';
+  const guardFailures = [];
+  let exportSources = snapshot.sources || [];
+  let withheldSources = [];
+  let needsDerivative = [];
+  if (englishOnly) {
+    const picked = selectEnglishSources(exportSources);
+    exportSources = picked.sources;
+    withheldSources = picked.excluded;
+    needsDerivative = picked.needsDerivative;
+    for (const n of needsDerivative) {
+      warnings.push(`Source ${n.id} (${n.locator}) is not English; its text is withheld from the bundle and only its locator and lineage travel. Supply an English derivative.`);
+    }
+    for (const e of withheldSources) warnings.push(`Source ${e.id} excluded from the English bundle: ${e.reason}.`);
+    guardFailures.push(...checkEnglishText(snapshot.stories?.filter((x) => x.status === 'accepted') || [], 'Story'));
+  }
+  const exportSnapshot = englishOnly ? { ...snapshot, sources: exportSources } : snapshot;
+
   const { current: currentPassages, stale, invalid } = partitionPassages(passages, version);
 
   // --- book.pdf, with a recorded fallback if the full layout cannot be produced.
@@ -117,21 +141,22 @@ export async function buildFamilyBundle({ snapshot, passages = [], resolveAsset,
   const cuts = [];
   try {
     pdf = renderBookPdf({
-      snapshot, passages, branch, options: { ...options, focusPersonId },
+      snapshot: exportSnapshot, passages, branch, options: { ...options, focusPersonId, englishOnly },
       getImage: (assetId) => resolvedAssets.get(assetId) || null,
     });
   } catch (e) {
     warnings.push(`Four-page book layout failed (${e.message}). Falling back to a short PDF with the same essential content.`);
     cuts.push('four_page_layout');
     pdf = renderBookPdf({
-      snapshot: { ...snapshot, assets: [] }, passages, branch,
-      options: { ...options, focusPersonId }, getImage: () => null,
+      snapshot: { ...exportSnapshot, assets: [] }, passages, branch,
+      options: { ...options, focusPersonId, englishOnly }, getImage: () => null,
     });
   }
   warnings.push(...pdf.warnings);
   cuts.push(...(pdf.cuts || []));
+  guardFailures.push(...(pdf.guardFailures || []));
 
-  const bookHtml = renderBookHtml({ snapshot, passages, branch, assetPaths, options: { ...options, focusPersonId } });
+  const bookHtml = renderBookHtml({ snapshot: exportSnapshot, passages, branch, assetPaths, options: { ...options, focusPersonId } });
 
   // --- project.json keeps ALL people and edges, not only the printed branch.
   const projectJson = {
@@ -166,8 +191,10 @@ export async function buildFamilyBundle({ snapshot, passages = [], resolveAsset,
   const sourcesJson = {
     schemaVersion: SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
-    count: (snapshot.sources || []).length,
-    sources: (snapshot.sources || []).map((s) => ({
+    language: englishOnly ? 'en' : 'raw',
+    count: exportSources.length,
+    withheldPrivateSources: withheldSources.length,
+    sources: exportSources.map((s) => ({
       id: s.id, kind: s.kind, title: s.title || null, originalLocator: s.originalLocator,
       contentHash: s.contentHash, origin: s.origin, author: s.author ?? null,
       messageTimestamp: s.messageTimestamp ?? null, mediaType: s.mediaType || null,
@@ -175,6 +202,10 @@ export async function buildFamilyBundle({ snapshot, passages = [], resolveAsset,
       retrievedAt: s.retrievedAt || null, unresolved: !!s.unresolved,
       publicUseApproved: s.publicUseApproved === true,
       rightsNote: s.rightsNote || null,
+      evidenceRootId: s.evidenceRootId || s.id,
+      reconstruction: s.reconstruction || null,
+      derivedFrom: s.derivedFrom || null,
+      textWithheld: s.textWithheld === true,
       originalText: s.originalText || '',
     })),
     note: 'Original text is retained so every citation can be checked against its source.',
@@ -188,6 +219,7 @@ export async function buildFamilyBundle({ snapshot, passages = [], resolveAsset,
     openQuestions: openQuestionsFrom(snapshot),
     importIssues: snapshot.issues || [],
     exportWarnings: warnings,
+    guardFailures,
     missingAssets,
     omittedAssets,
     stalePassages: stale.map((s) => ({ id: s.passage?.id, reason: s.reason })),
@@ -261,6 +293,14 @@ ${stale.length ? `\n**${stale.length} passage(s) were excluded as stale** and ar
   ];
   for (const [, resolved] of resolvedAssets) entries.push({ path: resolved.path, bytes: resolved.bytes, store: true });
 
+  // English filenames only in the demo bundle.
+  if (englishOnly) {
+    for (const e of entries) {
+      if (!isEnglishFilename(e.path)) guardFailures.push(`Bundle path "${e.path}" is not an English filename.`);
+    }
+  }
+
+  const { key: prepKey, parts: prepParts } = preparationKey({ snapshot, passages, options: { ...options, language: englishOnly ? 'en' : 'raw' } });
   const bytes = createZip(entries);
   const stamp = new Date().toISOString().slice(0, 10);
   const safeName = String(options.projectName || 'osmy-roots-family-project').replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase();
@@ -291,6 +331,14 @@ ${stale.length ? `\n**${stale.length} passage(s) were excluded as stale** and ar
       totalPeople: (snapshot.people || []).length,
       warnings,
       cuts,
+      guardFailures,
+      guardsPassed: guardFailures.length === 0,
+      language: englishOnly ? 'en' : 'raw',
+      preparationKey: prepKey,
+      preparationParts: { version: prepParts.version, bookStatus: prepParts.bookStatus, language: prepParts.language, packetVersion: prepParts.packetVersion },
+      sourcesWithheld: withheldSources.length,
+      sourcesNeedingEnglishDerivative: needsDerivative.map((n) => n.id),
+      fonts: pdf.fonts,
     },
   };
 }

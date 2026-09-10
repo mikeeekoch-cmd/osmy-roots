@@ -1,5 +1,8 @@
 import { ingestContribution } from './index.mjs';
-import { parseCsv } from './csv.mjs';
+import { parseCsvWithSpans as parseCsv } from './csv.mjs';
+// Compatibility only. The app calls parseFamilyPacket; this raw prior-schema
+// importer is preserved for the external owner's format experiments and tests.
+export { ingestDemoPacket, SUPPORTED_INPUTS } from './raw-packet.mjs';
 import { sha256 } from './hash.mjs';
 
 const sourceName = (name) => ({ 'family_register.csv': 'family-register', 'family_relationships.csv': 'family-relationships', 'family_recollections.txt': 'family-recollections', 'photo_captions.txt': 'photo-captions', 'family_overview.pdf': 'family-overview' })[name.toLowerCase()];

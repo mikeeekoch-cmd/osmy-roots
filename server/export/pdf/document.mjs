@@ -139,9 +139,17 @@ export class PdfDocument {
       });
 
       // ToUnicode keeps copy/paste and text extraction working.
-      const pairs = [];
+      // Several code points can share one glyph (U+0020 and U+00A0 both map to
+      // space in most fonts). Keep the LOWEST, so extracted text carries a real
+      // space rather than a non-breaking space that breaks search and matching.
+      const lowestFor = new Map();
       for (const [cp, gid] of f.cmap.entries()) {
-        if (cp > 0xffff) continue;
+        if (cp > 0xffff || !gid) continue;
+        const existing = lowestFor.get(gid);
+        if (existing == null || cp < existing) lowestFor.set(gid, cp);
+      }
+      const pairs = [];
+      for (const [gid, cp] of [...lowestFor.entries()].sort((a, b) => a[0] - b[0])) {
         pairs.push(`<${gid.toString(16).padStart(4, '0')}> <${cp.toString(16).padStart(4, '0')}>`);
       }
       const cmapChunks = [];
