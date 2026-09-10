@@ -80,3 +80,38 @@
 - P1 original gallery: previous/next, Left/Right, Escape, focus trap and return to the opener passed. Portrait 180×240 and landscape 320×160 retain their proportions. Unsupported original rendering shows an explicit unavailable fallback. No image enhancement or identity inference added.
 - Added synthetic fixtures and browser screenshots for these checks. Typecheck PASS; full repository suite 72 PASS. Production build is the next final check. No changes to backend/contracts/dependencies.
 - Latest main fetched: a5de7c4, identical to the consumed validated lead base. Lead can merge the next codex/ui increment directly.
+
+## Round 2: UI execution started at 18:19 UTC
+
+- Incorporated engineering d10eb59 by fast-forward, preserving every owner commit. Read the controlling round-2 scope, narrative contract and prompts 04-07.
+- Working next: files-only intake, original Osmy Roots mark, immediate preparation, saved-delta map behavior. Existing P0/partial P1 remains the starting point.
+- Lead handoff needed: published runtime run/question/answer/seal APIs, single upload-limit config, English display projection and fictional manifest example. I will consume the shared types, not create competing contracts.
+- Product handoff needed: public-safe fictional twin packet. No twin or demo-artefacts folder is available on this laptop yet. UI fixtures from round 1 are not that packet.
+- Shared round-2 T0/deadline is not yet recorded on engineering d10eb59. The old deadline is expired; no replacement clock has been invented here.
+- Round 2 is not integrated or demo-ready yet. Browser and live-model rehearsal remain to be done on the connected runtime.
+
+## Round-2 contract connection
+
+- Received and merged engineering ea320f8, including e36f6ea runtime contracts. Shared T0 is 18:18:15 UTC; freeze 19:28:15 and deadline 19:48:15. I am using that clock.
+- Implemented intake/preparation/branding increment 74fd73f. Typecheck and 74 baseline tests passed before the contract merge. Next: consume run/questions/answers, shared limits and closing download.
+- Coordination callout for main agent: this existing Natalia task is actively implementing src/ui on codex/ui from a separate laptop. Lead status mentions an additional UI subagent; please have it consume these commits and avoid concurrent rewrites of the same owned modules. Preserve both owners' commits when integrating.
+- Product fictional twin remains unavailable here; the published manifest example is schema-only, not a frozen packet. User confirmed treating the missing handoff as a callout for main agent. Actual packet rehearsals remain an integration gate.
+
+## Round-2 core UI increment ce12356
+
+- Pushed the client run path: immediate preparation, seven supplied questions, source/recommendation details, versioned confirm/correct/unknown, Back, and first-map gating on the server's initialSavedAt.
+- Shared UPLOAD_LIMITS now drive client checks for initial/reopened/late files. Valid 40 MB selection passes; filename-specific oversize/empty/count errors preserve selected files.
+- Saved API entity deltas drive people/link/photo highlights. Poll-only event writes do not animate; existing map positions and camera remain stable on arrivals. No countdown or session clock exists in the product.
+- Closing download requests the real bundle, blocks duplicates, distinguishes failure/retry, and disables writes once the run is sealed. Current book preview uses actual saved passages and run readiness. Legacy project reopen, graph edits, gallery and late-clue controls remain.
+- Checks: typecheck PASS, 77 tests PASS (74 baseline plus saved-delta, stable-layout and shared-upload regressions). Actual browser intake renders correctly; new run routes and packet are not yet present in this checkout, so these checks are not a full round-2 rehearsal.
+- Main-agent callout: the new optional RootsApi methods must be wired in src/app/roots-api. Product twin and source projection remain needed for actual English browser coverage. Photo comparison view is underway; awaiting the shared optional pair/alignment metadata before person-card integration.
+
+
+## Round 2 shared integration and external UI merge
+
+- Shared engineering clock: T0 18:18:15 UTC, P0 19:13:15, freeze 19:28:15, deadline 19:48:15 on 2026-09-10. No clock reset.
+- Preserved external Natalia history through origin/codex/ui 7296d71 (including ce12356) and the local integration checkpoint b379fef. Resolved overlapping intake, questions, map, book, CSS and tests using the working round-2 adapter. This shared Codex subagent does not claim Claude authored its changes.
+- Preserved external source-copy cards, English original-name suppression, contribution preflight, reusable Brand/PreparationState/SavedArrivals components and upload helper. Ported external stable layout bounds/dependency handling and correction draft-version recovery. Retained the integrated current-PDF preview, seal-aware controls, separate reopen, photo pair comparison and keyboard/gallery fixes.
+- Added explicit Retry source analysis for a failed question when the lead retry API is available. No visible clock or timer-derived percentage is rendered.
+- Validation at conflict resolution: TypeScript PASS; 10 UI tests PASS before merge and rerun below. Desktop intake observed through the actual Next server at 1440x900. The subsequent CUA file-chooser call stalled and was interrupted, so no completed browser rehearsal or mobile/slider pass is claimed here. Lead owns final two actual rehearsals.
+- Local QA server was started on port 3100 with a fictional manifest and isolated /private/tmp data directory. Private model dispatch is blocked pending the lead's approval resolution; this UI owner has not initiated one.

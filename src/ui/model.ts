@@ -167,26 +167,66 @@ export function branchIds(
   return ids;
 }
 
-/** Keep saved nodes fixed when additional supplied records arrive. */
-export function stableFamilyLayout(people: Person[], relationships: Relationship[], previous: Record<string, {x: number; y: number}> = {}) {
-  const proposed = familyLayout(people, relationships);
-  const positions: Record<string, {x: number; y: number}> = {};
-  for (const person of people) if (previous[person.id]) positions[person.id] = {...previous[person.id]};
-  const anchor = people.find((p) => positions[p.id]);
-  const yShift = anchor ? positions[anchor.id].y - proposed.positions[anchor.id].y : 0;
-  for (const person of people) {
-    if (positions[person.id]) continue;
-    const candidate = {...proposed.positions[person.id], y: proposed.positions[person.id].y + yShift};
-    const peer = relationships.find((r) => r.status !== "rejected" && r.type === "partner" && ((r.fromPersonId === person.id && positions[r.toPersonId]) || (r.toPersonId === person.id && positions[r.fromPersonId])));
-    if (peer) candidate.y = positions[peer.fromPersonId === person.id ? peer.toPersonId : peer.fromPersonId].y;
-    else {
-      const parent = relationships.find((r) => isParent(r) && r.toPersonId === person.id && positions[r.fromPersonId]);
-      const child = relationships.find((r) => isParent(r) && r.fromPersonId === person.id && positions[r.toPersonId]);
-      if (parent) candidate.y = positions[parent.fromPersonId].y + 206;
-      else if (child) candidate.y = positions[child.toPersonId].y - 206;
+/** Preserve saved node positions across arrivals. Newly supplied relatives are placed near existing links. */
+export function stableFamilyLayout(
+  people: Person[],
+  relationships: Relationship[],
+  previous: Record<string, { x: number; y: number }> = {},
+) {
+  const initial = familyLayout(people, relationships);
+  if (!people.some((p) => previous[p.id]))
+    return { ...initial, minX: 0, minY: 0 };
+  const positions: Record<string, { x: number; y: number }> =
+    Object.fromEntries(
+      people
+        .filter((p) => previous[p.id])
+        .map((p) => [p.id, { ...previous[p.id] }]),
+    );
+  const pending = people.filter((p) => !positions[p.id]);
+  for (let pass = 0; pending.length && pass <= people.length; pass++) {
+    for (let i = 0; i < pending.length;) {
+      const p = pending[i];
+      const edge = relationships.find(
+        (r) =>
+          r.status !== "rejected" &&
+          ((r.toPersonId === p.id && positions[r.fromPersonId]) ||
+            (r.fromPersonId === p.id && positions[r.toPersonId])),
+      );
+      if (!edge && pass < people.length) {
+        i++;
+        continue;
+      }
+      const from = edge?.fromPersonId === p.id;
+      const anchor = edge
+        ? positions[from ? edge.toPersonId : edge.fromPersonId]
+        : {
+            x: Math.max(0, ...Object.values(positions).map((p) => p.x)) + 224,
+            y: 40,
+          };
+      const y =
+        edge && isParent(edge) ? anchor.y + (from ? -206 : 206) : anchor.y;
+      let x = edge && !isParent(edge) ? anchor.x + 224 : anchor.x;
+      let attempts = 0;
+      while (
+        Object.values(positions).some(
+          (p) => Math.abs(p.x - x) < 210 && Math.abs(p.y - y) < 170,
+        ) &&
+        attempts++ <= people.length
+      )
+        x += 224;
+      positions[p.id] = { x, y };
+      pending.splice(i, 1);
     }
-    while (Object.values(positions).some((p) => Math.abs(p.y - candidate.y) < 150 && Math.abs(p.x - candidate.x) < 210)) candidate.x += 224;
-    positions[person.id] = candidate;
   }
-  return {positions, width: Math.max(320, ...Object.values(positions).map((p) => p.x + 232)), height: Math.max(220, ...Object.values(positions).map((p) => p.y + 186))};
+  const minX = Math.min(0, ...Object.values(positions).map((p) => p.x - 30)),
+    minY = Math.min(0, ...Object.values(positions).map((p) => p.y - 30));
+  return {
+    positions,
+    minX,
+    minY,
+    width:
+      Math.max(320, ...Object.values(positions).map((p) => p.x + 224)) - minX,
+    height:
+      Math.max(240, ...Object.values(positions).map((p) => p.y + 180)) - minY,
+  };
 }

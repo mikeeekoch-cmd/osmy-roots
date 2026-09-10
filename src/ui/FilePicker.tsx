@@ -6,6 +6,8 @@ export function validateFiles(files: Pick<File, "name" | "size">[]): string | nu
   if (files.length > UPLOAD_LIMITS.maxFiles) return `You selected ${files.length} files. Remove ${files.length - UPLOAD_LIMITS.maxFiles} to stay within the ${UPLOAD_LIMITS.maxFiles}-file limit.`;
   const large = files.find((f) => f.size > UPLOAD_LIMITS.maxFileBytes);
   if (large) return `${large.name} is ${fileSize(large.size)}. Each file must be ${fileSize(UPLOAD_LIMITS.maxFileBytes)} or smaller.`;
+  const empty = files.find((f) => f.size === 0);
+  if (empty) return `${empty.name} is empty. Choose a readable copy or remove this file.`;
   const total = files.reduce((sum, f) => sum + f.size, 0);
   if (total > UPLOAD_LIMITS.maxTotalBytes) return `Selected files total ${fileSize(total)}. Remove files to stay within ${fileSize(UPLOAD_LIMITS.maxTotalBytes)}.`;
   return null;

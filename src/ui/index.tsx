@@ -359,6 +359,7 @@ export function RootsApp({
                   return api.answerSetupQuestion(snapshot.projectId, answer);
                 })}
                 onSource={(id) => setSelection({kind: "source", id})}
+                onRetry={api.retryAnalysis ? () => void perform(() => api.retryAnalysis!(snapshot.projectId)) : undefined}
                 onClose={setupReview ? () => setSetupReview(false) : undefined}
               /> : <>
               {snapshot.run && <div className="run-arrivals" aria-live="polite"><strong>{snapshot.people.length} of {snapshot.run.targetPeople} supplied people saved</strong>{snapshot.run.batches.map((batch) => <span key={batch.id} className={`batch-dot ${batch.status}`} title={batch.status === "saved" ? "Family records saved" : batch.status === "cancelled" ? "Pending records left open" : "More supplied records to add"} />)}{snapshot.run.initialSavedAt && !closed && <button className="text-button" onClick={() => setSetupReview(true)}>Your seven answers</button>}</div>}

@@ -1715,3 +1715,9 @@
 .book-preview-dialog { position: fixed; inset: 0; background: #1c281ec9; z-index: 110; padding: 3vh 3vw; display: flex; justify-content: center; }
 .book-preview-dialog > div { width: min(900px, 100%); display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
 .book-preview-dialog iframe { width: 100%; flex: 1; background: #fff; border: 0; border-radius: 5px; }
+
+.map-edges { overflow: visible; }
+.source-connection-cards { display: grid; gap: 10px; margin: 18px 0; }
+.source-connection-cards button { text-align: left; display: flex; flex-direction: column; gap: 3px; }
+.source-connection-cards span { font-size: 12px; }
+.source-connection-cards small { color: var(--muted); }

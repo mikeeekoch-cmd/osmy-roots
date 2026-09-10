@@ -59,7 +59,7 @@ export function FamilyCanvas({
     ? snapshot.people
     : snapshot.people.filter((p) => branch.has(p.id));
   const layout = useMemo(() => {
-    const full = progressive && all ? stableFamilyLayout(people, snapshot.relationships, savedPositions.current) : familyLayout(people, snapshot.relationships);
+    const full = progressive && all ? stableFamilyLayout(people, snapshot.relationships, savedPositions.current) : {...familyLayout(people, snapshot.relationships), minX: 0, minY: 0};
     if (all) { if (progressive) savedPositions.current = full.positions; return full; }
     const ordered = [...people].sort(
       (a, b) => full.positions[a.id].y - full.positions[b.id].y,
@@ -68,6 +68,7 @@ export function FamilyCanvas({
       positions: Object.fromEntries(
         ordered.map((p, i) => [p.id, { x: 30, y: 16 + i * 78 }]),
       ),
+      minX: 0, minY: 0,
       width: 320,
       height: Math.max(1, ordered.length) * 78 + 16,
     };
@@ -87,8 +88,8 @@ export function FamilyCanvas({
     );
     setScale(next);
     setOffset({
-      x: (rect.width - layout.width * next) / 2,
-      y: Math.max(15, (rect.height - layout.height * next) / 2),
+      x: (rect.width - layout.width * next) / 2 - layout.minX * next,
+      y: Math.max(15, (rect.height - layout.height * next) / 2) - layout.minY * next,
     });
   };
   const fitRef = useRef(fit);

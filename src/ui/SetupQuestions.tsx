@@ -10,15 +10,16 @@ export const nextUnansweredQuestion = (snapshot: ProjectSnapshot) => {
   const index = run.questions.findIndex((q) => !run.answers.some((a) => a.questionId === q.id));
   return index < 0 ? run.questions.length : index;
 };
-export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClose }: {
+export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClose, onRetry }: {
   snapshot: ProjectSnapshot; api: RootsApi; busy: boolean;
   onAnswer: (answer: SetupAnswer) => Promise<boolean>;
-  onSource: (sourceId: string) => void; onClose?: () => void;
+  onSource: (sourceId: string) => void; onClose?: () => void; onRetry?: () => void;
 }) {
   const run = snapshot.run!;
   const [index, setIndex] = useState(() => Math.min(nextUnansweredQuestion(snapshot), run.questions.length - 1));
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  const [editVersion, setEditVersion] = useState(snapshot.version);
   const [answerError, setAnswerError] = useState("");
   const [reviewing, setReviewing] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -42,7 +43,7 @@ export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClos
     const correction = editing ? draft.trim() : answer?.savedText || draft.trim();
     if (action === "correct" && !correction) { setAnswerError("Write your correction or choose I don't know."); return; }
     setAnswerError("");
-    const success = await onAnswer({ questionId: question.id, action, ...(action === "correct" ? { text: correction } : {}), baseVersion: snapshot.version, requestId: crypto.randomUUID() });
+    const success = await onAnswer({ questionId: question.id, action, ...(action === "correct" ? { text: correction } : {}), baseVersion: editing ? editVersion : snapshot.version, requestId: crypto.randomUUID() });
     if (success) {
       setEditing(false);
       if (index < run.questions.length - 1) setIndex(index + 1);
@@ -67,12 +68,14 @@ export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClos
     <details className="setup-source"><summary>See the source{question.support.length > 1 ? `s (${question.support.length})` : ""}</summary>
       {question.support.map((span, i) => <article key={`${span.sourceId}-${i}`}><blockquote>{span.quote}</blockquote><button className="text-button" onClick={() => onSource(span.sourceId)}>{snapshot.sources.find((s) => s.id === span.sourceId)?.title || span.sourceId} · {span.locator}</button></article>)}
     </details>
+    {editing && editVersion !== snapshot.version && <p className="stale-draft">New project activity arrived. Your draft is preserved. <button className="text-button" onClick={() => setEditVersion(snapshot.version)}>Use latest version and keep draft</button></p>}
+    {question.status === "failed" && onRetry && <button disabled={busy} onClick={onRetry}>Retry source analysis</button>}
     {answerError && <p className="error" role="alert">{answerError}</p>}
     <div className="setup-actions">
-      <button className="primary" disabled={busy || !ready || (!question.recommendation && !editing)} onClick={() => void save(editing ? "correct" : answer && answer.action !== "unknown" ? "correct" : "confirm")}>
+      <button className="primary" disabled={busy || !ready || (!question.recommendation && !editing) || (editing && editVersion !== snapshot.version)} onClick={() => void save(editing ? "correct" : answer && answer.action !== "unknown" ? "correct" : "confirm")}>
         {busy ? <><span className="spinner" />Saving…</> : editing ? "Save correction" : "Confirm and continue"}
       </button>
-      {ready && <button disabled={busy} onClick={() => { setDraft(answer?.savedText || question.recommendation); setEditing(!editing); }}>{editing ? "Cancel edit" : "Edit"}</button>}
+      {ready && <button disabled={busy} onClick={() => { setDraft(answer?.savedText || question.recommendation); setEditVersion(snapshot.version); setEditing(!editing); }}>{editing ? "Cancel edit" : "Edit"}</button>}
       <button disabled={busy} onClick={() => void save("unknown")}>I don't know</button>
     </div>
     <div className="setup-navigation"><button disabled={busy || index === 0} onClick={() => { setIndex(index - 1); setReviewing(true); }}>← Back</button><small>Every answer is saved explicitly. Unknowns stay open.</small>{onClose && <button onClick={onClose}>Back to map</button>}</div>
