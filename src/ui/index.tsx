@@ -277,19 +277,7 @@ export function RootsApp({
         )}
         {snapshot && (
           <>
-            <span className="book-state">
-              {downloaded || snapshot.run?.phase === "completed" ? "Download completed" : snapshot.run?.book.status === "ready" ? "Your family book is ready" : snapshot.bookStatus === "stale"
-                ? "Book needs updating"
-                : snapshot.bookStatus === "current"
-                  ? "Book is up to date"
-                  : snapshot.bookStatus === "failed"
-                    ? "Book generation needs attention"
-                    : snapshot.bookStatus === "generating"
-                      ? "Preparing your book…"
-                      : downloaded
-                        ? "Download saved"
-                        : "Your story, taking shape"}
-            </span>
+            <BookPreview previewUrl={api.bookPreviewUrl?.(snapshot.projectId)} snapshot={snapshot} busy={download || busy} downloaded={downloaded || snapshot.run?.phase === "completed"} onPrepare={api.prepareFamilyBook && !closed ? () => void perform(() => api.prepareFamilyBook!(snapshot.projectId)) : undefined} onSource={(id) => setSelection({kind: "source", id})} />
             <button
               className="primary download-button"
               disabled={download || busy}
@@ -378,7 +366,7 @@ export function RootsApp({
                 onRetry={api.retryAnalysis ? () => void perform(() => api.retryAnalysis!(snapshot.projectId)) : undefined}
                 onClose={setupReview ? () => setSetupReview(false) : undefined}
               /> : <>
-              {snapshot.run && <div className="run-arrivals" aria-live="polite"><strong>{snapshot.people.length} of {snapshot.run.targetPeople} supplied people saved</strong>{snapshot.run.batches.map((batch) => <span key={batch.id} className={`batch-dot ${batch.status}`} title={batch.status === "saved" ? "Family records saved" : batch.status === "cancelled" ? "Pending records left open" : "More supplied records to add"} />)}{snapshot.run.initialSavedAt && !closed && <button className="text-button" onClick={() => setSetupReview(true)}>Your seven answers</button>}</div>}
+              {snapshot.run && <div className="run-arrivals" aria-live="polite"><strong>{snapshot.people.length} of {snapshot.run.targetPeople} supplied people saved</strong>{snapshot.run.batches.map((batch) => <span key={batch.id} className={`batch-dot ${batch.status}`} title={batch.status === "saved" ? "Family records saved" : batch.status === "cancelled" ? "Pending records left open" : "More supplied records to add"} />)}{snapshot.run.initialSavedAt && !closed && <button className="text-button" onClick={() => setSetupReview(true)}>Your {snapshot.run.questions.length} answers</button>}</div>}
               {arrivals && <SavedArrivals delta={arrivals} snapshot={snapshot} api={api} onSelect={(id) => setSelection({kind:"person", id})} onSource={(id) => setSelection({kind:"source", id})} />}
               <FamilyCanvas
                 snapshot={snapshot}
@@ -401,7 +389,7 @@ export function RootsApp({
                   setSelection(null);
                 }}
               />
-              {(snapshot.bookPassages.length > 0 || snapshot.run?.initialSavedAt) && <BookPreview previewUrl={api.bookPreviewUrl?.(snapshot.projectId)} snapshot={snapshot} busy={download || busy} downloaded={downloaded || snapshot.run?.phase === "completed"} onDownload={downloadBook} onPrepare={api.prepareFamilyBook && !closed ? () => void perform(() => api.prepareFamilyBook!(snapshot.projectId)) : undefined} onSource={(id) => setSelection({kind: "source", id})} />}
+
               <div className="canvas-footer">
                 <button
                   disabled={busy || closed || !snapshot.history.length}

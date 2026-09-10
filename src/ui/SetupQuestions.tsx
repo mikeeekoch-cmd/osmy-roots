@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { SetupAnswer, SetupQuestion } from "../../packages/contracts/round2";
 import type { ProjectSnapshot, RootsApi } from "./types";
-import { OriginalPhoto } from "./OriginalPhotos";
+import { OriginalPhotos } from "./OriginalPhotos";
 import { PreparationState } from "./PreparationState";
 
 const categoryLabels: Record<SetupQuestion["category"], string> = { photo: "The people in your photograph", kinship: "A family connection", origin: "Where the story begins", time: "A place in time", movement: "The journeys they made", recollection: "A story worth keeping", conflict: "What stays open" };
@@ -32,7 +32,7 @@ export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClos
   if (!question) return <PreparationState title={run.phase === "failed" ? "Your sources need attention" : "Preparing your family sources"} summary={run.error || "Reading your supplied files and checking their source references."} active={run.phase === "preparing" || run.modelStatus === "running"} />;
   if (allAnswered && !reviewing && !onClose) return <section className="setup-questions setup-complete" aria-live="polite">
     <span className="setup-complete-mark" aria-hidden="true">✓</span>
-    <span className="eyebrow">Your seven checks are saved</span>
+    <span className="eyebrow">Your {run.questions.length} checks are saved</span>
     <h2>Your first family branch is taking shape</h2>
     <p>{run.error || "We are adding the supported records and keeping your unknowns open."}</p>
     <button onClick={() => { setIndex(0); setReviewing(true); }}>Review your answers</button>
@@ -57,7 +57,7 @@ export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClos
     <div className="setup-dots" aria-label={`${answered} of ${run.questions.length} checks saved`}>{run.questions.map((q, i) => <span key={q.id} className={`${run.answers.some((a) => a.questionId === q.id) ? "saved" : ""} ${i === index ? "current" : ""}`} />)}</div>
     <span className="setup-category">{categoryLabels[question.category]}</span>
     <h2 ref={heading} tabIndex={-1}>{question.prompt}</h2>
-    {photo && <figure className="setup-photo"><OriginalPhoto src={api.assetUrl(snapshot.projectId, photo.id)} alt={photo.originalName} /><figcaption>Identify people from left to right. Unknown is always an option.</figcaption></figure>}
+    {photo && <div className="setup-photo"><OriginalPhotos ids={[photo.id]} snapshot={snapshot} api={api} /></div>}
     {!ready ? <div className="setup-waiting" role="status">
       {question.status !== "failed" && run.modelStatus === "running" && <span className="spinner" />}
       <strong>{question.status === "failed" ? "This interpretation needs another look" : question.requiresAstra ? run.modelStatus === "running" ? "Astra is checking this source" : "Waiting for a source-backed suggestion" : "Reading the supporting source"}</strong>

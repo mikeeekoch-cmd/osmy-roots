@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from "react";
+import { Modal } from "./Modal";
 import type { ProjectSnapshot, RootsApi } from "./types";
 import { PhotoComparison } from "./PhotoComparison";
-export function OriginalPhoto({ src, alt }: { src: string; alt: string }) {
+export function OriginalPhoto({ src, alt, retry = false }: { src: string; alt: string; retry?: boolean }) {
+  return <RetryablePhoto key={src} src={src} alt={alt} retry={retry} />;
+}
+function ZoomablePhoto({src, alt}: {src: string; alt: string}) {
+  const [zoom, setZoom] = useState(1);
+  return <><div className="photo-zoom-tools" aria-label="Photograph zoom"><button disabled={zoom === 1} onClick={() => setZoom(n => Math.max(1, n - .5))} aria-label="Zoom photograph out">−</button><span>{Math.round(zoom * 100)}%</span><button disabled={zoom === 3} onClick={() => setZoom(n => Math.min(3, n + .5))} aria-label="Zoom photograph in">+</button><button onClick={() => setZoom(1)}>Fit photograph</button></div><div className={`photo-zoom-surface ${zoom > 1 ? "zoomed" : ""}`}><div style={{width: `${zoom * 100}%`}}><OriginalPhoto src={src} alt={alt} retry /></div></div></>;
+}
+function RetryablePhoto({ src, alt, retry }: { src: string; alt: string; retry: boolean }) {
   const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
-  return failed ? (
-    <span
-      className="photo-unavailable"
-      role="img"
-      aria-label={`${alt}: original unavailable`}
-    >
-      Original unavailable
-    </span>
-  ) : (
-    <img key={src} src={src} alt={alt} onError={() => setFailed(true)} />
-  );
+  const [attempt, setAttempt] = useState(0);
+  return failed ? <span className="photo-unavailable" role="status">{alt}: original unavailable
+    {retry && <button type="button" onClick={event => { event.stopPropagation(); setAttempt(n => n + 1); setFailed(false); }}>Retry photograph</button>}
+  </span> : <img key={attempt} src={src} alt={alt} onError={() => setFailed(true)} />;
 }
 /** Caption associations are view-only and never become confirmed portrait IDs. */
 export function photoIdsForPerson(snapshot: ProjectSnapshot, personId: string): string[] {
@@ -38,15 +38,12 @@ export function OriginalPhotos({
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [comparing, setComparing] = useState(false);
-  const pairs = (snapshot.photoPairs || []).filter((pair) => (!personId || pair.personIds.includes(personId)) && snapshot.assets.some((a) => a.id === pair.originalAssetId && a.mediaType.startsWith("image/")) && snapshot.assets.some((a) => a.id === pair.enhancedAssetId && a.mediaType.startsWith("image/")));
+  const pairs = (snapshot.photoPairs || []).filter((pair) => snapshot.assets.some((a) => a.id === pair.originalAssetId && a.mediaType.startsWith("image/")) && snapshot.assets.some((a) => a.id === pair.enhancedAssetId && a.mediaType.startsWith("image/")));
   const pair = pairs.find((item) => item.originalAssetId === selected);
   const suppliedPair = selected ? comparisonFor?.(selected) : undefined;
   const candidateIds = personId ? [...new Set([...ids, ...photoIdsForPerson(snapshot, personId)])] : ids;
   const galleryIds = candidateIds.filter((id) => !pairs.some((item) => item.enhancedAssetId === id));
   useEffect(() => { setSelected(null); setComparing(false); }, [personId]);
-  const close = useRef<HTMLButtonElement>(null);
-  const dialog = useRef<HTMLDivElement>(null);
-  const opener = useRef<HTMLButtonElement | null>(null);
   const open = selected !== null;
   const idsRef = useRef(galleryIds);
   idsRef.current = galleryIds;
@@ -61,31 +58,7 @@ export function OriginalPhotos({
   };
   useEffect(() => {
     if (!open) return;
-    close.current?.focus();
     const listener = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopImmediatePropagation();
-        setSelected(null);
-      }
-      if (e.key === "Tab") {
-        const buttons = [
-          ...(dialog.current?.querySelectorAll<HTMLElement>(
-            "button:not([disabled]), input:not([disabled]), a[href], select:not([disabled]), textarea:not([disabled])",
-          ) || []),
-        ];
-        const first = buttons[0],
-          last = buttons.at(-1);
-        if (!dialog.current?.contains(document.activeElement)) {
-          e.preventDefault();
-          first?.focus();
-        } else if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last?.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first?.focus();
-        }
-      }
       if ((e.target as HTMLElement)?.matches('input, textarea, select, [role="slider"]')) return;
       if (e.key === "ArrowRight") {
         e.preventDefault();
@@ -99,7 +72,7 @@ export function OriginalPhotos({
     window.addEventListener("keydown", listener, true);
     return () => {
       window.removeEventListener("keydown", listener, true);
-      opener.current?.focus();
+
     };
   }, [open]);
   if (!galleryIds.length) return null;
@@ -114,7 +87,6 @@ export function OriginalPhotos({
             <button
               className="photo-open"
               onClick={(event) => {
-                opener.current = event.currentTarget;
                 setComparing(false);
                 setSelected(id);
               }}
@@ -125,7 +97,7 @@ export function OriginalPhotos({
                 alt={name(id)}
               />
             </button>
-            {(pairs.some((pair) => pair.originalAssetId === id) || comparisonFor?.(id)) && <button className="compare-photo-button" onClick={(event) => { opener.current = event.currentTarget; setSelected(id); setComparing(true); }}>Compare photos</button>}
+            {(pairs.some((pair) => pair.originalAssetId === id) || comparisonFor?.(id)) && <button className="compare-photo-button" onClick={(event) => { setSelected(id); setComparing(true); }}>Compare photos</button>}
             <figcaption>
               {name(id)}
               <br />
@@ -136,23 +108,16 @@ export function OriginalPhotos({
         ))}
       </div>
       {selected && (
-        <div
-          ref={dialog}
-          className="photo-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label={comparing ? "Original and enhanced photographs" : "Original photograph"}
-          onClick={() => setSelected(null)}
-        >
+        <Modal className="photo-lightbox" label={comparing ? "Original and enhanced photographs" : "Original photograph"} onClose={() => setSelected(null)}>
           <button
-            ref={close}
+            className="photo-lightbox-close"
             aria-label="Close photograph"
             onClick={() => setSelected(null)}
           >
             ×
           </button>
-          <div onClick={(e) => e.stopPropagation()}>
-            {comparing && pair ? <PhotoComparison key={pair.id} pair={pair} originalUrl={api.assetUrl(snapshot.projectId, pair.originalAssetId)} enhancedUrl={api.assetUrl(snapshot.projectId, pair.enhancedAssetId)} /> : comparing && suppliedPair ? <PhotoComparison originalUrl={api.assetUrl(snapshot.projectId, selected)} enhancedUrl={suppliedPair.enhancedUrl} aligned={suppliedPair.aligned} caption={name(selected)} /> : <OriginalPhoto
+          <div className="photo-lightbox-content" onClick={(e) => e.stopPropagation()}>
+            {comparing && pair ? <PhotoComparison key={pair.id} pair={pair} originalUrl={api.assetUrl(snapshot.projectId, pair.originalAssetId)} enhancedUrl={api.assetUrl(snapshot.projectId, pair.enhancedAssetId)} /> : comparing && suppliedPair ? <PhotoComparison originalUrl={api.assetUrl(snapshot.projectId, selected)} enhancedUrl={suppliedPair.enhancedUrl} aligned={suppliedPair.aligned} caption={name(selected)} /> : <ZoomablePhoto key={selected}
               src={api.assetUrl(snapshot.projectId, selected)}
               alt={name(selected)}
             />}
@@ -179,7 +144,7 @@ export function OriginalPhotos({
               </nav>
             )}
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );
