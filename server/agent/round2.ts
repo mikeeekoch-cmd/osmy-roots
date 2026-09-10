@@ -112,6 +112,15 @@ export async function startRound2(raw: unknown, files: InputFile[], options: Rou
     people:parsed.people,relationships:parsed.relationships,claims:parsed.claims,stories:parsed.stories,
     sources:parsed.sources,assets:parsed.assets,proposals:[],researchEvents:[],history:[],bookPassages:[],bookStatus:'empty',
     layout:parsed.layout||{},files:parsed.files,issues:parsed.issues||[],photoAnnotations:manifest.photos,photoPairs:manifest.photoPairs});
+  if(manifest.schemaVersion==='roots-demo-v3') for(const prepared of manifest.preparedAssets){
+    if(!packetRoot)throw new AppError('Prepared photo bytes require the configured private packet directory.');
+    const pair=manifest.photoPairs.find(p=>p.enhancedAssetId===prepared.assetId),parent=full.assets.find(a=>a.id===pair?.originalAssetId);
+    if(!pair||!parent||pair.enhancedHash!==prepared.sha256)throw new AppError('Prepared derivative is not bound to its original pair.');
+    const filePath=join(packetRoot,prepared.path),stat=await lstat(filePath);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==prepared.bytes)throw new AppError('Prepared derivative file is unavailable or changed.');
+    const bytes=await readFile(filePath);if(hash(bytes)!==prepared.sha256)throw new AppError('Prepared derivative hash changed.');
+    full.assets.push({id:prepared.assetId,sourceId:parent.sourceId,originalName:prepared.originalName,mediaType:prepared.mediaType,byteLength:bytes.length,storageKey:`assets/${prepared.assetId}`,contentHash:prepared.sha256,role:'derivative',parentAssetId:parent.id,parentHash:parent.contentHash,evidenceRootId:pair.evidenceRootId});
+    parsed.assetBytes.push({assetId:prepared.assetId,bytes});
+  }
   for(const file of manifest.files) for(const sourceId of file.sourceIds) {
     const source=full.sources.find(s=>s.id===sourceId);if(!source)continue;
     source.evidenceRootIds=[...new Set([...(source.evidenceRootIds||[]),...file.evidenceRootIds])];
