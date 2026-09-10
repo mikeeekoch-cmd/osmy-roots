@@ -15,12 +15,12 @@ export function ResearchCycles({snapshot, busy, available, onAction}: {snapshot:
     <div><span className="eyebrow">{active ? `Research round ${active.ordinal}` : research.cycles.length ? `Round ${research.cycles.at(-1)!.ordinal} ${label(research.cycles.at(-1)!.status)}` : "Your sources are ready"}</span>
     <p>{active?.error || (active ? active.plan?.objectives[0] || (active.status === "paused" ? "Research is paused. Resume this round when ready." : "Preparing the next source checks and research plan.") : next === "initial" ? "Start with the records you selected and the answers you saved." : next === "deeper" ? "Follow the remaining clues in another research round." : "Review the saved findings, questions and current family book.")}</p></div>
     <div className="cycle-actions">
-      {next && <button className="primary" disabled={busy || !available} onClick={() => request(next)}>{busy ? "Starting…" : next === "initial" ? "Start research" : "Research deeper"}</button>}
+      {next && <button className="primary" disabled={busy || !available} onClick={event => { if (event.detail < 2) request(next); }}>{busy ? "Starting…" : next === "initial" ? "Start research" : "Research deeper"}</button>}
       {next === "deeper" && <small>{research.cycles.length === 1 ? "First" : "Second"} deeper round</small>}
-      {active && ["running", "queued"].includes(active.status) && <button disabled={busy || !available} onClick={() => request("pause")}>Pause research</button>}
-      {active?.status === "paused" && <button disabled={busy || !available} onClick={() => request("resume")}>Resume research</button>}
-      {active?.status === "failed" && <button disabled={busy || !available} onClick={() => request("retry")}>Retry this round</button>}
-      {active && <button disabled={busy || !available} onClick={() => request("cancel")}>Cancel this round</button>}
+      {active && ["running", "queued"].includes(active.status) && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("pause"); }}>Pause research</button>}
+      {active?.status === "paused" && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("resume"); }}>Resume research</button>}
+      {active?.status === "failed" && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("retry"); }}>Retry this round</button>}
+      {active && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("cancel"); }}>Cancel this round</button>}
       {!available && <small>Research actions are unavailable in this connection.</small>}
     </div>
   </section>;

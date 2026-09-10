@@ -7,9 +7,10 @@ import { resolve } from "node:path";
 const require = createRequire(import.meta.url);
 const { build } = createRequire(require.resolve("tsx/package.json"))("esbuild");
 const connected = process.env.ROOTS_UI_CONNECTED === "1";
+const round3 = process.env.ROOTS_UI_ROUND3 === "1";
 const round2 = process.env.ROOTS_UI_ROUND2 === "1";
-const port = round2 ? 3103 : connected ? 3102 : 3101;
-const entry = round2 ? "round2-preview" : connected ? "connected" : "preview";
+const port = round3 ? 3104 : round2 ? 3103 : connected ? 3102 : 3101;
+const entry = round3 ? "round3-preview" : round2 ? "round2-preview" : connected ? "connected" : "preview";
 const output = resolve(".ui-preview", entry);
 await mkdir(output, { recursive: true });
 await build({
@@ -20,7 +21,7 @@ await build({
   platform: "browser",
   sourcemap: true,
 });
-createServer(async (req, res) => {
+if (process.env.ROOTS_UI_BUILD_ONLY !== "1") createServer(async (req, res) => {
   try {
     if (connected && req.url?.startsWith("/api/")) {
       const upstream = request(

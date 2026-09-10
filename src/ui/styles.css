@@ -1765,7 +1765,7 @@
 .photo-lightbox .photo-unavailable button { display: block; margin: 12px auto; }
 .setup-photo .photo-gallery { display: block; }
 .setup-photo .photo-gallery figure { width: 100%; margin: 0; }
-.setup-photo .photo-open { width: 100%; background: #edece4; }
+.setup-photo .photo-open { width: 100%; height: auto; display: block; background: #edece4; }
 .setup-photo .photo-open img { width: 100%; max-width: 640px; height: clamp(260px, 42vh, 460px); max-height: none; object-fit: contain; }
 .setup-photo .supplied-photo-caption { font-size: 12px; }
 .compact-book { flex-shrink: 0; }
@@ -1840,3 +1840,7 @@
   .cycle-actions { justify-content: flex-start; }
   .cycle-actions small { text-align: left; }
 }
+
+.photo-lightbox { overflow: hidden; }
+.photo-lightbox > .photo-lightbox-content:has(.photo-comparison) { max-height: calc(100dvh - 95px); }
+.photo-comparison .comparison-viewport { overflow: clip; }
