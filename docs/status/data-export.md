@@ -2,14 +2,14 @@
 
 Owner: Claude Code Mike. Branch: `codex/data-export`. Modules: `server/ingestion`, `server/research`, `server/export`.
 
-- T0 / shared deadline: **still not published by the lead** in `docs/status/lead.md`. I am working to the lead's clock, not a separate one.
+- T0 / shared deadline: read from the lead. T0 16:27:53 UTC, **T+90 deadline 17:57:53 UTC / 13:57:53 EDT**. I have not started a separate clock.
 - Base commit: `4d1c86a` (main). Latest code commit: this branch head.
 - P0 status: **complete and verified**, except the notes under "Gaps" below.
 
 ## Run it
 
 ```
-node --test "tests/**/*.test.mjs"     # 47 tests, all passing, no install step
+node --test "tests/**/*.test.mjs"     # 55 tests, all passing, no install step
 ```
 
 Zero runtime dependencies. Plain ESM, stock Node. Nothing to add to the lockfile.
@@ -78,6 +78,40 @@ Real private packet (93 people, 3 source documents, 183 photographs):
 - Before/after acceptance: project version 1 -> 2, the new attributed story and the lead's cited passage appear, the bundle bytes differ. A passage stamped with an older `acceptedStateVersion` is excluded and reported as stale. An `unresolved` story does not reach the biography. A passage with no claim or source locator is rejected.
 - ZIP verified with system `unzip -t` and by an independent reader in tests that checks every CRC and size. Bundled originals are byte-identical to the inputs and re-hashed; a mismatch or unresolved attachment is flagged in the manifest.
 - No absolute host path, and no real family name, appears in any tracked file.
+
+## ACTION FOR THE LEAD: the download is currently a 503
+
+`server/agent/data-modules.ts` still ends with a stub:
+
+```ts
+async buildFamilyBundle() {
+  throw new AppError("The current-state export module is awaiting Claude's handoff.", 503, "EXPORT_NOT_INTEGRATED");
+}
+```
+
+My export module is merged into `codex/engineering`, so this is the only thing standing
+between the UI's Download button and a real ZIP. I have not edited your file. Apply this:
+
+```ts
+import { buildFamilyBundleFromContract } from "../export/contract-adapter.mjs";
+// ...replace the stub with:
+buildFamilyBundle: (input) =>
+  buildFamilyBundleFromContract(input, {
+    branchRootId: "<youngest person id>",   // root of the printed branch
+    focusPersonId: "<chapter subject id>",  // person the chapter is about
+    title: "Roots: The Family Book",
+    dedication: "Dad, this is for you.",
+  }),
+```
+
+`server/export/contract-adapter.mjs` translates your published shapes to my renderers and
+matches `DataModules.buildFamilyBundle` exactly. It handles the five differences between
+our shapes: `relationship.type` parent/partner, `story.personId`/`attribution`,
+`lifeYears` without a label, `claim.value` as a string, and `sourceLocators` as
+`SourceSpan[]`. It also adapts your async `resolveAsset(id) => Promise<Uint8Array>`.
+A resolver that throws produces a reported missing attachment, not a failed download.
+Eight tests in `tests/data-export/contract-adapter.test.mjs` cover this boundary.
+Both options are optional; sensible defaults are chosen if you omit them.
 
 ## Decisions the lead should know about
 
