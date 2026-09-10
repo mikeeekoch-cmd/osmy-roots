@@ -1,28 +1,400 @@
-'use client';
-import { useEffect, useRef, useState } from 'react';
-import type { GraphMutation, ProjectSnapshot, RootsApi } from './types';
-import { InputScreen } from './InputScreen';
-import { FamilyCanvas } from './FamilyCanvas';
-import { ResearchProgress } from './ResearchProgress';
-import { HumanContributionPanel } from './HumanContributionPanel';
-import { EvidenceDrawer } from './EvidenceDrawer';
-import { GraphEditor } from './GraphEditor';
-import './styles.css';
-export type { RootsApi } from './types';
-const errorMessage=(error:unknown)=>error instanceof Error?error.message:'The request could not be completed. Please try again.';
-export function RootsApp({api,initialProjectId,mode='live'}:{api:RootsApi;initialProjectId?:string;mode?:'live'|'replay'}) {
- const [snapshot,setSnapshot]=useState<ProjectSnapshot|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[download,setDownload]=useState(false),[downloaded,setDownloaded]=useState(false),[selection,setSelection]=useState<{kind:'person'|'relationship'|'source';id:string}|null>(null),[editor,setEditor]=useState<{operation:GraphMutation['operation'];entityId?:string}|null>(null),[highlight,setHighlight]=useState<string|null>(null),[panel,setPanel]=useState<'map'|'progress'|'human'>('map'),[restoring,setRestoring]=useState(true);
- const active=useRef(false),mounted=useRef(true);
- const saveSnapshot=(next:ProjectSnapshot)=>{setSnapshot(current=>current&&current.projectId===next.projectId&&current.version>next.version?current:next);try{localStorage.setItem(`roots-last-project-${mode}`,next.projectId)}catch{/* Storage may be disabled; server persistence remains authoritative. */}};
- useEffect(()=>{mounted.current=true;let cancelled=false;const restore=async()=>{try{const id=initialProjectId||localStorage.getItem(`roots-last-project-${mode}`);if(id){const saved=await api.getSnapshot(id);if(!cancelled)saveSnapshot(saved)}}catch(e){if(!cancelled)setError(`Could not reopen the last project: ${errorMessage(e)}`)}finally{if(!cancelled)setRestoring(false)}};void restore();return()=>{cancelled=true;mounted.current=false}},[api,initialProjectId,mode]);
- useEffect(()=>{if(!snapshot)return;let cancelled=false;const timer=setInterval(async()=>{if(active.current||download)return;try{const next=await api.getSnapshot(snapshot.projectId);if(!cancelled)saveSnapshot(next)}catch(e){if(!cancelled)setError(`Connection interrupted: ${errorMessage(e)}`)}},2500);return()=>{cancelled=true;clearInterval(timer)}},[api,snapshot?.projectId,download]);
- useEffect(()=>{if(!highlight)return;const timer=setTimeout(()=>setHighlight(null),2400);return()=>clearTimeout(timer)},[highlight]);
- useEffect(()=>{const close=(e:KeyboardEvent)=>{if(e.key==='Escape'){setSelection(null);setEditor(null)}};window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close)},[]);
- async function perform(action:()=>Promise<ProjectSnapshot>,changedId?:string):Promise<boolean>{if(active.current)return false;active.current=true;setBusy(true);setError(null);try{const next=await action();if(mounted.current){saveSnapshot(next);setDownloaded(false);if(changedId)setHighlight(changedId)}return true}catch(e){if(mounted.current)setError(errorMessage(e));return false}finally{active.current=false;if(mounted.current)setBusy(false)}}
- async function downloadBook(){if(!snapshot||download)return;setDownload(true);setError(null);try{const blob=await api.downloadFamilyBook(snapshot.projectId);if(!blob.size)throw new Error('The export was empty. No file was downloaded.');const url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download='roots-family-book.zip';anchor.click();setTimeout(()=>URL.revokeObjectURL(url),60000);setDownloaded(true);saveSnapshot(await api.getSnapshot(snapshot.projectId))}catch(e){setError(errorMessage(e))}finally{setDownload(false)}}
- const running=busy||!!snapshot?.researchEvents.some(e=>e.state==='running'&&!snapshot.researchEvents.some(other=>other.operation===e.operation&&other.sequence>e.sequence&&other.state!=='running'));
- return <div className="roots-app"><header className="roots-header"><a href="#" className="brand" onClick={e=>e.preventDefault()} aria-label="Roots home"><span aria-hidden="true">♧</span> roots<span className="brand-period">.</span></a><div className="project-label">{snapshot?<><strong>{snapshot.input.seedName}</strong><small>{snapshot.input.geographyUnknown?'Family geography unknown':snapshot.input.geography} · Saved v{snapshot.version}</small></>:<small>A place for your family story</small>}</div>{mode==='replay'&&<span className="replay-banner">Development replay · no live research</span>}{snapshot&&<><span className="book-state">{snapshot.bookStatus==='stale'?'Book needs updating':snapshot.bookStatus==='current'?'Book is up to date':downloaded?'Download saved':'Your story, taking shape'}</span><button className="primary download-button" disabled={download||busy} onClick={downloadBook}>{download?<><span className="spinner"/>Preparing your book…</>:<>↓ <span>Download family book</span></>}</button></>}</header>
- {restoring?<main className="restoring"><span className="spinner"/>Reopening your family project…</main>:!snapshot?<InputScreen busy={busy} error={error} onStart={(input,files)=>void perform(()=>api.createProject(input,files))}/>:<><div className="mobile-panels"><button aria-pressed={panel==='progress'} onClick={()=>setPanel('progress')}>Research</button><button aria-pressed={panel==='map'} onClick={()=>setPanel('map')}>Family map</button><button aria-pressed={panel==='human'} onClick={()=>setPanel('human')}>Your turn {snapshot.proposals.some(p=>p.status==='pending')?'●':''}</button></div>{error&&<div className="workspace-error" role="alert">{error}<button onClick={()=>setError(null)} aria-label="Dismiss error">×</button></div>}<main className={`research-workspace show-${panel}`}><ResearchProgress snapshot={snapshot} busy={running} onSource={id=>{setSelection({kind:'source',id});setEditor(null);setPanel('map')}}/><div className="center-workspace"><FamilyCanvas snapshot={snapshot} api={api} selectedId={selection?.kind==='person'?selection.id:null} highlightId={highlight} onSelect={id=>{setSelection({kind:'person',id});setEditor(null)}} onRelationship={id=>{setSelection({kind:'relationship',id});setEditor(null)}} onAdd={()=>{setEditor({operation:'addPerson'});setSelection(null)}}/><div className="canvas-footer"><button disabled={busy||!snapshot.history.length} onClick={()=>void perform(()=>api.mutateGraph(snapshot.projectId,{operation:'undo',baseVersion:snapshot.version,requestId:crypto.randomUUID()}))}>↶ Undo last change</button><span>PDF, editable project, evidence & originals in one ZIP</span></div>{selection&&<EvidenceDrawer key={`${selection.kind}-${selection.id}`} snapshot={snapshot} api={api} selection={selection} onClose={()=>setSelection(null)} onEdit={(operation,entityId)=>{setEditor({operation,entityId});setSelection(null)}}/>}{editor&&<GraphEditor key={`${editor.operation}-${editor.entityId||'new'}`} snapshot={snapshot} {...editor} busy={busy} onClose={()=>setEditor(null)} onSave={async mutation=>{if(await perform(()=>api.mutateGraph(snapshot.projectId,{...mutation,requestId:crypto.randomUUID()}),mutation.entityId))setEditor(null)}}/>}</div><HumanContributionPanel snapshot={snapshot} selectedId={selection?.kind==='person'?selection.id:null} busy={busy} onContribute={input=>perform(()=>api.addContribution(snapshot.projectId,{...input,requestId:crypto.randomUUID()}))} onReview={input=>{const proposal=snapshot.proposals.find(p=>p.id===input.proposalId);void perform(()=>api.reviewProposal(snapshot.projectId,{...input,requestId:crypto.randomUUID()}),['accept','correct'].includes(input.action)?input.corrections?.personId||proposal?.personId||undefined:undefined)}}/></main></>}
- </div>;
+"use client";
+import { useEffect, useRef, useState } from "react";
+import type { GraphMutation, ProjectSnapshot, RootsApi } from "./types";
+import { InputScreen } from "./InputScreen";
+import { FamilyCanvas } from "./FamilyCanvas";
+import { ResearchProgress } from "./ResearchProgress";
+import { HumanContributionPanel } from "./HumanContributionPanel";
+import { EvidenceDrawer } from "./EvidenceDrawer";
+import { GraphEditor } from "./GraphEditor";
+import "./styles.css";
+export type { RootsApi } from "./types";
+const errorMessage = (error: unknown) =>
+  error instanceof Error
+    ? error.message
+    : "The request could not be completed. Please try again.";
+export function RootsApp({
+  api,
+  initialProjectId,
+  mode = "live",
+}: {
+  api: RootsApi;
+  initialProjectId?: string;
+  mode?: "live" | "replay";
+}) {
+  const [snapshot, setSnapshot] = useState<ProjectSnapshot | null>(null),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState<string | null>(null),
+    [download, setDownload] = useState(false),
+    [downloaded, setDownloaded] = useState(false),
+    [selection, setSelection] = useState<{
+      kind: "person" | "relationship" | "source";
+      id: string;
+    } | null>(null),
+    [editor, setEditor] = useState<{
+      operation: GraphMutation["operation"];
+      entityId?: string;
+    } | null>(null),
+    [highlight, setHighlight] = useState<string | null>(null),
+    [panel, setPanel] = useState<"map" | "progress" | "human">("map"),
+    [restoring, setRestoring] = useState(true);
+  const active = useRef(false),
+    mounted = useRef(true);
+  const saveSnapshot = (next: ProjectSnapshot) => {
+    setSnapshot((current) =>
+      current &&
+      current.projectId === next.projectId &&
+      current.version > next.version
+        ? current
+        : next,
+    );
+    try {
+      localStorage.setItem(`roots-last-project-${mode}`, next.projectId);
+    } catch {
+      /* Storage may be disabled; server persistence remains authoritative. */
+    }
+  };
+  useEffect(() => {
+    mounted.current = true;
+    let cancelled = false;
+    const restore = async () => {
+      try {
+        const id =
+          initialProjectId ||
+          localStorage.getItem(`roots-last-project-${mode}`);
+        if (id) {
+          const saved = await api.getSnapshot(id);
+          if (!cancelled) saveSnapshot(saved);
+        }
+      } catch (e) {
+        if (!cancelled)
+          setError(`Could not reopen the last project: ${errorMessage(e)}`);
+      } finally {
+        if (!cancelled) setRestoring(false);
+      }
+    };
+    void restore();
+    return () => {
+      cancelled = true;
+      mounted.current = false;
+    };
+  }, [api, initialProjectId, mode]);
+  useEffect(() => {
+    if (!snapshot) return;
+    let cancelled = false;
+    const timer = setInterval(async () => {
+      if (active.current || download) return;
+      try {
+        const next = await api.getSnapshot(snapshot.projectId);
+        if (!cancelled) saveSnapshot(next);
+      } catch (e) {
+        if (!cancelled) setError(`Connection interrupted: ${errorMessage(e)}`);
+      }
+    }, 2500);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [api, snapshot?.projectId, download]);
+  useEffect(() => {
+    if (!highlight) return;
+    const timer = setTimeout(() => setHighlight(null), 2400);
+    return () => clearTimeout(timer);
+  }, [highlight]);
+  useEffect(() => {
+    const close = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelection(null);
+        setEditor(null);
+      }
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, []);
+  async function perform(
+    action: () => Promise<ProjectSnapshot>,
+    changedId?: string,
+  ): Promise<boolean> {
+    if (active.current) return false;
+    active.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      const next = await action();
+      if (mounted.current) {
+        saveSnapshot(next);
+        setDownloaded(false);
+        if (changedId) setHighlight(changedId);
+      }
+      return true;
+    } catch (e) {
+      if (mounted.current) setError(errorMessage(e));
+      return false;
+    } finally {
+      active.current = false;
+      if (mounted.current) setBusy(false);
+    }
+  }
+  async function downloadBook() {
+    if (!snapshot || download) return;
+    setDownload(true);
+    setError(null);
+    try {
+      const blob = await api.downloadFamilyBook(snapshot.projectId);
+      if (!blob.size)
+        throw new Error("The export was empty. No file was downloaded.");
+      const url = URL.createObjectURL(blob),
+        anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "roots-family-book.zip";
+      anchor.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      setDownloaded(true);
+      saveSnapshot(await api.getSnapshot(snapshot.projectId));
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setDownload(false);
+    }
+  }
+  const running =
+    busy ||
+    !!snapshot?.researchEvents.some(
+      (e) =>
+        e.state === "running" &&
+        !snapshot.researchEvents.some(
+          (other) =>
+            other.operation === e.operation &&
+            other.sequence > e.sequence &&
+            other.state !== "running",
+        ),
+    );
+  return (
+    <div className="roots-app">
+      <header className="roots-header">
+        <a
+          href="#"
+          className="brand"
+          onClick={(e) => e.preventDefault()}
+          aria-label="Roots home"
+        >
+          <span aria-hidden="true">♧</span> roots
+          <span className="brand-period">.</span>
+        </a>
+        <div className="project-label">
+          {snapshot ? (
+            <>
+              <strong>{snapshot.input.seedName}</strong>
+              <small>
+                {snapshot.input.geographyUnknown
+                  ? "Family geography unknown"
+                  : snapshot.input.geography}{" "}
+                · Saved v{snapshot.version}
+              </small>
+            </>
+          ) : (
+            <small>A place for your family story</small>
+          )}
+        </div>
+        {mode === "replay" && (
+          <span className="replay-banner">
+            Development replay · no live research
+          </span>
+        )}
+        {snapshot && (
+          <>
+            <span className="book-state">
+              {snapshot.bookStatus === "stale"
+                ? "Book needs updating"
+                : snapshot.bookStatus === "current"
+                  ? "Book is up to date"
+                  : downloaded
+                    ? "Download saved"
+                    : "Your story, taking shape"}
+            </span>
+            <button
+              className="primary download-button"
+              disabled={download || busy}
+              onClick={downloadBook}
+            >
+              {download ? (
+                <>
+                  <span className="spinner" />
+                  Preparing your book…
+                </>
+              ) : (
+                <>
+                  ↓ <span>Download family book</span>
+                </>
+              )}
+            </button>
+          </>
+        )}
+      </header>
+      {restoring ? (
+        <main className="restoring">
+          <span className="spinner" />
+          Reopening your family project…
+        </main>
+      ) : !snapshot ? (
+        <InputScreen
+          busy={busy}
+          error={error}
+          onStart={(input, files) =>
+            void perform(() => api.createProject(input, files))
+          }
+        />
+      ) : (
+        <>
+          <div className="mobile-panels">
+            <button
+              aria-pressed={panel === "progress"}
+              onClick={() => setPanel("progress")}
+            >
+              Research
+            </button>
+            <button
+              aria-pressed={panel === "map"}
+              onClick={() => setPanel("map")}
+            >
+              Family map
+            </button>
+            <button
+              aria-pressed={panel === "human"}
+              onClick={() => setPanel("human")}
+            >
+              Your turn{" "}
+              {snapshot.proposals.some((p) => p.status === "pending")
+                ? "●"
+                : ""}
+            </button>
+          </div>
+          {error && (
+            <div className="workspace-error" role="alert">
+              {error}
+              <button onClick={() => setError(null)} aria-label="Dismiss error">
+                ×
+              </button>
+            </div>
+          )}
+          <main className={`research-workspace show-${panel}`}>
+            <ResearchProgress
+              snapshot={snapshot}
+              busy={running}
+              onSource={(id) => {
+                setSelection({ kind: "source", id });
+                setEditor(null);
+                setPanel("map");
+              }}
+            />
+            <div className="center-workspace">
+              <FamilyCanvas
+                snapshot={snapshot}
+                api={api}
+                selectedId={selection?.kind === "person" ? selection.id : null}
+                highlightId={highlight}
+                onSelect={(id) => {
+                  setSelection({ kind: "person", id });
+                  setEditor(null);
+                }}
+                onRelationship={(id) => {
+                  setSelection({ kind: "relationship", id });
+                  setEditor(null);
+                }}
+                onAdd={() => {
+                  setEditor({ operation: "addPerson" });
+                  setSelection(null);
+                }}
+              />
+              <div className="canvas-footer">
+                <button
+                  disabled={busy || !snapshot.history.length}
+                  onClick={() =>
+                    void perform(() =>
+                      api.mutateGraph(snapshot.projectId, {
+                        operation: "undo",
+                        baseVersion: snapshot.version,
+                        requestId: crypto.randomUUID(),
+                      }),
+                    )
+                  }
+                >
+                  ↶ Undo last change
+                </button>
+                <span>
+                  PDF, editable project, evidence & originals in one ZIP
+                </span>
+              </div>
+              {selection && (
+                <EvidenceDrawer
+                  key={`${selection.kind}-${selection.id}`}
+                  snapshot={snapshot}
+                  api={api}
+                  selection={selection}
+                  onClose={() => setSelection(null)}
+                  onEdit={(operation, entityId) => {
+                    setEditor({ operation, entityId });
+                    setSelection(null);
+                  }}
+                />
+              )}
+              {editor && (
+                <GraphEditor
+                  key={`${editor.operation}-${editor.entityId || "new"}`}
+                  snapshot={snapshot}
+                  {...editor}
+                  busy={busy}
+                  onClose={() => setEditor(null)}
+                  onSave={async (mutation) => {
+                    if (
+                      await perform(
+                        () =>
+                          api.mutateGraph(snapshot.projectId, {
+                            ...mutation,
+                            requestId: crypto.randomUUID(),
+                          }),
+                        mutation.entityId,
+                      )
+                    )
+                      setEditor(null);
+                  }}
+                />
+              )}
+            </div>
+            <HumanContributionPanel
+              snapshot={snapshot}
+              selectedId={selection?.kind === "person" ? selection.id : null}
+              busy={busy}
+              onContribute={(input) =>
+                perform(() =>
+                  api.addContribution(snapshot.projectId, {
+                    ...input,
+                    requestId: crypto.randomUUID(),
+                  }),
+                )
+              }
+              onReview={(input) => {
+                const proposal = snapshot.proposals.find(
+                  (p) => p.id === input.proposalId,
+                );
+                void perform(
+                  () =>
+                    api.reviewProposal(snapshot.projectId, {
+                      ...input,
+                      requestId: crypto.randomUUID(),
+                    }),
+                  ["accept", "correct"].includes(input.action)
+                    ? input.corrections?.personId ||
+                        proposal?.personId ||
+                        undefined
+                    : undefined,
+                );
+              }}
+            />
+          </main>
+        </>
+      )}
+    </div>
+  );
 }
 export default RootsApp;
