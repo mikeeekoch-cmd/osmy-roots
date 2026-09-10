@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectSnapshot, RootsApi } from "./types";
 import { branchIds, familyLayout, isParent, years } from "./model";
+import { OriginalPhoto } from "./OriginalPhotos";
 export function FamilyCanvas({
   snapshot,
   api,
@@ -47,6 +48,7 @@ export function FamilyCanvas({
       height: Math.max(1, ordered.length) * 78 + 16,
     };
   }, [people, snapshot.relationships, all]);
+  const layoutKey = JSON.stringify(layout.positions);
   const fit = () => {
     if (!viewport.current) return;
     const rect = viewport.current.getBoundingClientRect();
@@ -72,7 +74,7 @@ export function FamilyCanvas({
     const observer = new ResizeObserver(() => fit());
     observer.observe(viewport.current);
     return () => observer.disconnect();
-  }, [all, snapshot.people.length]);
+  }, [all, layoutKey]);
   const focus = (id: string) => {
     const p = layout.positions[id];
     if (!p) {
@@ -148,7 +150,10 @@ export function FamilyCanvas({
         ref={viewport}
         className="map-viewport"
         onPointerDown={(e) => {
-          if ((e.target as HTMLElement).closest("button,a,input")) return;
+          if (
+            (e.target as HTMLElement).closest('button,a,input,[role="button"]')
+          )
+            return;
           pan.current = {
             x: e.clientX,
             y: e.clientY,
@@ -220,9 +225,6 @@ export function FamilyCanvas({
                     <path
                       className="edge-hit"
                       d={d}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${snapshot.people.find((p) => p.id === r.fromPersonId)?.displayNameEn} ${r.type} ${snapshot.people.find((p) => p.id === r.toPersonId)?.displayNameEn}`}
                       onClick={() => onRelationship(r.id)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
@@ -235,6 +237,34 @@ export function FamilyCanvas({
                 );
               })}
             </svg>
+            {snapshot.relationships
+              .filter((r) => r.status !== "rejected")
+              .map((r) => {
+                const a = layout.positions[r.fromPersonId],
+                  b = layout.positions[r.toPersonId];
+                if (!a || !b) return null;
+                const parent = isParent(r),
+                  w = all ? 192 : 260,
+                  h = all ? 146 : 60;
+                const x = parent
+                  ? (a.x + b.x) / 2 + w / 2
+                  : (a.x + w + b.x) / 2;
+                const y = parent
+                  ? (a.y + h + b.y) / 2
+                  : (a.y + b.y) / 2 + h / 2;
+                return (
+                  <button
+                    className={`relationship-handle ${r.status === "accepted" ? "" : "uncertain"}`}
+                    key={`handle-${r.id}`}
+                    style={{ left: x - 8, top: y - 8 }}
+                    aria-label={`${snapshot.people.find((p) => p.id === r.fromPersonId)?.displayNameEn} ${r.type} ${snapshot.people.find((p) => p.id === r.toPersonId)?.displayNameEn}`}
+                    title="Inspect relationship evidence"
+                    onClick={() => onRelationship(r.id)}
+                  >
+                    ·
+                  </button>
+                );
+              })}
             {people.map((p) => {
               const pos = layout.positions[p.id];
               const uncertain = snapshot.claims.some(
@@ -251,7 +281,7 @@ export function FamilyCanvas({
                 >
                   <div className="person-portrait">
                     {p.photoIds[0] ? (
-                      <img
+                      <OriginalPhoto
                         src={api.assetUrl(snapshot.projectId, p.photoIds[0])}
                         alt={`${p.displayNameEn}, original family photo`}
                       />

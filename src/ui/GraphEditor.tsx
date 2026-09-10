@@ -35,6 +35,8 @@ export function GraphEditor({
       relation?.toPersonId || snapshot.people[1]?.id || "",
     ),
     [type, setType] = useState(relation?.type || "parent"),
+    [status, setStatus] = useState(relation?.status || "unresolved"),
+    [claimIds, setClaimIds] = useState<string[]>(relation?.claimIds || []),
     [editVersion] = useState(snapshot.version),
     [error, setError] = useState("");
   const isPerson = kind === "addPerson" || kind === "editPerson";
@@ -70,7 +72,7 @@ export function GraphEditor({
               },
             },
           }
-        : { fromPersonId: from, toPersonId: to, type },
+        : { fromPersonId: from, toPersonId: to, type, status, claimIds },
     });
   };
   return (
@@ -178,9 +180,42 @@ export function GraphEditor({
                 ))}
               </select>
             </label>
+            <label className="field">
+              Review status
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as typeof status)}
+              >
+                {[
+                  "unresolved",
+                  "proposed",
+                  "accepted",
+                  "disputed",
+                  "rejected",
+                ].map((value) => (
+                  <option key={value}>{value}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              Supporting claims
+              <select
+                multiple
+                value={claimIds}
+                onChange={(e) =>
+                  setClaimIds([...e.target.selectedOptions].map((o) => o.value))
+                }
+              >
+                {snapshot.claims.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.predicate}: {c.value}
+                  </option>
+                ))}
+              </select>
+            </label>
             <p className="muted">
-              This relationship will be recorded as your contribution, with the
-              original edit preserved as evidence.
+              Your contribution and original edit remain in the evidence
+              history.
             </p>
           </>
         )}

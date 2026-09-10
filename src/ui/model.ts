@@ -49,27 +49,63 @@ export const isParent = (r: Relationship) =>
   r.status !== "rejected" &&
   ["parent", "parent_child", "parent_of", "father", "mother"].includes(r.type);
 export function familyLayout(people: Person[], relationships: Relationship[]) {
-  const generation = new Map(people.map((p) => [p.id, 0]));
+  const groups = new Map(people.map((p) => [p.id, p.id]));
+  const root = (id: string): string => {
+    let current = id;
+    const seen = new Set<string>();
+    while (
+      groups.has(current) &&
+      groups.get(current) !== current &&
+      !seen.has(current)
+    ) {
+      seen.add(current);
+      current = groups.get(current)!;
+    }
+    return current;
+  };
+  for (const r of relationships.filter(
+    (r) => r.type === "partner" && r.status !== "rejected",
+  )) {
+    if (groups.has(r.fromPersonId) && groups.has(r.toPersonId))
+      groups.set(root(r.toPersonId), root(r.fromPersonId));
+  }
+  const depth = new Map([...groups.values()].map((id) => [root(id), 0]));
   for (let pass = 0; pass < people.length; pass++) {
     let changed = false;
     for (const r of relationships.filter(isParent)) {
-      if (!generation.has(r.fromPersonId) || !generation.has(r.toPersonId))
-        continue;
-      const next = Math.min(
-        people.length - 1,
-        (generation.get(r.fromPersonId) || 0) + 1,
-      );
-      if (next > (generation.get(r.toPersonId) || 0)) {
-        generation.set(r.toPersonId, next);
+      if (!groups.has(r.fromPersonId) || !groups.has(r.toPersonId)) continue;
+      const from = root(r.fromPersonId),
+        to = root(r.toPersonId);
+      if (from === to) continue;
+      const next = Math.min(people.length - 1, (depth.get(from) || 0) + 1);
+      if (next > (depth.get(to) || 0)) {
+        depth.set(to, next);
         changed = true;
       }
     }
     if (!changed) break;
   }
+  const generation = new Map(
+    people.map((p) => [p.id, depth.get(root(p.id)) || 0]),
+  );
   const rows = new Map<number, Person[]>();
   people.forEach((p) => {
     const row = generation.get(p.id) || 0;
     rows.set(row, [...(rows.get(row) || []), p]);
+  });
+  rows.forEach((row, key) => {
+    const ordered: Person[] = [];
+    const seen = new Set<string>();
+    for (const p of row) {
+      if (seen.has(p.id)) continue;
+      for (const peer of row.filter((other) => root(other.id) === root(p.id))) {
+        if (!seen.has(peer.id)) {
+          ordered.push(peer);
+          seen.add(peer.id);
+        }
+      }
+    }
+    rows.set(key, ordered);
   });
   const max = Math.max(1, ...[...rows.values()].map((row) => row.length));
   const positions: Record<string, { x: number; y: number }> = {};
@@ -84,7 +120,7 @@ export function familyLayout(people: Person[], relationships: Relationship[]) {
   return {
     positions,
     width: max * 224 + 60,
-    height: Math.max(1, rows.size) * 206 + 80,
+    height: (Math.max(0, ...rows.keys()) + 1) * 206 + 80,
   };
 }
 /** Focus a five-generation ancestry line through the starting person when possible. */
