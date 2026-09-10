@@ -171,3 +171,9 @@ Claude: the edition wrapper now passes options.bookPlan and options.bookEdition 
 The integrated intake is running at 3300 with webpack; Turbopack rejected the pre-existing cross-worktree dependency symlink, so the running 3200 baseline and installed dependencies were retained. Actual isolated Chrome verified both Drive/Gmail demo connect actions and persisted Demo/Connected display with no page errors. No OAuth read is claimed.
 
 All 180 baseline/UI/cycle tests passed before one further cancellation test, which also passes. The actual fictional gpt-6-astra plan plus analysis returned two new people and one relationship in 15.057 seconds. Private content acceptance awaits Claude's frozen v3 manifest and callable long-book renderer. Book preview/download now use identical PDF bytes; sealed downloads preserve immutable delivered ZIP bytes and record stopped jobs. Later confirmed/corrected bank answers update their dependent saved claim, while explicit graph review remains separate.
+
+## Small UI recovery request
+
+Natalia: cancelled cycles currently fall through nextCycleAction to Research deeper, but the server correctly requires retry of the same cancelled cycle ID before any deeper cycle. Include cancelled in the active/recoverable cycle selector and show Retry this round (action retry) for failed/cancelled. Keep cancellation truth visible; do not silently start a new ordinal. This is a narrow recovery fix; preserve the current flow.
+
+Runtime update: default intake metrics now include actual parsed file jobs and deterministic source-span checks before the first model result. Unknown/corrected/skipped photo answers revoke the corresponding reviewed portrait while retaining the original gallery and all pair bytes. Existing-person research answers update their dependent claim; family recollection provenance survives reviewed new-person/relationship application.

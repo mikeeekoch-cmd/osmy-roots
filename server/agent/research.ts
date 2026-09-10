@@ -30,6 +30,28 @@ export interface ResearchDeps {
   analyze?: typeof analyzeResearchRecord;
   intakeAnalyze?: Parameters<typeof analyzeHeldOut>[1];
 }
+function proposalEvidenceType(
+  s: ProjectSnapshot,
+  spans: { sourceId: string }[],
+) {
+  const sources = spans.map((span) =>
+    s.sources.find((source) => source.id === span.sourceId),
+  );
+  if (
+    sources.some(
+      (source) =>
+        source &&
+        (source.reconstructed || /chat|memory|recollection/.test(source.kind)),
+    )
+  )
+    return "family_recollection" as const;
+  if (
+    sources.length &&
+    sources.every((source) => source?.kind.includes("archive"))
+  )
+    return "archive_record" as const;
+  return "family_document" as const;
+}
 function check(s: ProjectSnapshot) {
   if (!s.research || !s.run)
     throw new AppError(
@@ -271,7 +293,7 @@ async function prepareIntake(id: string, deps: ResearchDeps) {
               source.evidenceRootIds || source.contentHash,
               span.quote,
             ]);
-            if (!r.validationOutcomes.some((v) => v.key === key))
+            if (!r.validationOutcomes.some((v) => v.key === key && v.method === "astra"))
               r.validationOutcomes.push({
                 key,
                 sourceId: source.id,
@@ -574,7 +596,7 @@ export async function executeResearch(id: string, deps: ResearchDeps = {}) {
           } else result.resultIds = [existing.id];
           for (const span of out.proposal.support) {
             const key = digest([out.proposal.evidenceRootIds, span.quote]);
-            if (!r.validationOutcomes.some((v) => v.key === key))
+            if (!r.validationOutcomes.some((v) => v.key === key && v.method === "astra"))
               r.validationOutcomes.push({
                 key,
                 sourceId: span.sourceId,
@@ -751,7 +773,7 @@ export async function reviewGraphProposal(id: string, raw: unknown) {
             sourceIds: [...new Set(person.support.map((x) => x.sourceId))],
             spans: person.support,
             status: "accepted",
-            evidenceType: "family_document",
+            evidenceType: proposalEvidenceType(s, person.support),
             version: 1,
           });
           s.people.push({
@@ -790,7 +812,7 @@ export async function reviewGraphProposal(id: string, raw: unknown) {
             sourceIds: [...new Set(rel.support.map((x) => x.sourceId))],
             spans: rel.support,
             status: "accepted",
-            evidenceType: "family_document",
+            evidenceType: proposalEvidenceType(s, rel.support),
             version: 1,
           });
           s.relationships.push({

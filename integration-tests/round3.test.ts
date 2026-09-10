@@ -109,19 +109,17 @@ async function setup() {
   );
   const photo = m.questions.find((q) => q.category === "photo")!;
   const questions = [
-    ...m.photos
-      .slice(0, 3)
-      .map((p, i) => ({
-        ...photo,
-        id: `photo-check-${i}`,
-        support: p.support,
-        personIds: [
-          ...new Set(p.positions.map((x) => x.personId).filter(Boolean)),
-        ],
-        photoAssetId: p.assetId,
-        photoEra: i === 0 ? "modern" : "old",
-        effect: { kind: "annotation", photoAssetId: p.assetId },
-      })),
+    ...m.photos.slice(0, 3).map((p, i) => ({
+      ...photo,
+      id: `photo-check-${i}`,
+      support: p.support,
+      personIds: [
+        ...new Set(p.positions.map((x) => x.personId).filter(Boolean)),
+      ],
+      photoAssetId: p.assetId,
+      photoEra: i === 0 ? "modern" : "old",
+      effect: { kind: "annotation", photoAssetId: p.assetId },
+    })),
     m.questions.find((q) => q.category === "origin"),
     m.questions.find((q) => q.requiresAstra),
     m.questions.find((q) => q.category === "conflict"),
@@ -493,6 +491,65 @@ test("cancelled in-flight jobs cannot publish a late proposal", async () => {
         .research!.jobs.filter((j) => j.kind === "analyze" && j.cycleId)
         .every((j) => j.status === "cancelled"),
     );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("unknown bank answers do not reopen initial checks and corrections invalidate the current book", async () => {
+  const { s: start, root } = await ready();
+  try {
+    await cycleAction(
+      start.projectId,
+      {
+        action: "initial",
+        requestId: "start-answer",
+        baseVersion: start.version,
+      },
+      deps,
+    );
+    let s = await waitForResearch(start.projectId);
+    const q = s.research!.questionBank[0];
+    s = await updateProject(s.projectId, (p) => {
+      p.research!.questionBank[0].personIds = [p.people[0].id];
+    });
+    s = await answerBankQuestion(s.projectId, {
+      questionId: q.id,
+      action: "confirm",
+      baseVersion: s.version,
+      requestId: "bank-confirm",
+    });
+    assert.equal(
+      s.claims.find((c) => c.id === `bank-claim-${q.id}`)!.status,
+      "accepted",
+    );
+    s = await answerBankQuestion(s.projectId, {
+      questionId: q.id,
+      action: "correct",
+      text: "The narrator left this uncertain.",
+      baseVersion: s.version,
+      requestId: "bank-correct",
+    });
+    assert.equal(
+      s.claims.find((c) => c.id === `bank-claim-${q.id}`)!.value,
+      "The narrator left this uncertain.",
+    );
+    assert.equal(
+      s.sources.filter((source) => source.id === "answer-bank-correct").length,
+      1,
+    );
+    s = await answerBankQuestion(s.projectId, {
+      questionId: q.id,
+      action: "unknown",
+      baseVersion: s.version,
+      requestId: "bank-unknown",
+    });
+    assert.equal(
+      s.claims.find((c) => c.id === `bank-claim-${q.id}`)!.status,
+      "superseded",
+    );
+    assert.equal(s.run!.answers.length, 6);
+    assert.equal(s.research!.intake.status, "ready");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

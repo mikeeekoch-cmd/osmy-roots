@@ -22,3 +22,5 @@ exports/
 *.tsbuildinfo
 
 .next-round3/
+
+.next-round3-build/

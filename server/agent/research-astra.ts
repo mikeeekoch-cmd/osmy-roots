@@ -207,10 +207,21 @@ export async function analyzeResearchRecord(
     cycleId: c.id,
     inputFingerprint: researchFingerprint(s),
     deduplicationKey: digest({
-      roots,
+      roots: [...roots].sort(),
       quotes: out.support.map((x) => x.quote).sort(),
       people: out.people.map((p) => p.originalName || p.displayNameEn).sort(),
-      relationships: out.relationships,
+      relationships: out.relationships
+        .map((r) => ({
+          type: r.type,
+          from:
+            out.people.find((p) => p.key === r.fromPersonId)?.displayNameEn ||
+            r.fromPersonId,
+          to:
+            out.people.find((p) => p.key === r.toPersonId)?.displayNameEn ||
+            r.toPersonId,
+          quotes: r.support.map((x) => x.quote).sort(),
+        }))
+        .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
     }),
     status: "pending",
     createdAt: new Date().toISOString(),

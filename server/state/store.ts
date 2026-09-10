@@ -56,6 +56,7 @@ async function withLock<T>(id: string, fn: () => Promise<T>): Promise<T> {
   }
 }
 export async function createSavedProject(s: ProjectSnapshot) {
+  if(s.research)s.research.metrics=authoritativeMetrics(s);
   return withLock(s.projectId, async () => {
     try {
       await readFile(join(projectDir(s.projectId), "project.json"));

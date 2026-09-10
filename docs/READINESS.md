@@ -1,6 +1,6 @@
 # Readiness, September 10, 2026
 
-Scope update: Mike has requested the changes specified in [round-3/README.md](round-3/README.md). That revision is planned, not implemented or accepted. The measured readiness below applies to round 2 only; it does not establish live Gmail/Drive connections, repeated deeper research, all-old-photo comparisons or a 35-40-page book.
+Round 3 is now being implemented under [round-3/README.md](round-3/README.md), starting 20:08:05 UTC. Shared contracts were published within three minutes. The integrated candidate has explicit research cycles, a question bank, source-backed graph review, server metrics and a separate book-edition path. All 182 current regression tests and a production webpack build pass; an actual fictional Astra plan plus new-person analysis also passed. These checks do not yet establish private packet, complete photo-pair or long-book acceptance. Mike subsequently chose demo Drive/Gmail connections using prepared copies; the UI explicitly displays Demo, and actual OAuth is no longer required for this presentation. Two full round-3 browser rehearsals remain pending. The preserved measured readiness below applies to round 2 only.
 
 Round 2 is demo-ready locally on application commit `a627436`, on `codex/engineering`. Two fresh browser journeys delivered current ZIPs within 120 seconds, and both actual PDFs passed visual review. The production app runs at http://127.0.0.1:3200. Earlier evidence is preserved in [archive/READINESS-round1.md](archive/READINESS-round1.md).
 
