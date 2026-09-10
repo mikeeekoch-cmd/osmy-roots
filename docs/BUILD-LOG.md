@@ -39,3 +39,9 @@ Expanded all three launch prompts into concrete file/module outputs, input/outpu
 ## Final P0/P1 and owner swap
 
 Mike explicitly assigned UI/animations to Codex Natalia and ingestion/export to Claude Code. Added bounded local search/public retrieval to Claude’s P0, query/analysis orchestration to Codex Mike, event-driven motion to Natalia, and a gated next queue with honest cached/mock boundaries. Updated all three prompts, contracts and current instructions. This is documentation only; no worker was launched, no clock reset, and no application/search result is claimed.
+
+## 2026-09-10, local prototype execution
+
+Lead started at 16:27:53 UTC. Runtime contracts/scaffold published as e838039 on codex/engineering before T+10. Server runs on loopback and serves the integration scaffold; TypeScript and ten state tests pass. Codex implemented lead-owned schema/state/event/Astra/route modules. Natalia and Claude are independent workers and their contributions will be recorded at actual integration.
+
+The first application Astra request used a public synthetic recollection. It returned HTTP 429 credit_balance_exhausted after 2095 ms. This is a real failed request, not successful inference. No private source payload or credential is committed. Local state/review checks use explicitly synthetic model fixtures and do not prove live analysis. P1 stays gated on integrated P0. No prior application code, private family assets or mockup code was copied.
