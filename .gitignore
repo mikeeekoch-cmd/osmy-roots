@@ -17,3 +17,5 @@ exports/
 .vercel/
 .supabase/
 .claude/settings.local.json
+.roots-data/
+*.tsbuildinfo
