@@ -2,136 +2,70 @@
 
 Owner: Claude Code Mike. Branch: `codex/data-export`. Modules: `server/ingestion`, `server/research`, `server/export`.
 
-- T0 / shared deadline: read from the lead. T0 16:27:53 UTC, **T+90 deadline 17:57:53 UTC / 13:57:53 EDT**. I have not started a separate clock.
-- Base commit: `4d1c86a` (main). Latest code commit: this branch head.
-- P0 status: **complete and verified**, except the notes under "Gaps" below.
+## Round 2 status
+
+Merged `origin/codex/engineering` (through `d10eb59`) into this branch, preserving local work. The lead's strict `buildRuntimeBundle` adapter is kept; my `contract-adapter.mjs` remains available but the lead's boundary is authoritative.
+
+**Round-2 engineering is implemented and tested against a fictional twin. It has not been run against Product's real packet, which is not on this machine.**
 
 ## Run it
 
 ```
-node --test "tests/**/*.test.mjs"     # 55 tests, all passing, no install step
+node --test "tests/**/*.test.mjs"                       # 106 tests, no install step
+node scripts/make-test-packet.mjs /tmp/twin             # fictional twin packet
+node scripts/check-packet.mjs /tmp/twin/01-upload       # validator Product can run
+node scripts/demo-round2.mjs --packet /tmp/twin/01-upload
 ```
 
-Zero runtime dependencies. Plain ESM, stock Node. Nothing to add to the lockfile.
+## New in round 2
 
-## Exported functions
+Four formats round 1 explicitly deferred are now real parsers, not prepared extractions.
 
-```js
-import { importPreparedFamily, ingestContribution } from './server/ingestion/index.mjs';
-import { searchLocalSources, fetchPublicRecord, websiteCountDelta } from './server/research/index.mjs';
-import { buildFamilyBundle } from './server/export/index.mjs';
+- `server/ingestion/archive.mjs` reads supplied ZIPs under hard limits: traversal, absolute and drive-letter paths, symlinks, executable content, encrypted entries, unsupported compression and Zip64 are all refused; nested archives are listed but never expanded; 200 entries, 25 MB per entry, 100 MB expanded per run, 200:1 ratio bound.
+- `server/ingestion/pdf-text.mjs` extracts a real text layer, including objects packed in object streams, and maps codes through `/ToUnicode`. Verified against our own writer **and** a CUPS-produced PDF. Too little text is reported as a failure requiring a hash-bound sidecar, which is then labelled `prepared_sidecar` rather than called extraction.
+- `server/ingestion/csv.mjs` is full RFC 4180. `server/ingestion/chat.mjs` handles iOS and Android transcripts, multi-line messages, system notices and attachments.
+- `server/ingestion/packet.mjs` assembles the entire upload set into the roster with **no internal project JSON**, auditing the raw-to-normalized relationship reconciliation row by row.
+- `server/research/staged.mjs` plans the initial branch and six dependency-safe batches from manifest offsets, and proves nobody is released before a relative is visible. No timers live in these modules.
+- `server/export/preparation.mjs` gives the lead a preparation key over version, book status, language, packet version, accepted claims and stories, and every asset hash. Any correction changes the key, so a prepared bundle cannot be served after the family changes.
+- `server/export/english.mjs` enforces English-only demo output. `mode: 'raw'` preserves the older general-purpose export unchanged.
 
-await importPreparedFamily({ seedJson, mediaFiles, sourceDocuments, sourceLabel });
-await ingestContribution({ text, files, targetPersonId, knownHashes });
-await searchLocalSources({ query, sources, limit });          // limit defaults to 5
-await fetchPublicRecord({ url, timeoutMs, maxBytes, allowHosts });
-await buildFamilyBundle({ snapshot, passages, resolveAsset, options });
-```
+## Measured on the twin
 
-`options` for `buildFamilyBundle`: `{ focusPersonId, branchRootId, generations, title, dedication, projectName, includeAssets }`.
-`focusPersonId` is the chapter subject; `branchRootId` is the person the printed branch is drawn from (usually the youngest). `includeAssets` is `'branch'` (default), `'all'` or `'none'`.
+| Step | Time |
+| --- | --- |
+| Ingest packet (PDF, 2 CSVs, 2 text files, 8 photos, 3 archives) | 18 ms |
+| Plan initial branch and six batches | 1 ms |
+| Local evidence search | 10 ms |
+| Prepare current English book and bundle | 58 ms |
+| **Total** | **87 ms** |
 
-### Sample return: `ingestContribution`
+Book and bundle preparation is 58 ms, so readiness by second 108 is not in doubt from this side. Coverage: 35 people, 53 raw relationship rows reconciled to 52 with the merged row named, real PDF text layer, 3 archives parsed, 20 sources, 8 photos, 17 evidence roots, 0 errors. Six batches run 5 -> 10 -> 15 -> 20 -> 25 -> 30 -> 35 across 45 seconds, dependency-safe.
 
-```jsonc
-{
-  "schemaVersion": "roots-export-1",
-  "sources": [{
-    "id": "SRC_44b3456a74_001",
-    "kind": "family_memory",
-    "originalLocator": "pasted-text-44b3456a.txt#L1",
-    "contentHash": "44b3456a746fdbea650d3a72e51ba5d557f79dbe2beee7b1eb1b8f8fc16968dc",
-    "origin": "live",
-    "author": null,                 // unknown stays null
-    "messageTimestamp": null,       // a wall-clock time is NOT a message time
-    "originalText": "He repaired watches at a bench in the back room.",
-    "mediaType": "text/plain",
-    "targetPersonId": "P004",
-    "segments": [{ "index": 1, "startLine": 1, "endLine": 1, "locator": "pasted-text-44b3456a.txt#L1", "text": "…" }],
-    "bytes": "<Buffer>"             // persist these; storageKey is opaque
-  }],
-  "assets": [{ "id": "A_c740f0ec5a_002", "originalName": "chat.zip", "mediaType": "application/zip",
-               "contentHash": "c740f0ec5a…", "storageKey": "assets/A_c740f0ec5a_002.zip", "bytes": "<Buffer>" }],
-  "duplicateHashes": [],
-  "files": [{ "uploadId": "U002", "originalName": "chat.zip", "status": "stored_only",
-              "sourceIds": [], "assetIds": ["A_c740f0ec5a_002"],
-              "reason": "Archive stored without extraction. Native chat-export parsing is not implemented; no compatibility is claimed." }]
-}
-```
+The four-page PDF was rendered and **every page inspected**. Page 1 branding, portrait and dedication; page 2 the legible main line plus the full 35-person register; page 3 the reviewed story with photographs; page 4 numbered sources and open questions. Layout guards for clipped names, page overflow, raw object prose and unresolved citation targets all pass.
 
-`searchLocalSources` returns `{status: 'hit'|'no_match'|'invalid_query', hits: [{sourceId, locator, snippet, score, origin}], searchedSources, totalMatches}`.
-`fetchPublicRecord` returns `{status: 'ok'|'timeout'|'blocked'|'not_allowed'|'unavailable', source?, finalUrl, retrievedAt, elapsedMs, truncated, error?}`.
-`buildFamilyBundle` returns `{bytes, filename, mimeType: 'application/zip', manifest}`.
+## Defects found and fixed while verifying
 
-## Checks actually run
+1. **The PDF object scanner walked into binary stream payloads.** An embedded font contains byte sequences that look like `12 0 obj`, so a false match could shadow a real object. Now the scanner skips past stream data and the first definition wins.
+2. **Our own book PDF mapped the space glyph to U+00A0.** Several code points share one glyph, and the last one won. Text copied out of the delivered book carried non-breaking spaces, which breaks search and matching. The lowest code point now wins.
+3. Internal directives (`evidence_root:`, `original_source:`) were printing as prose in the book. They are still parsed and still stored verbatim in `sources.json`, but the rendered text is clean.
+4. A truncated source list could drop the very sources the book cites. Cited sources are now ordered first.
 
-Real private packet (93 people, 3 source documents, 183 photographs):
+## For Product
 
-- Import: 93 people, 142 relationships, 383 claims, 44 stories. Two real discrepancies surfaced rather than swallowed: the seed's `meta.total_persons` says 91 while the array holds 93, and one duplicate `parent_child` edge was collapsed. Chronology and ancestry-cycle checks found no violations.
-- A relationship with a missing endpoint is excluded from the graph **and** returned as a warning plus a structured issue.
-- Source confidence is mapped, never upgraded: `подтверждено` -> `accepted`, `вероятно` -> `proposed`. 23 of the 143 edges legitimately stay candidates.
-- Ingestion outcomes: `.txt`/`.json`/`.md`/`.csv` -> `parsed` with `file#L3` locators; `.zip`, `.jpg`, `.m4a` -> `stored_only` with an explicit reason. A PNG renamed `.txt` is still detected as an image. Non-UTF-8 bytes are stored, not decoded.
-- Local search verified for hit, no-match, invalid query, Cyrillic, and that different queries return different segments (it is not a prerecorded list).
-- **Live fetch check PASSED.** Real request to `https://www.loc.gov/search/?q=Chelyabinsk&fo=json`: HTTP 200, 221,627 bytes, 6.2 s, content hash and exact locator recorded. Timeout, byte cap, HTTP 403, sign-in/CAPTCHA walls and redirect-to-off-allowlist all verified as distinct, honest failures.
-- SSRF refused for `127.0.0.1`, `10/8`, `172.16/12`, `192.168/16`, `169.254.169.254`, CGNAT, `::1`, `fe80::`, `::ffff:127.0.0.1`, `file://` and any host off the allowlist. Every redirect hop is re-validated. No network call is made for a refused target.
-- Export: four-page PDF, rendered and **visually inspected page by page**. Cyrillic originals print beside English text; photo aspect ratios are preserved; the branch chart follows real `parent_child` edges; source markers resolve to the numbered source list.
-- Before/after acceptance: project version 1 -> 2, the new attributed story and the lead's cited passage appear, the bundle bytes differ. A passage stamped with an older `acceptedStateVersion` is excluded and reported as stale. An `unresolved` story does not reach the biography. A passage with no claim or source locator is rejected.
-- ZIP verified with system `unzip -t` and by an independent reader in tests that checks every CRC and size. Bundled originals are byte-identical to the inputs and re-hashed; a mismatch or unresolved attachment is flagged in the manifest.
-- No absolute host path, and no real family name, appears in any tracked file.
+`docs/PARSER-COMPATIBILITY.md` lists exact supported filenames, accepted column names, date and status vocabularies, caption rules, chat directives and archive limits. Run `node scripts/check-packet.mjs <01-upload>` before freezing a packet version; it exits non-zero on any error and prints every file outcome, the reconciliation, photo identity mapping and the staged-release check.
 
-## ACTION FOR THE LEAD: the download is currently a 503
+Two things worth knowing early:
 
-`server/agent/data-modules.ts` still ends with a stub:
+- Supplied recollections are ingested as **proposed**, never pre-accepted, so the key story beat is a real decision on stage.
+- A caption naming two or more people without the phrase "left to right" leaves positions unknown by design. That is reported, not guessed.
 
-```ts
-async buildFamilyBundle() {
-  throw new AppError("The current-state export module is awaiting Claude's handoff.", 503, "EXPORT_NOT_INTEGRATED");
-}
-```
+## Gaps and what I need
 
-My export module is merged into `codex/engineering`, so this is the only thing standing
-between the UI's Download button and a real ZIP. I have not edited your file. Apply this:
-
-```ts
-import { buildFamilyBundleFromContract } from "../export/contract-adapter.mjs";
-// ...replace the stub with:
-buildFamilyBundle: (input) =>
-  buildFamilyBundleFromContract(input, {
-    branchRootId: "<youngest person id>",   // root of the printed branch
-    focusPersonId: "<chapter subject id>",  // person the chapter is about
-    title: "Roots: The Family Book",
-    dedication: "Dad, this is for you.",
-  }),
-```
-
-`server/export/contract-adapter.mjs` translates your published shapes to my renderers and
-matches `DataModules.buildFamilyBundle` exactly. It handles the five differences between
-our shapes: `relationship.type` parent/partner, `story.personId`/`attribution`,
-`lifeYears` without a label, `claim.value` as a string, and `sourceLocators` as
-`SourceSpan[]`. It also adapts your async `resolveAsset(id) => Promise<Uint8Array>`.
-A resolver that throws produces a reported missing attachment, not a failed download.
-Eight tests in `tests/data-export/contract-adapter.test.mjs` cover this boundary.
-Both options are optional; sensible defaults are chosen if you omit them.
-
-## Decisions the lead should know about
-
-1. **Zero runtime dependencies, plain ESM `.mjs`.** `pnpm` is not installed on this laptop and `package.json` pins `node >=24 <25` while local Node is 25.8.1. Rather than block on files I do not own, PDF, ZIP, TrueType embedding and image handling are implemented in-module over `node:zlib`. Say the word if you want TypeScript under `packages/contracts`; JSDoc typedefs are already in `server/contracts/types.mjs` and conversion is mechanical.
-2. `server/contracts/types.mjs` mirrors `docs/CONTRACT-V3.json` field names verbatim. It is a placeholder until you publish the real contract. I have not invented competing names.
-3. Ingestion returns `bytes` in memory for you to persist. `storageKey` is opaque (`assets/<id>.<ext>`). `buildFamilyBundle` reaches originals **only** through the `resolveAsset(assetId)` you supply, and throws if it is missing.
-4. Bundled originals default to the printed branch (`includeAssets: 'branch'`), which took a real export from 175 MB to 104 MB. `project.json` still lists every asset, and omitted ones are named in `research-notes.json`. Pass `'all'` for the complete archive.
-5. **Please add a test script.** You own `package.json`; I did not touch it. Suggested: `"test": "node --test \"tests/**/*.test.mjs\""`.
-
-## Gaps and blockers
-
-- **No native Telegram or WhatsApp export has been supplied.** The private packet contains fictional format fixtures only. No chat-export compatibility is claimed or tested, and the P1 parser is skipped until a real sample exists. This is the one input format most likely to be assumed working; it is not.
-- The public-fetch allowlist covers Library of Congress, NARA, Pamyat Naroda, Yandex Archive, Szukaj w Archiwach, Chelyabinsk archive, FamilySearch and Wikipedia. **A specific record URL for the demo has not been chosen.** If you want a live retrieval on stage, give me the exact URL and I will verify it end to end; otherwise local search carries the route and the website counter honestly shows zero.
-- PDF/DOCX text extraction and OCR are not implemented (explicitly next-scope).
-- Waiting on: your T0, and the published runtime contract commit.
+- **Product's frozen packet is not on this machine.** Every number above comes from the fictional twin. Send me the path to `.roots-data/demo-artefacts/01-upload` and I will confirm against the exact bytes and report against your packet version.
+- No `DEMO_MANIFEST.json` yet, so manifest cross-checks (roster count, expected normalized relationships, explicit batch IDs) are implemented and tested but unexercised against real values.
+- DOCX, OCR, audio and video stay unsupported and are reported as such.
+- Integration with the lead's routes for the staged releases and the preparation key is not wired on his side yet; the functions are pushed and ready.
 
 ## Tool contribution, recorded honestly
 
-Every line in `server/ingestion`, `server/research`, `server/export`, `tests/` and `fixtures/public/` was written by Claude Code (Opus 5) in this session. No Astra call is made from any of my modules by design: the lead owns model orchestration. The four-page PDF was rendered and visually checked against the real packet, and three rendering defects found that way were fixed (parenthetical maiden names ordered as an English suffix, relationship claims rendered as prose instead of raw JSON, and open questions naming their subject). Worth reflecting in `docs/BUILD-LOG.md`, which you own.
-
-## Next step
-
-Available now to connect these functions into your routes. On your signal I will take the next-scope items in order: a real chat parser if a sample arrives, otherwise `searchWeb({query, limit: 3})` against an already configured provider, then `crawlSource({startUrl, maxPages: 3})` restricted to permitted same-site links.
+Everything in `server/ingestion`, `server/research`, `server/export`, `tests/` and `scripts/` on this branch was written by Claude Code (Opus 5). No Astra call is made from these modules by design; the lead owns model orchestration. The two parser defects above were found by round-tripping our own PDF through our own extractor and by rendering every page, not by reading the code.

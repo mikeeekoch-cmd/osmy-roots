@@ -133,8 +133,11 @@ function collectObjects(buf) {
         dataEnd = e === -1 ? buf.length : e;
       }
       stream = buf.subarray(dataStart, dataEnd);
+      // Never scan inside binary stream payloads: an embedded font can contain
+      // bytes that look like "12 0 obj" and would otherwise shadow a real object.
+      re.lastIndex = Math.max(re.lastIndex, dataEnd);
     }
-    objects.set(num, { dict, stream });
+    if (!objects.has(num)) objects.set(num, { dict, stream });
   }
 
   // Objects packed inside /Type /ObjStm.

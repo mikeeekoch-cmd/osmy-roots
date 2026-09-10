@@ -9,6 +9,24 @@
 
 const ACCEPTED = 'accepted';
 
+/**
+ * Inline directives that ingestion reads out of supplied text (evidence roots,
+ * attribution overrides, photo order). They are real metadata, kept verbatim in
+ * sources.json and project.json, but they must not print as prose in the book.
+ */
+const INLINE_DIRECTIVE = /\s*\b(?:evidence[_-]?root|original[_-]?(?:source|speaker|attribution)|order)\s*[:=]\s*[^\n;]+;?/gi;
+const LEADING_ID = /^\[?((?:SRC|EV|REC|CAP)[A-Z0-9_-]*)\]?[:.]?\s+/i;
+
+/** Readable form of supplied text. The stored original is never modified. */
+export function displayText(text) {
+  return String(text ?? '')
+    .replace(LEADING_ID, '')
+    .replace(INLINE_DIRECTIVE, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([.,;:])/g, '$1')
+    .trim();
+}
+
 export function isAccepted(record) { return record && record.status === ACCEPTED; }
 
 const REL_WORD = {

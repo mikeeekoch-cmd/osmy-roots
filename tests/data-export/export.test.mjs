@@ -182,7 +182,7 @@ test('project.json round-trips ids, edge direction, status and history', async (
   assert.equal(project.schemaVersion, snapshot.schemaVersion);
 });
 
-test('Unicode survives into the exported book and sources', async () => {
+test('raw mode preserves Unicode, as the general-purpose export always did', async () => {
   const base = await makeSnapshot();
   const contribution = await ingestContribution({ text: 'Петров Василий — «шорник», 1889.' });
   const snapshot = {
@@ -190,9 +190,41 @@ test('Unicode survives into the exported book and sources', async () => {
     sources: [...base.sources, contribution.sources[0]],
     stories: [...base.stories, { id: 'RU', subjectId: 'P004', text: 'Работал по коже — делал упряжь.', sourceIds: [contribution.sources[0].id], evidenceType: 'family_recollection', attributedTo: 'Наталья', status: 'accepted' }],
   };
-  const files = readZip((await buildFamilyBundle({ snapshot, passages: [], resolveAsset: resolverFor(snapshot), options: OPTS })).bytes);
+  const raw = await buildFamilyBundle({ snapshot, passages: [], resolveAsset: resolverFor(snapshot), options: { ...OPTS, mode: 'raw' } });
+  const files = readZip(raw.bytes);
   assert.ok(files.get('book.html').toString('utf8').includes('Работал по коже'));
   assert.ok(files.get('sources.json').toString('utf8').includes('шорник'));
+  assert.equal(raw.manifest.language, 'raw');
+});
+
+test('the English demo bundle withholds non-English source text and reports it', async () => {
+  const base = await makeSnapshot();
+  const contribution = await ingestContribution({ text: 'Петров Василий — «шорник», 1889.' });
+  const snapshot = {
+    ...base,
+    sources: [...base.sources, contribution.sources[0]],
+    stories: base.stories,
+  };
+  const out = await buildFamilyBundle({ snapshot, passages: [], resolveAsset: resolverFor(snapshot), options: OPTS });
+  assert.equal(out.manifest.language, 'en');
+  const sourcesJson = readZip(out.bytes).get('sources.json').toString('utf8');
+  assert.equal(sourcesJson.includes('шорник'), false, 'non-English body must not travel in the English bundle');
+  assert.ok(out.manifest.sourcesNeedingEnglishDerivative.includes(contribution.sources[0].id));
+  const parsed = JSON.parse(sourcesJson);
+  const withheld = parsed.sources.find((x) => x.id === contribution.sources[0].id);
+  assert.equal(withheld.textWithheld, true, 'the record and its locator still travel');
+  assert.ok(withheld.originalLocator, 'lineage back to the original is preserved');
+});
+
+test('an accepted non-English story fails the English guard rather than printing', async () => {
+  const base = await makeSnapshot();
+  const snapshot = {
+    ...base,
+    stories: [...base.stories, { id: 'RU2', subjectId: 'P004', text: 'Работал по коже.', sourceIds: [], evidenceType: 'family_recollection', attributedTo: null, status: 'accepted' }],
+  };
+  const out = await buildFamilyBundle({ snapshot, passages: [], resolveAsset: resolverFor(snapshot), options: OPTS });
+  assert.equal(out.manifest.guardsPassed, false);
+  assert.ok(out.manifest.guardFailures.some((g) => /non-English/i.test(g)));
 });
 
 test('branch selection follows real edges and excludes rejected ones', async () => {
