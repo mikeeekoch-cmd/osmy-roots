@@ -159,7 +159,8 @@ test('empty and unreadable uploads fail loudly', async () => {
 });
 
 test('Unicode and maiden names survive normalization', () => {
-  assert.equal(displayNameFromFullName('Кочнев Иван Герасимович'), 'Ivan Gerasimovich Kochnev');
-  assert.equal(displayNameFromFullName('Кочнева (Зобова) Клавдия Михайловна'), 'Klavdiya Mikhaylovna Kochneva (Zobova)');
+  // Invented names that exercise patronymics, the -ий ending and a maiden-name suffix.
+  assert.equal(displayNameFromFullName('Петров Василий Андреевич'), 'Vasily Andreevich Petrov');
+  assert.equal(displayNameFromFullName('Петрова (Сидорова) Мария Ивановна'), 'Mariya Ivanovna Petrova (Sidorova)');
   assert.equal(displayNameFromFullName('Alex Morgan'), 'Alex Morgan');
 });
