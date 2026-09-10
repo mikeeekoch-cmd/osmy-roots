@@ -20,8 +20,10 @@ function RetryablePhoto({ src, alt, retry }: { src: string; alt: string; retry: 
 export function photoIdsForPerson(snapshot: ProjectSnapshot, personId: string): string[] {
   const person = snapshot.people.find((p) => p.id === personId);
   const fromCaptions = (snapshot.photoAnnotations || []).filter((a) => a.positions.some((p) => p.personId === personId) || a.depictedPersonIds?.includes(personId)).map((a) => a.assetId);
-  const enhanced = new Set((snapshot.photoPairs || []).map((pair) => pair.enhancedAssetId));
-  return [...new Set([...(person?.photoIds || []), ...fromCaptions])].filter((id) => !enhanced.has(id) && snapshot.assets.some((asset) => asset.id === id && asset.mediaType.startsWith("image/")));
+  const sourceIds = new Set([...(person?.importedSourceRefs || []), ...snapshot.claims.filter(c => c.subjectId === personId || person?.claimIds.includes(c.id)).flatMap(c => c.sourceIds), ...snapshot.stories.filter(s => s.personId === personId).flatMap(s => s.sourceIds)]);
+  const fromSources = snapshot.assets.filter(a => sourceIds.has(a.sourceId)).map(a => a.id);
+  const enhanced = new Set([...(snapshot.photoPairs || []), ...(snapshot.research?.photoPairQA || [])].map((pair) => pair.enhancedAssetId));
+  return [...new Set([...(person?.photoIds || []), ...fromCaptions, ...fromSources])].filter((id) => !enhanced.has(id) && snapshot.assets.some((asset) => asset.id === id && asset.mediaType.startsWith("image/")));
 }
 export function OriginalPhotos({
   ids,

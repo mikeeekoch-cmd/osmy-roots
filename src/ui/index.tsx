@@ -281,7 +281,7 @@ export function RootsApp({
         )}
         {snapshot && (
           <>
-            <BookPreview previewUrl={api.bookPreviewUrl?.(snapshot.projectId)} snapshot={snapshot} busy={download || busy} downloaded={downloaded || snapshot.run?.phase === "completed"} onPrepare={api.prepareFamilyBook && !closed ? () => void perform(() => api.prepareFamilyBook!(snapshot.projectId)) : undefined} onSource={(id) => setSelection({kind: "source", id})} />
+            <BookPreview requestError={error} previewUrl={api.bookPreviewUrl?.(snapshot.projectId)} snapshot={snapshot} busy={download || busy} downloaded={downloaded || snapshot.run?.phase === "completed"} onPrepare={api.prepareFamilyBook && !closed ? () => void perform(() => api.prepareFamilyBook!(snapshot.projectId)) : undefined} onSource={(id) => setSelection({kind: "source", id})} />
             <button
               className="primary download-button"
               disabled={download || busy}

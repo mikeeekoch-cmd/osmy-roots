@@ -33,7 +33,7 @@ export function InputScreen({ onStart, busy, error, api }: {
       const draft = await api.autofillFamilyDetails(profileInput(input, profileRef.current), files);
       const result = applyAutofill(profileRef.current, draft, touched.current);
       setProfile(result.profile); setAutofill(draft);
-      setFillNotice(result.applied.length ? `${result.applied.length} supported fields filled. You can edit them in the form.` : "No empty fields could be filled without a conflict. Your edits are preserved.");
+      setFillNotice(result.applied.length ? `${result.applied.length} supported ${result.applied.length === 1 ? "field" : "fields"} filled. You can edit them in the form.` : "No empty fields could be filled without a conflict. Your edits are preserved.");
     } catch (error) { setFillNotice(error instanceof Error ? error.message : "Family details could not be read. Try again."); }
     finally { fillLock.current = false; setFilling(false); }
   };

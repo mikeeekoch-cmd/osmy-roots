@@ -265,6 +265,9 @@ test("caption-associated originals are inspectable without confirming identity o
   assert.deepEqual(s, before);
   assert.deepEqual(person.photoIds, []);
   assert.deepEqual(s.photoAnnotations[0].positions, []);
+  person.importedSourceRefs = ["photo-record"];
+  s.assets.push({id: "source-only", sourceId: "photo-record", mediaType: "image/jpeg", originalName: "Source_original.jpg", byteLength: 10, storageKey: "fixture"});
+  assert.deepEqual(photoIdsForPerson(s, person.id), ["caption-only", "source-only"]);
 });
 
 test("round-3 optional family fields can stay blank", () => {

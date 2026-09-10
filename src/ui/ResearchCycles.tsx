@@ -3,25 +3,25 @@ import { label } from "./model";
 export function nextCycleAction(snapshot: ProjectSnapshot): "initial" | "deeper" | null {
   const research = snapshot.research;
   if (!research || research.intake.status !== "ready") return null;
-  if (research.cycles.some(c => ["queued", "running", "paused", "failed"].includes(c.status))) return null;
+  if (research.cycles.some(c => ["queued", "running", "paused", "failed", "cancelled"].includes(c.status))) return null;
   return research.cycles.length === 0 ? "initial" : research.cycles.length < 3 ? "deeper" : null;
 }
 export function ResearchCycles({snapshot, busy, available, onAction}: {snapshot: ProjectSnapshot; busy: boolean; available: boolean; onAction: (input: CycleAction) => void}) {
   const research = snapshot.research!;
-  const active = research.cycles.find(c => ["queued", "running", "paused", "failed"].includes(c.status));
+  const active = research.cycles.find(c => ["queued", "running", "paused", "failed", "cancelled"].includes(c.status));
   const next = nextCycleAction(snapshot);
   const activeError = active?.error || research.jobs.find(job => job.cycleId === active?.id && job.status === "failed")?.error;
   const request = (action: CycleAction["action"]) => onAction({action, cycleId: active?.id, baseVersion: snapshot.version, requestId: crypto.randomUUID()});
   return <section className="research-cycle-controls" aria-label="Research rounds">
     <div><span className="eyebrow">{active ? `Research round ${active.ordinal}` : research.cycles.length ? `Round ${research.cycles.at(-1)!.ordinal} ${label(research.cycles.at(-1)!.status)}` : "Your sources are ready"}</span>
-    <p>{activeError || (active ? active.status === "failed" ? "This round could not finish. Retry to continue from its saved state." : active.status === "paused" ? "Research is paused. Resume this round when ready." : active.plan?.objectives[0] || "Preparing the next source checks and research plan." : next === "initial" ? "Start with the records you selected and the answers you saved." : next === "deeper" ? "Follow the remaining clues in another research round." : "Review the saved findings, questions and current family book.")}</p></div>
+    <p>{activeError || (active ? active.status === "cancelled" ? "This round was cancelled. Retry resumes the same research round." : active.status === "failed" ? "This round could not finish. Retry to continue from its saved state." : active.status === "paused" ? "Research is paused. Resume this round when ready." : active.plan?.objectives[0] || "Preparing the next source checks and research plan." : next === "initial" ? "Start with the records you selected and the answers you saved." : next === "deeper" ? "Follow the remaining clues in another research round." : "Review the saved findings, questions and current family book.")}</p></div>
     <div className="cycle-actions">
       {next && <button className="primary" disabled={busy || !available} onClick={event => { if (event.detail < 2) request(next); }}>{busy ? "Starting…" : next === "initial" ? "Start research" : "Research deeper"}</button>}
       {next === "deeper" && <small>{research.cycles.length === 1 ? "First" : "Second"} deeper round</small>}
       {active && ["running", "queued"].includes(active.status) && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("pause"); }}>Pause research</button>}
       {active?.status === "paused" && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("resume"); }}>Resume research</button>}
-      {active?.status === "failed" && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("retry"); }}>Retry this round</button>}
-      {active && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("cancel"); }}>Cancel this round</button>}
+      {(active?.status === "failed" || active?.status === "cancelled") && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("retry"); }}>Retry this round</button>}
+      {active && active.status !== "cancelled" && <button disabled={busy || !available} onClick={event => { if (event.detail < 2) request("cancel"); }}>Cancel this round</button>}
       {!available && <small>Research actions are unavailable in this connection.</small>}
     </div>
   </section>;
