@@ -293,7 +293,11 @@ async function prepareIntake(id: string, deps: ResearchDeps) {
               source.evidenceRootIds || source.contentHash,
               span.quote,
             ]);
-            if (!r.validationOutcomes.some((v) => v.key === key && v.method === "astra"))
+            if (
+              !r.validationOutcomes.some(
+                (v) => v.key === key && v.method === "astra",
+              )
+            )
               r.validationOutcomes.push({
                 key,
                 sourceId: source.id,
@@ -385,7 +389,7 @@ export async function executeResearch(id: string, deps: ResearchDeps = {}) {
                   !x.kind.includes("photo"),
               )
               .map((x) => x.id);
-        const plan = await (deps.plan || planResearch)(s, c, sourceIds);
+        const plan = await (deps.plan || planResearch)(s, c, sourceIds, scope);
         result = {
           status: "completed",
           resultIds: [plan.id],
@@ -462,7 +466,14 @@ export async function executeResearch(id: string, deps: ResearchDeps = {}) {
           const r = p.research!,
             saved = r.cycles.find((x) => x.id === c.id)!;
           if (c.ordinal === 1 && !p.run!.initialSavedAt) {
+            const previousPeople = new Set(p.people.map((person) => person.id));
             releaseGraph(p, stage, manifest.initialBranchIds);
+            result.resultIds = [
+              ...(result.resultIds || []),
+              ...p.people
+                .filter((person) => !previousPeople.has(person.id))
+                .map((person) => person.id),
+            ];
             p.run!.initialSavedAt = now();
             event(p, {
               runId: id,
@@ -563,50 +574,59 @@ export async function executeResearch(id: string, deps: ResearchDeps = {}) {
         const source = s.sources.find((x) => x.id === j.sourceIds[0]);
         if (!source) throw new AppError("Analysis source no longer exists.");
         const out = await (deps.analyze || analyzeResearchRecord)(s, c, source);
-        validateSpans(out.proposal.support, s);
-        result = {
-          status: "completed",
-          resultIds: [out.proposal.id],
-          summary: out.proposal.summary,
-        };
-        apply = (p) => {
-          const r = p.research!,
-            existing = r.graphProposals.find(
-              (x) => x.deduplicationKey === out.proposal.deduplicationKey,
-            );
-          if (!existing) {
-            r.graphProposals.push(out.proposal);
-            r.questionBank.push({
-              id: `question-${randomUUID()}`,
-              cycleId: c.id,
-              subject: out.proposal.summary,
-              prompt: out.question || "What can you confirm about this source?",
-              uncertainty: out.uncertainty,
-              support: out.proposal.support,
-              personIds: out.personIds,
-              candidatePersonIds: out.candidatePersonIds,
-              proposalId: out.proposal.id,
-              priority: r.questionBank.some((x) => x.cycleId === c.id)
-                ? "later"
-                : "immediate",
-              status: "open",
-              answers: [],
-              createdAt: now(),
-            });
-          } else result.resultIds = [existing.id];
-          for (const span of out.proposal.support) {
-            const key = digest([out.proposal.evidenceRootIds, span.quote]);
-            if (!r.validationOutcomes.some((v) => v.key === key && v.method === "astra"))
-              r.validationOutcomes.push({
-                key,
-                sourceId: span.sourceId,
+        if (out.noMatch) {
+          result = { status: "no_match", summary: out.summary, resultIds: [] };
+        } else {
+          validateSpans(out.proposal.support, s);
+          result = {
+            status: "completed",
+            resultIds: [out.proposal.id],
+            summary: out.proposal.summary,
+          };
+          apply = (p) => {
+            const r = p.research!,
+              existing = r.graphProposals.find(
+                (x) => x.deduplicationKey === out.proposal.deduplicationKey,
+              );
+            if (!existing) {
+              r.graphProposals.push(out.proposal);
+              r.questionBank.push({
+                id: `question-${randomUUID()}`,
                 cycleId: c.id,
-                method: "astra",
-                outcome: "supported",
-                at: now(),
+                subject: out.proposal.summary,
+                prompt:
+                  out.question || "What can you confirm about this source?",
+                uncertainty: out.uncertainty,
+                support: out.proposal.support,
+                personIds: out.personIds,
+                candidatePersonIds: out.candidatePersonIds,
+                proposalId: out.proposal.id,
+                priority: r.questionBank.some((x) => x.cycleId === c.id)
+                  ? "later"
+                  : "immediate",
+                status: "open",
+                answers: [],
+                createdAt: now(),
               });
-          }
-        };
+            } else result.resultIds = [existing.id];
+            for (const span of out.proposal.support) {
+              const key = digest([out.proposal.evidenceRootIds, span.quote]);
+              if (
+                !r.validationOutcomes.some(
+                  (v) => v.key === key && v.method === "astra",
+                )
+              )
+                r.validationOutcomes.push({
+                  key,
+                  sourceId: span.sourceId,
+                  cycleId: c.id,
+                  method: "astra",
+                  outcome: "supported",
+                  at: now(),
+                });
+            }
+          };
+        }
       } else
         result = {
           status: "blocked",

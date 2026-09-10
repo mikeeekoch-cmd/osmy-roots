@@ -35,7 +35,7 @@ const c: ResearchCycle = {
 const start = Date.now();
 const plan = await planResearch(s, c, [source.id]);
 const result = await analyzeResearchRecord(s, c, source);
-if (!result.proposal.people.length)
+if (result.noMatch || !result.proposal.people.length)
   throw new Error(
     "The fictional source did not produce a reviewable new-person proposal.",
   );

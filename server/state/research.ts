@@ -18,6 +18,8 @@ export function researchFingerprint(s: ProjectSnapshot) {
     answers: s.run?.answers,
     questions: s.research?.questionBank.map((q) => [q.id, q.answers]),
     assets: s.assets.map((a) => [a.id, a.contentHash]),
+    photoAnnotations: s.photoAnnotations,
+    photoPairs: s.photoPairs,
     portraits: s.research?.portraits,
     bookPlan: s.research?.bookPlan,
   });
@@ -40,10 +42,7 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
   const fileKey = (f: ProjectSnapshot["files"][number]) =>
     s.assets.find((a) => f.assetIds.includes(a.id))?.contentHash || f.uploadId;
   const urls = jobs
-    .filter(
-      (j) =>
-        j.status === "completed" && ["crawl", "public_search"].includes(j.kind),
-    )
+    .filter((j) => j.status === "completed" && j.kind === "crawl")
     .flatMap((j) => j.urls);
   const pages = [...new Set(urls)];
   const reviewed = new Set(
@@ -125,7 +124,12 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
     pagesRetrieved: pages.length,
     cachedPages: distinct(
       jobs
-        .filter((j) => j.status === "completed" && j.origin === "cached")
+        .filter(
+          (j) =>
+            j.status === "completed" &&
+            j.kind === "crawl" &&
+            j.origin === "cached",
+        )
         .flatMap((j) => j.urls),
     ),
     uniqueDomains: distinct(
@@ -154,11 +158,7 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
         pages = [
           ...new Set(
             own
-              .filter(
-                (j) =>
-                  j.status === "completed" &&
-                  ["crawl", "public_search"].includes(j.kind),
-              )
+              .filter((j) => j.status === "completed" && j.kind === "crawl")
               .flatMap((j) => j.urls),
           ),
         ];
@@ -166,11 +166,14 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
         cycleId: c.id,
         delta: {
           ...zeros,
-          people: distinct(
-            own
+          people: distinct([
+            ...own
               .flatMap((j) => j.resultIds)
               .filter((id) => s.people.some((p) => p.id === id)),
-          ),
+            ...proposals
+              .filter((p) => p.status === "accepted")
+              .flatMap((p) => p.people.map((person) => person.id)),
+          ]),
           evidenceChecked: distinct(
             r!.validationOutcomes
               .filter((v) => v.cycleId === c.id)
@@ -192,7 +195,12 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
           pagesRetrieved: pages.length,
           cachedPages: distinct(
             own
-              .filter((j) => j.status === "completed" && j.origin === "cached")
+              .filter(
+                (j) =>
+                  j.status === "completed" &&
+                  j.kind === "crawl" &&
+                  j.origin === "cached",
+              )
               .flatMap((j) => j.urls),
           ),
           uniqueDomains: distinct(pages.map((u) => new URL(u).hostname)),

@@ -36,6 +36,8 @@ const bytesHash = (b: Uint8Array) =>
   createHash("sha256").update(b).digest("hex");
 const path = (id: string, key: string, kind: string) =>
   join(dataRoot(), id, "editions", `${key}.${kind}`);
+const editionKey = (edition: BookEdition) =>
+  `${edition.fingerprint}-${edition.id}`;
 const now = () => new Date().toISOString();
 export async function prepareEdition(id: string) {
   if (tasks.has(id)) return tasks.get(id)!;
@@ -192,7 +194,7 @@ async function buildEdition(id: string) {
       ["html", html],
       ["zip", currentBytes],
     ] as const) {
-      const dest = path(id, key, kind),
+      const dest = path(id, editionKey(edition), kind),
         tmp = `${dest}.${randomUUID()}.tmp`;
       await writeFile(tmp, bytes, { mode: 0o600 });
       await rename(tmp, dest);
@@ -244,7 +246,7 @@ export async function previewEdition(id: string) {
       409,
       "STALE_EDITION",
     );
-  const bytes = await readFile(path(id, e.fingerprint, "pdf"));
+  const bytes = await readFile(path(id, editionKey(e), "pdf"));
   if (bytesHash(bytes) !== e.pdfHash)
     throw new AppError("Book integrity check failed.", 409);
   return bytes;
@@ -270,15 +272,33 @@ async function sealEdition(id: string) {
   let e = s.research!.bookEdition!;
   if (e.status === "sealed") {
     try {
-      const bytes = await readFile(path(id, e.fingerprint, "sealed.zip"));
-      if (bytesHash(bytes) !== e.zipHash)
+      const bytes = await readFile(path(id, editionKey(e), "sealed.zip"));
+      if (e.zipHash && bytesHash(bytes) !== e.zipHash)
         throw new AppError("Sealed download integrity check failed.", 409);
+      if (!e.zipHash) {
+        const entries = readGeneratedZip(bytes),
+          portable = JSON.parse(entries.get("project.json")!.toString());
+        if (
+          bytesHash(entries.get("book.pdf")!) !== e.pdfHash ||
+          portable.research?.bookEdition?.id !== e.id ||
+          portable.research.bookEdition.fingerprint !== e.fingerprint ||
+          portable.research.bookEdition.status !== "sealed"
+        )
+          throw new AppError(
+            "Interrupted download integrity check failed.",
+            409,
+          );
+        await updateProject(id, (p) => {
+          if (p.research?.bookEdition?.id !== e.id) return false;
+          p.research.bookEdition.zipHash = bytesHash(bytes);
+        });
+      }
       return { bytes, filename: `Osmy-Roots-${e.id}.zip` };
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     }
   }
-  const bytes = await readFile(path(id, e.fingerprint, "zip"));
+  const bytes = await readFile(path(id, editionKey(e), "zip"));
   if (e.status !== "sealed" && bytesHash(bytes) !== e.zipHash)
     throw new AppError("Download integrity check failed.", 409);
   s = await updateProject(
@@ -291,6 +311,7 @@ async function sealEdition(id: string) {
         );
       p.research!.bookEdition!.status = "sealed";
       p.research!.bookEdition!.sealedAt ||= now();
+      delete p.research!.bookEdition!.zipHash;
       for (const cycle of p.research!.cycles)
         if (["queued", "running", "paused"].includes(cycle.status)) {
           cycle.status = "cancelled";
@@ -317,7 +338,7 @@ async function sealEdition(id: string) {
   const portable = structuredClone(s);
   delete portable.research!.bookEdition!.zipHash;
   const delivered = packageSnapshot(entries, portable);
-  const dest = path(id, e.fingerprint, "sealed.zip"),
+  const dest = path(id, editionKey(e), "sealed.zip"),
     temp = `${dest}.${randomUUID()}.tmp`;
   await writeFile(temp, delivered, { mode: 0o600 });
   await rename(temp, dest);

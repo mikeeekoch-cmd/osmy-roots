@@ -277,6 +277,7 @@ test("six checks, separate intake, three explicit cycles, bank answers and refre
     assert.equal(metrics.totals.pagesRetrieved, 0);
     assert.equal(metrics.totals.searchAttempts, 3);
   } finally {
+    await waitForResearch(start.projectId);
     await rm(root, { recursive: true, force: true });
   }
 });
@@ -313,6 +314,7 @@ test("failed job retry keeps cycle ID and cannot duplicate saved results", async
     assert.equal(s.research!.cycles[0].status, "completed");
     assert.equal(s.research!.jobs.find((j) => j.kind === "plan")!.attempt, 2);
   } finally {
+    await waitForResearch(start.projectId);
     await rm(root, { recursive: true, force: true });
   }
 });
@@ -349,6 +351,7 @@ test("stale analysis cannot apply after a human edit and cancel invalidates the 
     assert.equal(s.research!.graphProposals.length, 0);
     assert.ok(s.research!.jobs.some((j) => j.error?.includes("changed")));
   } finally {
+    await waitForResearch(start.projectId);
     await rm(root, { recursive: true, force: true });
   }
 });
@@ -418,6 +421,7 @@ test("source-backed new people require explicit graph review, with atomic ancest
     });
     assert.equal(s.version, version);
   } finally {
+    await waitForResearch(start.projectId);
     await rm(root, { recursive: true, force: true });
   }
 });
@@ -492,6 +496,7 @@ test("cancelled in-flight jobs cannot publish a late proposal", async () => {
         .every((j) => j.status === "cancelled"),
     );
   } finally {
+    await waitForResearch(start.projectId);
     await rm(root, { recursive: true, force: true });
   }
 });
@@ -512,7 +517,30 @@ test("unknown bank answers do not reopen initial checks and corrections invalida
     const q = s.research!.questionBank[0];
     s = await updateProject(s.projectId, (p) => {
       p.research!.questionBank[0].personIds = [p.people[0].id];
+      p.research!.bookEdition = {
+        id: "sealed-state-fixture",
+        fingerprint: researchFingerprint(p),
+        status: "sealed",
+        stateVersion: p.version,
+        pageCount: 35,
+        createdAt: at(),
+        sealedAt: at(),
+        chapterFingerprints: {},
+      };
     });
+    const editionFingerprint = s.research!.bookEdition!.fingerprint;
+    s = await updateProject(
+      s.projectId,
+      (p) => {
+        p.research!.jobs[0].summary = "Completed source parsing.";
+      },
+      { invalidateBook: true },
+    );
+    assert.equal(
+      s.research!.bookEdition!.status,
+      "sealed",
+      "Job bookkeeping must not invalidate unchanged content",
+    );
     s = await answerBankQuestion(s.projectId, {
       questionId: q.id,
       action: "confirm",
@@ -522,6 +550,12 @@ test("unknown bank answers do not reopen initial checks and corrections invalida
     assert.equal(
       s.claims.find((c) => c.id === `bank-claim-${q.id}`)!.status,
       "accepted",
+    );
+    assert.equal(s.research!.bookEdition!.status, "stale");
+    assert.equal(s.research!.previousEditions.at(-1)!.status, "sealed");
+    assert.equal(
+      s.research!.previousEditions.at(-1)!.fingerprint,
+      editionFingerprint,
     );
     s = await answerBankQuestion(s.projectId, {
       questionId: q.id,
@@ -551,6 +585,42 @@ test("unknown bank answers do not reopen initial checks and corrections invalida
     assert.equal(s.run!.answers.length, 6);
     assert.equal(s.research!.intake.status, "ready");
   } finally {
+    await waitForResearch(start.projectId);
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("an empty record analysis remains a completed no-match outcome without fabricated findings", async () => {
+  const { s: start, root } = await ready();
+  try {
+    await cycleAction(
+      start.projectId,
+      {
+        action: "initial",
+        requestId: "empty-record",
+        baseVersion: start.version,
+      },
+      {
+        ...deps,
+        analyze: async () => ({
+          noMatch: true,
+          summary: "No supported new finding in this record.",
+        }),
+      },
+    );
+    const s = await waitForResearch(start.projectId);
+    assert.equal(s.research!.cycles[0].status, "completed");
+    assert.equal(s.research!.graphProposals.length, 0);
+    assert.equal(s.research!.questionBank.length, 0);
+    assert.ok(
+      s.research!.jobs.some(
+        (job) =>
+          job.cycleId && job.kind === "analyze" && job.status === "no_match",
+      ),
+    );
+    assert.equal(s.research!.metrics!.cycles[0].delta.people, s.people.length);
+  } finally {
+    await waitForResearch(start.projectId);
     await rm(root, { recursive: true, force: true });
   }
 });
