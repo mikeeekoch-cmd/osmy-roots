@@ -80,3 +80,12 @@
 - P1 original gallery: previous/next, Left/Right, Escape, focus trap and return to the opener passed. Portrait 180×240 and landscape 320×160 retain their proportions. Unsupported original rendering shows an explicit unavailable fallback. No image enhancement or identity inference added.
 - Added synthetic fixtures and browser screenshots for these checks. Typecheck PASS; full repository suite 72 PASS. Production build is the next final check. No changes to backend/contracts/dependencies.
 - Latest main fetched: a5de7c4, identical to the consumed validated lead base. Lead can merge the next codex/ui increment directly.
+
+## Round 2: UI execution started at 18:19 UTC
+
+- Incorporated engineering d10eb59 by fast-forward, preserving every owner commit. Read the controlling round-2 scope, narrative contract and prompts 04-07.
+- Working next: files-only intake, original Osmy Roots mark, immediate preparation, saved-delta map behavior. Existing P0/partial P1 remains the starting point.
+- Lead handoff needed: published runtime run/question/answer/seal APIs, single upload-limit config, English display projection and fictional manifest example. I will consume the shared types, not create competing contracts.
+- Product handoff needed: public-safe fictional twin packet. No twin or demo-artefacts folder is available on this laptop yet. UI fixtures from round 1 are not that packet.
+- Shared round-2 T0/deadline is not yet recorded on engineering d10eb59. The old deadline is expired; no replacement clock has been invented here.
+- Round 2 is not integrated or demo-ready yet. Browser and live-model rehearsal remain to be done on the connected runtime.
