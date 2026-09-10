@@ -47,3 +47,7 @@ The regular suite includes explicit model fixtures; live checks run separately. 
 Codex Mike owns Astra, state, contracts and integration. Codex Natalia owns UI and animations. Claude Code Mike owns ingestion, retrieval and export. [Build log](docs/BUILD-LOG.md), [shared contracts](docs/PROTOTYPE-CONTRACT.md), [scope priorities](docs/SCOPE-PRIORITIES.md) and [execution plan](docs/EXECUTION.md) preserve the implementation record.
 
 Code and original repository documentation use the [MIT license](LICENSE). This does not grant rights to third-party records or uploaded family material.
+
+## Next demo improvement round
+
+The [round-2 owner prompts](docs/round-2/README.md) specify the next seven-question, English-only, progressively growing three-minute demo. They are an implementation handoff; the new journey is not yet included in the verified behavior above.

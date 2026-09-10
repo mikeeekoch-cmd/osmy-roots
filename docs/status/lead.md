@@ -74,3 +74,11 @@
 - Current checks: typecheck PASS, 74 tests PASS, production build PASS (two known local-store tracing warnings). Third complete real Astra synthetic round trip PASS, 8762 ms, 1,667,269-byte ZIP. Automatic review initially misclassified that synthetic test as private; inspection proved it uses only the public fictional fixture and the authorized retry passed.
 - Public source/credential scan and UI screenshot review found no private evidence or secrets. Contract deadline and P0 integration target were met; shared freeze 17:37:53 and final deadline 17:57:53 UTC remain unchanged.
 - Next: publish this checked integration checkpoint on codex/engineering, retain the private pending decision for Mike, and finish local handoff. Further new features are frozen early.
+
+## Round-2 prompt handoff, not execution
+
+- Mike requested three new owner prompts after reviewing the intake and workspace. The controlling new brief is docs/round-2/DEMO-READY-SCOPE.md; launch links are in docs/round-2/README.md. No agent was dispatched by writing these files, and no new engineering clock was started.
+- Baseline 556953f was rechecked: typecheck PASS, all 74 tests PASS, production build PASS with the same two filesystem tracing warnings. Main remains a5de7c4; workers must fetch the engineering branch to retain all final P0/partial P1 fixes.
+- New requirements: files-only intake, English demo artifact pack, supported reconstructed chat ZIPs, seven varied sourced questions with recommended/editable/unknown answers, immediate loader before the map, staged saved graph growth, English-only presentation and demo export, and a run sealed by successful download.
+- Mike chose seven questions and no global Demo mode banner. Ordinary source provenance remains available; simulated source bundles cannot produce false Connected or Found online claims. Real model work is separate from staged prepared material.
+- Ownership is unchanged except Natalia explicitly owns the small SVG logo asset; the lead wires metadata/favicon. Claude creates the private artifacts and English evidence lineage; the lead owns the resumable run and final integration. Required demo-ready exit is two fresh actual browser journeys under 180 seconds with the specified data, review, English, export and regression gates passing. These new features are not yet implemented.
