@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 import {
   DemoManifestSchema,
   DemoManifestV3Schema,
+  type DemoManifestV3,
   type Proposal,
   type ResearchPlan,
   type GraphChangeProposal,
@@ -35,6 +36,7 @@ import {
   beginConnection,
   disconnectConnection,
 } from "../server/connectors/google";
+import { searchPublicRecords } from "../server/research/index.mjs";
 const fixture = resolve("tests/fixtures/round2/packet");
 const at = () => new Date().toISOString();
 const intake: any = async (s: any, source: any): Promise<Proposal> => ({
@@ -101,7 +103,7 @@ const analysis: any = async (s: any, c: any, source: any) => ({
   candidatePersonIds: [],
 });
 const deps = { plan, analyze: analysis, intakeAnalyze: { analyze: intake } };
-async function setup() {
+async function setup(extraScopes: DemoManifestV3["researchSources"] = []) {
   const root = await mkdtemp(join(tmpdir(), "roots-r3-test-"));
   process.env.ROOTS_DATA_DIR = root;
   const m = DemoManifestSchema.parse(
@@ -133,13 +135,16 @@ async function setup() {
     questions,
     oldPhotoAssetIds: m.photos.slice(1, 3).map((p) => p.assetId),
     photoPairs: [],
-    researchSources: [1, 2, 3].map((n) => ({
-      id: `scope-${n}`,
-      kind: "local",
-      sourceIds: [support[0].sourceId],
-      cycleOrdinal: n,
-      query: "Alder",
-    })),
+    researchSources: [
+      ...[1, 2, 3].map((n) => ({
+        id: `scope-${n}`,
+        kind: "local",
+        sourceIds: [support[0].sourceId],
+        cycleOrdinal: n,
+        query: "Alder",
+      })),
+      ...extraScopes,
+    ],
     bookPlan: {
       id: "fictional-book-plan",
       sourceBook: {
@@ -186,8 +191,8 @@ async function setup() {
   );
   return { root, s, manifest, files };
 }
-async function ready() {
-  const f = await setup();
+async function ready(extraScopes: DemoManifestV3["researchSources"] = []) {
+  const f = await setup(extraScopes);
   await executeResearch(f.s.projectId, deps);
   let s = await loadProject(f.s.projectId);
   for (const q of s.run!.questions)
@@ -619,6 +624,45 @@ test("an empty record analysis remains a completed no-match outcome without fabr
       ),
     );
     assert.equal(s.research!.metrics!.cycles[0].delta.people, s.people.length);
+  } finally {
+    await waitForResearch(start.projectId);
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("an unconfigured public provider records a blocked job with no network search or page credit", async () => {
+  const { s: start, root } = await ready([
+    {
+      id: "selected-public-query",
+      kind: "public",
+      query: "Fictional family archive",
+      sourceIds: [],
+      personIds: [],
+      cycleOrdinal: 1,
+    },
+  ]);
+  try {
+    await cycleAction(
+      start.projectId,
+      {
+        action: "initial",
+        requestId: "search-missing-config",
+        baseVersion: start.version,
+      },
+      {
+        ...deps,
+        publicSearch: (args) =>
+          searchPublicRecords({ ...args, query: args?.query || "", env: {} }),
+      },
+    );
+    const s = await waitForResearch(start.projectId),
+      publicJob = s.research!.jobs.find((job) => job.kind === "public_search")!;
+    assert.equal(s.research!.cycles[0].status, "completed");
+    assert.equal(publicJob.status, "blocked");
+    assert.equal(publicJob.networkAttempts, 0);
+    assert.equal(publicJob.urls.length, 0);
+    assert.equal(s.research!.metrics!.totals.pagesRetrieved, 0);
+    assert.equal(s.research!.metrics!.totals.searchAttempts, 1);
   } finally {
     await waitForResearch(start.projectId);
     await rm(root, { recursive: true, force: true });

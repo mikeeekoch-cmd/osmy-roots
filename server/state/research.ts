@@ -39,8 +39,12 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
   );
   const distinct = (values: (string | undefined)[]) =>
     new Set(values.filter(Boolean)).size;
+  const primaryAsset = (f: ProjectSnapshot["files"][number]) =>
+    s.assets.find(
+      (a) => f.assetIds.includes(a.id) && a.originalName === f.originalName,
+    ) || s.assets.find((a) => f.assetIds.includes(a.id));
   const fileKey = (f: ProjectSnapshot["files"][number]) =>
-    s.assets.find((a) => f.assetIds.includes(a.id))?.contentHash || f.uploadId;
+    primaryAsset(f)?.contentHash || f.uploadId;
   const urls = jobs
     .filter((j) => j.status === "completed" && j.kind === "crawl")
     .flatMap((j) => j.urls);
@@ -70,11 +74,7 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
         .filter(
           (f) =>
             f.status === "parsed" &&
-            !f.assetIds.some((id) =>
-              s.assets.some(
-                (a) => a.id === id && a.mediaType.startsWith("image/"),
-              ),
-            ),
+            !primaryAsset(f)?.mediaType.startsWith("image/"),
         )
         .map(fileKey),
     ),
@@ -90,7 +90,11 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
         )
         .map((a) => a.contentHash || a.id),
     ),
-    oldPhotosSelected: distinct(r?.oldPhotoAssetIds || []),
+    oldPhotosSelected: distinct(
+      (r?.oldPhotoAssetIds || []).map(
+        (id) => s.assets.find((asset) => asset.id === id)?.contentHash || id,
+      ),
+    ),
     enhancedPhotosReady: distinct(
       r?.photoPairQA
         .filter(
@@ -111,7 +115,11 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
     evidenceChecked: distinct(r?.validationOutcomes.map((v) => v.key) || []),
     astraAnalyses: distinct(
       jobs
-        .filter((j) => j.kind === "analyze" && j.status === "completed")
+        .filter(
+          (j) =>
+            j.kind === "analyze" &&
+            ["completed", "no_match"].includes(j.status),
+        )
         .map((j) => j.id),
     ),
     searchAttempts: jobs
@@ -120,7 +128,11 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
           j.kind,
         ),
       )
-      .reduce((n, j) => n + j.attempt, 0),
+      .reduce(
+        (n, j) =>
+          n + (j.kind === "public_search" ? j.networkAttempts || 0 : j.attempt),
+        0,
+      ),
     pagesRetrieved: pages.length,
     cachedPages: distinct(
       jobs
@@ -180,7 +192,9 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
               .map((v) => v.key),
           ),
           astraAnalyses: own.filter(
-            (j) => j.kind === "analyze" && j.status === "completed",
+            (j) =>
+              j.kind === "analyze" &&
+              ["completed", "no_match"].includes(j.status),
           ).length,
           searchAttempts: own
             .filter((j) =>
@@ -191,7 +205,14 @@ export function authoritativeMetrics(s: ProjectSnapshot): ResearchMetrics {
                 "gmail_read",
               ].includes(j.kind),
             )
-            .reduce((n, j) => n + j.attempt, 0),
+            .reduce(
+              (n, j) =>
+                n +
+                (j.kind === "public_search"
+                  ? j.networkAttempts || 0
+                  : j.attempt),
+              0,
+            ),
           pagesRetrieved: pages.length,
           cachedPages: distinct(
             own

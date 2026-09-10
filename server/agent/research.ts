@@ -19,7 +19,7 @@ import {
 } from "../state/research";
 import { readStage, analyzeHeldOut, releaseGraph } from "./round2";
 import { planResearch, analyzeResearchRecord } from "./research-astra";
-import { searchLocalSources } from "../research/index.mjs";
+import { searchLocalSources, searchPublicRecords } from "../research/index.mjs";
 import { dataModules } from "./data-modules";
 import { readSelectedSources } from "../connectors/google";
 import { event } from "../events";
@@ -29,6 +29,7 @@ export interface ResearchDeps {
   plan?: typeof planResearch;
   analyze?: typeof analyzeResearchRecord;
   intakeAnalyze?: Parameters<typeof analyzeHeldOut>[1];
+  publicSearch?: typeof searchPublicRecords;
 }
 function proposalEvidenceType(
   s: ProjectSnapshot,
@@ -78,9 +79,11 @@ function job(
         ? "gpt-6-astra"
         : kind === "local_search"
           ? "local-source-search"
-          : kind === "crawl"
-            ? "public-fetch"
-            : kind,
+          : kind === "public_search"
+            ? "configured-public-search"
+            : kind === "crawl"
+              ? "public-fetch"
+              : kind,
     objective,
     status: "queued",
     attempt: 0,
@@ -421,6 +424,19 @@ export async function executeResearch(id: string, deps: ResearchDeps = {}) {
             saved.jobIds.push(next.id);
           }
           for (const target of scope
+            .filter((x) => x.kind === "public" && x.query.trim())
+            .slice(0, 1)) {
+            const next = job(
+              saved,
+              p,
+              "public_search",
+              "Search the selected public archive query",
+              { query: target.query, networkAttempts: 0 },
+            );
+            r.jobs.push(next);
+            saved.jobIds.push(next.id);
+          }
+          for (const target of scope
             .filter((x) => x.kind === "public" && x.url)
             .slice(0, 2)) {
             const next = job(
@@ -533,6 +549,61 @@ export async function executeResearch(id: string, deps: ResearchDeps = {}) {
               "Analyze a retrieved family record",
               { sourceIds: [sourceId] },
             );
+            r.jobs.push(next);
+            saved.jobIds.push(next.id);
+          }
+        };
+      } else if (j.kind === "public_search") {
+        const out = await (deps.publicSearch || searchPublicRecords)({
+          query: j.query || "",
+          limit: 2,
+          timeoutMs: 8000,
+        });
+        result = {
+          status:
+            out.status === "ok"
+              ? "completed"
+              : out.status === "no_match"
+                ? "no_match"
+                : ["blocked", "not_configured"].includes(out.status)
+                  ? "blocked"
+                  : "failed",
+          tool: out.provider
+            ? `${out.provider}-public-search`
+            : "public-search-unconfigured",
+          networkAttempts: (j.networkAttempts || 0) + (out.provider ? 1 : 0),
+          summary:
+            out.status === "ok"
+              ? `Found ${out.results.length} public search leads; each still requires reading and identity review.`
+              : out.status === "not_configured"
+                ? "Public search is unavailable because no search provider is configured."
+                : out.status === "no_match"
+                  ? "No public records matched this query."
+                  : out.status === "blocked"
+                    ? "The public search provider refused this request. Other eligible research can continue."
+                    : out.status === "timeout"
+                      ? "The public search provider did not respond in time. Retry is available."
+                      : "Public search failed. Retry is available.",
+          urls: out.results.map((row: any) => row.url),
+          resultIds: [],
+        };
+        apply = (p) => {
+          const r = p.research!,
+            saved = r.cycles.find((cycle) => cycle.id === c.id)!;
+          for (const row of out.results) {
+            if (
+              r.jobs.some(
+                (job) =>
+                  job.cycleId === c.id &&
+                  job.kind === "crawl" &&
+                  job.urls.includes(row.url),
+              )
+            )
+              continue;
+            const next = job(saved, p, "crawl", "Read a public search lead", {
+              urls: [row.url],
+              query: j.query,
+            });
             r.jobs.push(next);
             saved.jobIds.push(next.id);
           }

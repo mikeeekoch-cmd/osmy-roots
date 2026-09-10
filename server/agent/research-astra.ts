@@ -208,6 +208,32 @@ export async function analyzeResearchRecord(
   if (keys.size !== out.people.length)
     throw new AppError("Repeated new person key.", 502);
   for (const p of out.people) {
+    const normalizeName = (name: string) =>
+      name
+        .normalize("NFKC")
+        .toLocaleLowerCase("en")
+        .replace(/\s+/g, " ")
+        .trim();
+    const sameNames = s.people.filter((person) =>
+      [person.displayNameEn, person.originalName].some((name) =>
+        [p.displayNameEn, p.originalName].some(
+          (proposed) => normalizeName(name) === normalizeName(proposed),
+        ),
+      ),
+    );
+    if (
+      sameNames.some(
+        (person) =>
+          !out.alternatives.some(
+            (alternative) => alternative.personId === person.id,
+          ),
+      )
+    )
+      throw new AppError(
+        "A same-name candidate must explicitly distinguish the existing record before review.",
+        502,
+        "MODEL_OUTPUT_INVALID",
+      );
     if (
       !p.support.length ||
       !p.support.some(

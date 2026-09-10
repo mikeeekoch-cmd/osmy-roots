@@ -245,6 +245,13 @@ if (raw.schemaVersion !== "roots-demo-v3") {
         await wait(() => latest.version > previous);
       }
     }
+    const missingPeople = manifest.selectedPersonIds.filter(
+      (id) => !latest.people.some((person) => person.id === id),
+    );
+    if (missingPeople.length)
+      throw Error(
+        `${missingPeople.length} selected supplied people are still absent after three rounds.`,
+      );
     const bank = page
       .locator(".question-bank .bank-card")
       .filter({

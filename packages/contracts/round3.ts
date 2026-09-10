@@ -119,6 +119,7 @@ export const ResearchJobSchema = z.object({
   urls: z.array(z.string()).default([]),
   status: JobStatusSchema,
   attempt: z.number().int().nonnegative().default(0),
+  networkAttempts: z.number().int().nonnegative().optional(),
   startedAt: At.optional(),
   completedAt: At.optional(),
   leaseUntil: At.optional(),
