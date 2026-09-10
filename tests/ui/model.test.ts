@@ -310,6 +310,7 @@ test("research controls resume saved state without inventing a fourth round", as
 test("shared group photos cannot masquerade as independent solo portraits", async () => {
   const {portraitForPerson} = await import("../../src/ui/PersonPortrait");
   const s = snapshot();
+  s.assets.push({id: "group-fixture", sourceId: s.sources[0].id, mediaType: "image/png", originalName: "Fictional group.png", byteLength: 10, storageKey: "fixture"});
   s.people[0].photoIds = [s.assets[0].id];
   s.people[1].photoIds = [s.assets[0].id];
   assert.equal(portraitForPerson(s, s.people[0].id), undefined);
