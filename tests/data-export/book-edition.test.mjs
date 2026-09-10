@@ -127,7 +127,7 @@ test('a missing original is reported, never silently dropped', () => {
 });
 
 test('a chapter that is not English fails the guard instead of printing', () => {
-  const plan = { ...BOOK_PLAN, chapters: [{ ...CHAPTERS[0], text: 'Кочнев Иван Герасимович' }, ...CHAPTERS.slice(1)] };
+  const plan = { ...BOOK_PLAN, chapters: [{ ...CHAPTERS[0], text: 'Долина Ольховая, вымышленное название' }, ...CHAPTERS.slice(1)] };
   assert.throws(
     () => renderBookEdition({ snapshot: SNAPSHOT, bookPlan: plan, getImage: noImages, photoPairs: PAIRS }),
     (e) => e.code === 'BOOK_GUARD' && /non-English/.test(e.message),
