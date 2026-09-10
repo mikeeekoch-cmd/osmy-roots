@@ -1,3 +1,4 @@
+import { PhotoComparison } from "./PhotoComparison";
 import { useEffect, useRef, useState } from "react";
 import type { ProjectSnapshot, RootsApi } from "./types";
 export function OriginalPhoto({ src, alt }: { src: string; alt: string }) {
@@ -19,22 +20,41 @@ export function OriginalPhotos({
   ids,
   snapshot,
   api,
+  comparisonFor,
 }: {
   ids: string[];
   snapshot: ProjectSnapshot;
   api: RootsApi;
+  /** Render-only adapter. Pass only pairs already validated by the shared API. */
+  comparisonFor?: (
+    originalId: string,
+  ) => { enhancedUrl: string; aligned: boolean } | undefined;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [comparing, setComparing] = useState(false);
   const close = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const open = selected !== null;
-  const move = (delta: number) =>
+  const idsRef = useRef(ids);
+  idsRef.current = ids;
+  const move = (delta: number) => {
+    setComparing(false);
     setSelected((current) =>
       current
-        ? ids[(ids.indexOf(current) + delta + ids.length) % ids.length]
+        ? idsRef.current[
+            (idsRef.current.indexOf(current) + delta + idsRef.current.length) %
+              idsRef.current.length
+          ]
         : null,
     );
+  };
+  useEffect(() => {
+    if (selected && !ids.includes(selected)) {
+      setSelected(null);
+      setComparing(false);
+    }
+  }, [ids.join("|"), selected]);
   useEffect(() => {
     if (!open) return;
     close.current?.focus();
@@ -45,8 +65,8 @@ export function OriginalPhotos({
       }
       if (e.key === "Tab") {
         const buttons = [
-          ...(dialog.current?.querySelectorAll<HTMLButtonElement>(
-            "button:not([disabled])",
+          ...(dialog.current?.querySelectorAll<HTMLElement>(
+            'button:not([disabled]),input:not([disabled]),a[href],[tabindex="0"]',
           ) || []),
         ];
         const first = buttons[0],
@@ -59,6 +79,12 @@ export function OriginalPhotos({
           first?.focus();
         }
       }
+      if (
+        (e.target as HTMLElement).matches(
+          "input,textarea,select,[role='slider']",
+        )
+      )
+        return;
       if (e.key === "ArrowRight") {
         e.preventDefault();
         move(1);
@@ -73,7 +99,7 @@ export function OriginalPhotos({
       window.removeEventListener("keydown", listener, true);
       opener.current?.focus();
     };
-  }, [open, ids.join("|")]);
+  }, [open]);
   if (!ids.length) return null;
   const name = (id: string) =>
     snapshot.assets.find((a) => a.id === id)?.originalName ||
@@ -87,6 +113,7 @@ export function OriginalPhotos({
               className="photo-open"
               onClick={(event) => {
                 opener.current = event.currentTarget;
+                setComparing(false);
                 setSelected(id);
               }}
               aria-label={`Enlarge ${name(id)}`}
@@ -101,6 +128,19 @@ export function OriginalPhotos({
               <br />
               Original file
             </figcaption>
+            <PhotoCaption assetId={id} snapshot={snapshot} />
+            {comparisonFor?.(id) && (
+              <button
+                className="compare-photo-button"
+                onClick={(event) => {
+                  opener.current = event.currentTarget;
+                  setSelected(id);
+                  setComparing(true);
+                }}
+              >
+                Compare photos
+              </button>
+            )}
           </figure>
         ))}
       </div>
@@ -110,7 +150,11 @@ export function OriginalPhotos({
           className="photo-lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label="Original photograph"
+          aria-label={
+            comparing
+              ? "Original and enhanced photographs"
+              : "Original photograph"
+          }
           onClick={() => setSelected(null)}
         >
           <button
@@ -121,10 +165,27 @@ export function OriginalPhotos({
             ×
           </button>
           <div onClick={(e) => e.stopPropagation()}>
-            <OriginalPhoto
-              src={api.assetUrl(snapshot.projectId, selected)}
-              alt={name(selected)}
-            />
+            {comparing && comparisonFor?.(selected) ? (
+              <PhotoComparison
+                originalUrl={api.assetUrl(snapshot.projectId, selected)}
+                enhancedUrl={comparisonFor(selected)!.enhancedUrl}
+                aligned={comparisonFor(selected)!.aligned}
+                caption={name(selected)}
+              />
+            ) : (
+              <OriginalPhoto
+                src={api.assetUrl(snapshot.projectId, selected)}
+                alt={name(selected)}
+              />
+            )}
+            {comparisonFor?.(selected) && (
+              <button
+                className="comparison-toggle"
+                onClick={() => setComparing(!comparing)}
+              >
+                {comparing ? "View original photograph" : "Compare photos"}
+              </button>
+            )}
             <p aria-live="polite">
               {name(selected)} · Original {ids.indexOf(selected) + 1} of{" "}
               {ids.length}
@@ -149,5 +210,32 @@ export function OriginalPhotos({
         </div>
       )}
     </>
+  );
+}
+
+function PhotoCaption({
+  assetId,
+  snapshot,
+}: {
+  assetId: string;
+  snapshot: ProjectSnapshot;
+}) {
+  const annotation = snapshot.photoAnnotations?.find(
+    (a) => a.assetId === assetId,
+  );
+  if (!annotation?.positions.length) return null;
+  return (
+    <details className="photo-identities">
+      <summary>People, left to right</summary>
+      <ol>
+        {[...annotation.positions]
+          .sort((a, b) => a.position - b.position)
+          .map((position) => (
+            <li key={position.position} value={position.position}>
+              {position.label || "Unknown"} <small>· {position.status}</small>
+            </li>
+          ))}
+      </ol>
+    </details>
   );
 }

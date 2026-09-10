@@ -116,8 +116,9 @@ export function BookPreview({
         </div>
         {!ready && !completed && (
           <small>
-            Downloading closes this run with the current reviewed state. Open
-            questions stay documented.
+            {snapshot.run
+              ? "Downloading closes this run with the current reviewed state. Open questions stay documented."
+              : "Your current reviewed work and open questions are included in the download."}
           </small>
         )}
       </div>

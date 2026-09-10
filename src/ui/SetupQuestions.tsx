@@ -30,16 +30,19 @@ export function SetupQuestions({
   onSource: (id: string) => void;
 }) {
   const run = snapshot.run!;
-  const [index, setIndex] = useState(() =>
-    Math.max(
-      0,
-      run.questions.findIndex(
-        (q) => !run.answers.some((a) => a.questionId === q.id),
-      ),
-    ),
-  );
+  const [index, setIndex] = useState(() => {
+    const pending = run.questions.findIndex(
+      (q) => !run.answers.some((a) => a.questionId === q.id),
+    );
+    return pending < 0
+      ? run.initialSavedAt
+        ? 0
+        : run.questions.length
+      : pending;
+  });
   const answered = new Set(run.answers.map((a) => a.questionId));
   const question = run.questions[index];
+  const firstPending = run.questions.findIndex((q) => !answered.has(q.id));
   if (
     index >= run.questions.length ||
     (answered.size === run.questions.length &&
@@ -82,7 +85,10 @@ export function SetupQuestions({
             key={q.id}
             aria-label={`Question ${i + 1}${answered.has(q.id) ? ", answered" : ""}`}
             aria-current={i === index ? "step" : undefined}
-            disabled={busy || (i > index && !answered.has(q.id))}
+            disabled={
+              busy ||
+              (firstPending >= 0 && i > firstPending && !answered.has(q.id))
+            }
             onClick={() => setIndex(i)}
             className={answered.has(q.id) ? "answered" : ""}
           >
@@ -263,13 +269,17 @@ function Question({
             failed ||
             (editing && (!text.trim() || stale))
           }
-          onClick={() => void save(editing ? "correct" : "confirm")}
+          onClick={() =>
+            void save(editing ? "correct" : previous?.action || "confirm")
+          }
         >
           {busy || submitted
             ? "Saving answer…"
             : editing
               ? "Save my answer"
-              : "Confirm answer"}
+              : previous
+                ? "Keep saved answer"
+                : "Confirm answer"}
         </button>
         <button
           disabled={busy || submitted || waiting || failed}
