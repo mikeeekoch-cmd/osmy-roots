@@ -11,6 +11,7 @@
  */
 
 export { searchLocalSources, normalizeForSearch, tokenize } from './local-search.mjs';
+export { prepareManifestBatches, readSavedSourceJob } from './staged-sources.mjs';
 export {
   fetchPublicRecord, isPrivateAddress, htmlToText, extractTitle,
   ALLOWED_HOSTS, DEFAULT_TIMEOUT_MS, DEFAULT_MAX_BYTES,

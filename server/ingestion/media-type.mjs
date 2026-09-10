@@ -37,7 +37,7 @@ export function detectMediaType(originalName, bytes, declared) {
     // A .docx/.xlsx is a zip container; keep the more specific extension type.
     if (sniffed === 'application/zip') {
       const byExt = EXT[extensionOf(originalName)];
-      if (byExt && byExt !== 'application/zip') return byExt;
+      if (byExt && byExt.startsWith('application/vnd.openxmlformats-officedocument.')) return byExt;
     }
     return sniffed;
   }

@@ -1,3 +1,29 @@
+# Round 2 data/export status, September 10, 2026
+
+Execution owner: Codex data/export subagent covering the Claude assignment. No claim of execution in Claude Code. Lead integrates changes on codex/engineering; the original codex/data-export history is preserved.
+
+Engineering T0: 18:18:15 UTC. Contracts: 18:28:15. P0: 19:13:15. Freeze: 19:28:15. Final deadline: 19:48:15.
+
+Working at 18:30 UTC:
+
+- Ordinary PDF/CSV/TXT/photo/three-chat-ZIP packet parsing reconstructs the actual selected 35 people and 56 normalized relationships from the supplied files. No internal JSON seed is used.
+- Actual PDF extraction uses local Poppler pdftotext (10 seconds, 2 MB extracted-text cap, at most 10 pages), with original PDF bytes retained. Images remain stored assets without OCR or face recognition.
+- CSV quotes, embedded newlines, exact offsets, source references, same-name IDs, candidate relationships, uncertain dates, duplicate normalization, missing endpoints and parent-cycle rejection are covered.
+- Chat ZIPs validate central and local directories, CRC/size, safe paths, no symlinks, no nested/executable content, 200 entries, 100 MB total expansion and ratio <=200. UTF-8 undated or dated scaffolding is parsed; actual recollection attribution, per-message roots, original hashes and reconstruction metadata remain separate.
+- Canonical private packet: 16 selected files; 35 people; 56 relationships; 16 sources; 19 retained original/extracted assets; 8 photo annotations; zero parser issues. Actual PDF and 3 ZIPs parsed in 130 ms. No private filenames, hashes or source text appear in this status.
+- Fictional twin: same shared schemas and 35/56 coverage. Both actual and twin results pass ProjectSnapshotSchema and validateSnapshot with exact imported claim spans.
+- Export keeps the strict lead bundle adapter untouched. Four-page PDF now includes a small branch and the entire 35-person register; HTML includes all supplied photos and accepted recollections. All photo and source bytes remain hash-verifiable. Current data layout generation took 151 ms for a roughly 9 MB bundle.
+- Visual inspection of all four initial-layout pages found and fixed long open-question overflow into the footer; the corrected page 4 was rendered and inspected again. The initial layout intentionally contains no unreviewed story. Final integrated current-book visual QA remains required after real Astra review.
+- 54 focused ingestion/export/research tests passed. Mocked retrieval unit tests now inject DNS as well as HTTP and retain an explicit private-DNS rejection case; production DNS checks are unchanged.
+
+Interfaces: parseFamilyPacket({files}) from server/ingestion/index.mjs returns roots-v1 graph/sources/assets plus assetBytes, files, photoAnnotations, relationshipReconciliation and counts. prepareManifestBatches and readSavedSourceJob in server/research validate supplied staging without timers or new facts. Lead currently owns active batch execution.
+
+Pending integration gates: canonical frozen packet hash and full current-book export after actual review, two real-browser Submit-to-Download rehearsals, portable reopen, actual download timing and final shared regression gate. Do not interpret this parser/export status as integrated demo readiness.
+
+---
+
+## Preserved round 1 data/export handoff
+
 # Claude Code Mike: ingestion, retrieval and export
 
 Owner: Claude Code Mike. Branch: `codex/data-export`. Modules: `server/ingestion`, `server/research`, `server/export`.

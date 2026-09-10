@@ -1,0 +1,18 @@
+Fictional English derivative family evidence
+All people, places and facts in this packet are invented for engineering tests.
+
+[ORIGIN-01 | evidence root fictional-ledger:F005]
+The fictional family ledger places Alder Vale's birth and lifetime residence in Willowford, Northmere.
+
+[TIME-01 | evidence root fictional-ledger:F005]
+The fictional family ledger records Alder Vale as born about 1885 and deceased about 1961. Both years are approximate.
+
+[MOVEMENT-01 | evidence root fictional-ledger:F015]
+The fictional family ledger places Ellis Vale in Willowford until about 1936, then in Harbourfield from about 1936 to 1980. The exact moving date is unknown.
+
+[CONFLICT-01 | evidence root fictional-ledger:F017]
+Clara Vale's fictional ledger birth field gives 1911. Its margin note reports 1909. No original birth certificate is supplied; keep the year unresolved.
+
+[KINSHIP-01 | evidence root fictional-ledger:FR039]
+The fictional relationship ledger identifies Martin Vale as the father of Jonah Vale. Raw rows 39 and 46 repeat the same link; retain FR039 once.
+

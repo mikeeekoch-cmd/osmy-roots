@@ -28,6 +28,10 @@ function json(input: unknown) {
   };
 }
 export const rootsApi: RootsApi = {
+  answerSetupQuestion: async (id, input) => result(await fetch(`${path(id)}/answers`, json(input))),
+  prepareFamilyBook: async (id) => result(await fetch(`${path(id)}/book`, {method: "POST"})),
+  cancelRun: async (id) => result(await fetch(`${path(id)}/cancel`, {method: "POST"})),
+  bookPreviewUrl: (id) => `${path(id)}/book/preview`,
   createProject: async (input, files = []) =>
     result(
       await fetch("/api/projects", {

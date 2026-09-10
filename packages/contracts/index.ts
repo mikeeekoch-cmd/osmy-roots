@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RunStateSchema, PhotoAnnotationSchema, TranslationLineageSchema, type SetupAnswer } from "./round2";
+import { RunStateSchema, PhotoAnnotationSchema, PhotoPairSchema, TranslationLineageSchema, type SetupAnswer } from "./round2";
 export * from "./round2";
 
 export const SCHEMA_VERSION = "roots-v1" as const;
@@ -48,6 +48,9 @@ export const SourceSchema = z.object({
   evidenceRootIds: z.array(z.string()).optional(),
   lineage: z.array(TranslationLineageSchema).optional(),
   reconstructed: z.boolean().optional(),
+  evidenceRootId: z.string().optional(),
+  archiveHash: z.string().optional(),
+  reconstructionMetadata: z.unknown().optional(),
 });
 export type Source = z.infer<typeof SourceSchema>;
 export const SourceAssetSchema = z.object({
@@ -58,6 +61,7 @@ export const SourceAssetSchema = z.object({
   byteLength: z.number().int().nonnegative(),
   storageKey: z.string(),
   contentHash: z.string().optional(),
+  caption: z.string().optional(),
 });
 export type SourceAsset = z.infer<typeof SourceAssetSchema>;
 export const SourceSpanSchema = z.object({
@@ -80,6 +84,9 @@ export const PersonSchema = z.object({
   photoIds: z.array(Id).default([]),
   claimIds: z.array(Id).default([]),
   storyIds: z.array(Id).default([]),
+  aliases: z.array(z.string()).optional(),
+  recordStatus: z.string().optional(),
+  importedSourceRefs: z.array(z.string()).optional(),
 });
 export type Person = z.infer<typeof PersonSchema>;
 export const ClaimSchema = z.object({
@@ -239,6 +246,7 @@ export const ProjectSnapshotSchema = z.object({
   issues: z.array(z.string()).default([]),
   run: RunStateSchema.optional(),
   photoAnnotations: z.array(PhotoAnnotationSchema).optional(),
+  photoPairs: z.array(PhotoPairSchema).optional(),
 });
 export type ProjectSnapshot = z.infer<typeof ProjectSnapshotSchema>;
 export const ReviewDecisionSchema = z.object({
@@ -280,6 +288,7 @@ export interface RootsApi {
   answerSetupQuestion?(projectId: string, input: SetupAnswer): Promise<ProjectSnapshot>;
   prepareFamilyBook?(projectId: string): Promise<ProjectSnapshot>;
   cancelRun?(projectId: string): Promise<ProjectSnapshot>;
+  bookPreviewUrl?(projectId: string): string;
   createProject(input: ProjectInput, files?: File[]): Promise<ProjectSnapshot>;
   getSnapshot(
     projectId: string,

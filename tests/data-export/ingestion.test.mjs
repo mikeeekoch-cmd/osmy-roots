@@ -115,7 +115,7 @@ test('multi-paragraph text produces per-paragraph line locators', async () => {
   assert.deepEqual(locators, ['note.txt#L1', 'note.txt#L4']);
 });
 
-test('unsupported formats are stored_only with an explicit reason, never faked as parsed', async () => {
+test('malformed archives fail and unsupported media stays stored_only, never faked as parsed', async () => {
   const r = await ingestContribution({
     files: [
       { originalName: 'chat.zip', bytes: Buffer.from([0x50, 0x4b, 0x03, 0x04, 0, 0, 0, 0]) },
@@ -124,8 +124,8 @@ test('unsupported formats are stored_only with an explicit reason, never faked a
     ],
   });
   const byName = Object.fromEntries(r.files.map((f) => [f.originalName, f]));
-  assert.equal(byName['chat.zip'].status, 'stored_only');
-  assert.match(byName['chat.zip'].reason, /no compatibility is claimed/i);
+  assert.equal(byName['chat.zip'].status, 'failed');
+  assert.match(byName['chat.zip'].reason, /Malformed ZIP/i);
   assert.equal(byName['voice.m4a'].status, 'stored_only');
   assert.equal(byName['photo.png'].status, 'stored_only');
   assert.match(byName['photo.png'].warnings.join(' '), /no text extraction, OCR or face identification/i);

@@ -263,7 +263,7 @@ ${stale.length ? `\n**${stale.length} passage(s) were excluded as stale** and ar
 
   const bytes = createZip(entries);
   const stamp = new Date().toISOString().slice(0, 10);
-  const safeName = String(options.projectName || 'roots-family-project').replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase();
+  const safeName = String(options.projectName || 'osmy-roots-family-project').replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase();
 
   return {
     bytes,
@@ -308,7 +308,7 @@ function renderEditableMap(snapshot, branch, assetPaths) {
     branchPersonIds: branch.personIds,
   };
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Roots family map</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Osmy Roots family map</title>
 <style>
  :root{--ink:#1b1b20;--muted:#6b6b76;--rule:#ddd8d0;--paper:#fbfaf8;--card:#f6f4f0;--accent:#5a3d28}
  @media (prefers-color-scheme:dark){:root{--ink:#eceaea;--muted:#a6a2a8;--rule:#3a3a40;--paper:#17171a;--card:#212127;--accent:#c8a582}}
@@ -322,17 +322,18 @@ function renderEditableMap(snapshot, branch, assetPaths) {
  .n{font-weight:600} .o,.y{color:var(--muted);font-size:12px}
  img{width:100%;max-width:150px;border-radius:3px;margin-bottom:6px;display:block}
 </style></head><body>
-<h1>Roots family map</h1>
-<p class="sub">Read-only export of the current project. Edit in the Roots app and export again; project.json is the editable record.</p>
+<h1>Osmy Roots family map</h1>
+<p class="sub">Read-only export of the current project. Edit in Osmy Roots and export again; project.json is the editable record.</p>
 <div id="tree"></div>
 <script id="d" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>
 <script>
  const d=JSON.parse(document.getElementById('d').textContent);
+ const esc=(v)=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
  const byGen={};for(const p of d.people){(byGen[p.generation] ||= []).push(p);}
  document.getElementById('tree').innerHTML=Object.keys(byGen).sort((a,b)=>a-b).map(g=>
-  '<div class="gen"><span class="lbl">Generation '+g+'</span><div class="row">'+byGen[g].map(p=>
-   '<div class="p'+(p.id===d.focusPersonId?' f':'')+'">'+(p.photo?'<img src="'+p.photo+'" alt="">':'')+
-   '<div class="n">'+p.displayNameEn+'</div>'+(p.originalName&&p.originalName!==p.displayNameEn?'<div class="o">'+p.originalName+'</div>':'')+
-   '<div class="y">'+p.lifeYears+'</div></div>').join('')+'</div></div>').join('');
+  '<div class="gen"><span class="lbl">Generation '+esc(g)+'</span><div class="row">'+byGen[g].map(p=>
+   '<div class="p'+(p.id===d.focusPersonId?' f':'')+'">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="">':'')+
+   '<div class="n">'+esc(p.displayNameEn)+'</div>'+(p.originalName&&p.originalName!==p.displayNameEn?'<div class="o">'+esc(p.originalName)+'</div>':'')+
+   '<div class="y">'+esc(p.lifeYears)+'</div></div>').join('')+'</div></div>').join('');
 </script></body></html>`;
 }

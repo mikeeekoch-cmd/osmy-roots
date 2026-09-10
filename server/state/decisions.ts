@@ -255,15 +255,30 @@ export async function mutateGraph(projectId: string, raw: unknown) {
         const previous = entry.before as ReturnType<typeof graphState> & {
           proposal?: Proposal;
         };
-        Object.assign(
-          s,
-          structuredClone({
-            people: previous.people,
-            relationships: previous.relationships,
-            claims: previous.claims,
-            stories: previous.stories,
-          }),
-        );
+        const changed = entry.after as ReturnType<typeof graphState>;
+        // Revert this user's delta while retaining records released afterwards.
+        // A snapshot replacement would silently remove later staged relatives.
+        for (const key of ["people", "relationships", "claims", "stories"] as const) {
+          const beforeRows = previous[key] as {id:string;[key:string]:unknown}[];
+          const afterRows = changed[key] as {id:string;[key:string]:unknown}[];
+          let currentRows = s[key] as {id:string;[key:string]:unknown}[];
+          for (const afterRow of afterRows) {
+            const beforeRow=beforeRows.find(r=>r.id===afterRow.id);
+            if(!beforeRow){currentRows=currentRows.filter(r=>r.id!==afterRow.id);continue;}
+            const currentRow=currentRows.find(r=>r.id===afterRow.id);if(!currentRow)continue;
+            for(const field of new Set([...Object.keys(beforeRow),...Object.keys(afterRow)])) {
+              if(JSON.stringify(beforeRow[field])===JSON.stringify(afterRow[field]))continue;
+              const beforeValue=beforeRow[field],afterValue=afterRow[field],currentValue=currentRow[field];
+              if(Array.isArray(beforeValue)&&Array.isArray(afterValue)&&Array.isArray(currentValue)) {
+                const added=afterValue.filter(v=>!beforeValue.includes(v));
+                const removed=beforeValue.filter(v=>!afterValue.includes(v));
+                currentRow[field]=[...currentValue.filter(v=>!added.includes(v)),...removed.filter(v=>!currentValue.includes(v))];
+              } else currentRow[field]=structuredClone(beforeValue);
+            }
+          }
+          for(const row of beforeRows)if(!afterRows.some(r=>r.id===row.id)&&!currentRows.some(r=>r.id===row.id))currentRows.push(structuredClone(row));
+          (s[key] as unknown)=currentRows;
+        }
         if (previous.proposal) {
           const i = s.proposals.findIndex(
             (p) => p.id === previous.proposal!.id,

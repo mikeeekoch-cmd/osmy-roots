@@ -12,6 +12,7 @@ export function event(
     sequence: (s.researchEvents.at(-1)?.sequence || 0) + 1,
     at: new Date().toISOString(),
   });
+  if (s.run) s.run.nextSequence = (s.researchEvents.at(-1)?.sequence || 0) + 1;
 }
 export function counters(s: ProjectSnapshot) {
   const completed = s.researchEvents.filter((e) => e.state === "completed");

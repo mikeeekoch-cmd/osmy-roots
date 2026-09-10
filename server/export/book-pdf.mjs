@@ -89,7 +89,7 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
   const focusId = options.focusPersonId || branch?.focusPersonId || (snapshot.people || [])[0]?.id;
   const focus = people.get(focusId);
   const dedication = options.dedication || 'For Dad.';
-  const title = options.title || 'Roots: The Family Book';
+  const title = (options.title || 'Osmy Roots: The Family Book').replace(/^Roots(?=:)/, 'Osmy Roots');
 
   // Fonts must cover every character we intend to print.
   const coverSample = [title, dedication, ...[...people.values()].map((p) => `${p.displayNameEn} ${p.originalName}`)]
@@ -179,7 +179,9 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
     text: 'Each card carries the English name, the original name and known life years. A bracketed number cites the source that supports the person. Unknown values are shown as Unknown rather than filled in.',
   });
 
-  const levels = branch?.levels || new Map();
+  const fullRegister = people.size > 12;
+  // A small connected branch stays readable above the complete register.
+  const levels = fullRegister ? new Map([...(branch?.levels || new Map())].slice(0, 5)) : branch?.levels || new Map();
   const byLevel = new Map();
   for (const [id, lvl] of levels.entries()) {
     if (!people.has(id)) continue;
@@ -189,7 +191,7 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
   const orderedLevels = [...byLevel.keys()].sort((a, b) => b - a); // oldest generation first
 
   const chartTop = 150;
-  const chartBottom = p2.height - 90;
+  const chartBottom = fullRegister ? 335 : p2.height - 90;
   const rows = Math.max(1, orderedLevels.length);
   const rowHeight = Math.min(96, (chartBottom - chartTop) / rows);
   const cardH = Math.min(58, rowHeight - 22);
@@ -239,7 +241,20 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
     p2.line(a.x, mid, b.x, mid);
     p2.line(b.x, mid, b.x, b.top);
   }
-  footer(p2, doc, `${centres.size} people shown from the selected branch. The full project retains ${(snapshot.people || []).length}.`, 2);
+  if (fullRegister) {
+    const roster = [...people.values()], half = Math.ceil(roster.length / 2), columnW = (p2.width - 2 * MARGIN - 20) / 2;
+    p2.text({ x: MARGIN, y: 370, text: `Complete family register: ${roster.length} people`, font: 'sans', size: 12, color: INK });
+    p2.text({ x: MARGIN, y: 387, text: 'Names and life years from supplied records. c. means approximate; Unknown stays unresolved.', font: 'sans', size: 7.5, color: MUTED });
+    for (let i = 0; i < roster.length; i++) {
+      const p = roster[i], col = i < half ? 0 : 1, row = i % half, x = MARGIN + col * (columnW + 20), y = 413 + row * 19;
+      const nameSize = Math.min(8.2, 8.2 * (columnW - 28) / Math.max(1, doc.widthOf('sans', personLabel(p), 8.2)));
+      p2.text({ x, y, text: p.id, font: 'sans', size: 6.5, color: MUTED });
+      p2.text({ x: x + 26, y, text: personLabel(p), font: 'sans', size: nameSize, color: INK });
+      if (nameSize < 7) warnings.push(`Long register name ${p.id} uses ${nameSize.toFixed(1)} pt; verify readability visually.`);
+      p2.text({ x: x + 26, y: y + 9, text: yearsLabel(p), font: 'sans', size: 6.5, color: MUTED });
+    }
+  }
+  footer(p2, doc, `${centres.size} people in the main branch. ${people.size} people in the ${fullRegister ? 'complete register above and ' : ''}editable project.`, 2);
 
   // ---------------------------------------------------------------- page 3
   const p3 = doc.addPage();
@@ -332,12 +347,13 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
     text: 'Selected entries below. Every numbered citation resolves in the complete Sources section of book.html. Original text and exact locators are preserved in sources.json and project.json.', leading: 12 }) + 14;
   const used = [...register.values()].sort((a, b) => a.number - b.number);
   for (const { number, source } of used) {
-    if (y4 > p4.height - 250) { warnings.push('Source list truncated to fit the four-page layout; the complete numbered register is in book.html.'); cuts.push('source_list_truncated'); break; }
     const origin = source.origin ? ` · ${source.origin}` : '';
     const kind = source.kind ? source.kind.replace(/_/g, ' ') : 'source';
     const head = `[${number}] ${source.title || source.originalLocator || source.id}`;
-    y4 = p4.paragraph({ x: MARGIN, y: y4, maxWidth: p4.width - MARGIN * 2, font: 'serif', size: 9.5, color: INK, text: head, leading: 12.5 });
     const detail = `${kind}${origin}${source.originalLocator ? ` · ${source.originalLocator}` : ''}${source.unresolved ? ' · original document not supplied' : ''}`;
+    const needed = doc.wrap('serif', head, 9.5, p4.width - MARGIN * 2).length * 12.5 + doc.wrap('sans', detail, 8, p4.width - MARGIN * 2 - 12).length * 10.5 + 6;
+    if (y4 + needed > p4.height - 230) { warnings.push('Source list truncated to fit the four-page layout; the complete numbered register is in book.html.'); cuts.push('source_list_truncated'); break; }
+    y4 = p4.paragraph({ x: MARGIN, y: y4, maxWidth: p4.width - MARGIN * 2, font: 'serif', size: 9.5, color: INK, text: head, leading: 12.5 });
     y4 = p4.paragraph({ x: MARGIN + 12, y: y4, maxWidth: p4.width - MARGIN * 2 - 12, font: 'sans', size: 8, color: MUTED, text: detail, leading: 10.5 }) + 6;
   }
 
@@ -349,19 +365,23 @@ export function renderBookPdf({ snapshot, passages = [], getImage, branch, optio
     if (!open.length) {
       p4.text({ x: MARGIN, y: y4, text: 'No unresolved items were recorded at export time.', font: 'serif', size: 9.5, color: MUTED });
     } else {
+      let printedQuestions = 0;
       for (const q of open.slice(0, 12)) {
-        if (y4 > p4.height - 70) { warnings.push('Open-question list truncated to fit the page.'); break; }
+        const text = `${q.status === 'error' ? '!' : '-'} ${q.text}`;
+        const needed = doc.wrap('serif', text, 9, p4.width - MARGIN * 2 - 10).length * 12 + 3;
+        if (y4 + needed > p4.height - 100) { warnings.push('Open-question list truncated to fit the page; complete entries remain in HTML and research notes.'); cuts.push('open_questions_truncated'); break; }
         y4 = p4.paragraph({
           x: MARGIN + 10, y: y4, maxWidth: p4.width - MARGIN * 2 - 10, font: 'serif', size: 9, color: INK,
-          text: `${q.status === 'error' ? '!' : '-'} ${q.text}`, leading: 12,
+          text, leading: 12,
         }) + 3;
+        printedQuestions++;
       }
-      if (open.length > 12) {
-        p4.text({ x: MARGIN + 10, y: y4 + 4, text: `... and ${open.length - 12} more in research-notes.json.`, font: 'sans', size: 8, color: MUTED });
+      if (open.length > printedQuestions) {
+        p4.text({ x: MARGIN + 10, y: Math.min(y4 + 4, p4.height - 90), text: `${open.length - printedQuestions} more open items in book.html and research-notes.json.`, font: 'sans', size: 8, color: MUTED });
       }
     }
   }
-  footer(p4, doc, 'Roots prototype. Imported records are supplied family evidence, not new archive discoveries.', 4);
+  footer(p4, doc, 'Osmy Roots. Imported records are supplied family evidence, not new archive discoveries.', 4);
 
   const bytes = doc.toBuffer();
   warnings.push(...doc.warnings);

@@ -72,7 +72,8 @@ test("actual ingestion keeps text bytes, exact quotes, hashes and honest unsuppo
     ],
   });
   assert.equal(out.files[0].status, "parsed");
-  assert.equal(out.files[1].status, "stored_only");
+  assert.equal(out.files[1].status, "failed");
+  assert.ok(out.files[1].warnings.length > 0, "Malformed supported ZIPs need an actionable parse failure");
   assert.ok(
     out.sources.some((s) => s.originalText.includes("Alex repaired watches.")),
   );

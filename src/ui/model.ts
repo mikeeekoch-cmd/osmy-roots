@@ -166,3 +166,27 @@ export function branchIds(
   }
   return ids;
 }
+
+/** Keep saved nodes fixed when additional supplied records arrive. */
+export function stableFamilyLayout(people: Person[], relationships: Relationship[], previous: Record<string, {x: number; y: number}> = {}) {
+  const proposed = familyLayout(people, relationships);
+  const positions: Record<string, {x: number; y: number}> = {};
+  for (const person of people) if (previous[person.id]) positions[person.id] = {...previous[person.id]};
+  const anchor = people.find((p) => positions[p.id]);
+  const yShift = anchor ? positions[anchor.id].y - proposed.positions[anchor.id].y : 0;
+  for (const person of people) {
+    if (positions[person.id]) continue;
+    const candidate = {...proposed.positions[person.id], y: proposed.positions[person.id].y + yShift};
+    const peer = relationships.find((r) => r.status !== "rejected" && r.type === "partner" && ((r.fromPersonId === person.id && positions[r.toPersonId]) || (r.toPersonId === person.id && positions[r.fromPersonId])));
+    if (peer) candidate.y = positions[peer.fromPersonId === person.id ? peer.toPersonId : peer.fromPersonId].y;
+    else {
+      const parent = relationships.find((r) => isParent(r) && r.toPersonId === person.id && positions[r.fromPersonId]);
+      const child = relationships.find((r) => isParent(r) && r.fromPersonId === person.id && positions[r.toPersonId]);
+      if (parent) candidate.y = positions[parent.fromPersonId].y + 206;
+      else if (child) candidate.y = positions[child.toPersonId].y - 206;
+    }
+    while (Object.values(positions).some((p) => Math.abs(p.y - candidate.y) < 150 && Math.abs(p.x - candidate.x) < 210)) candidate.x += 224;
+    positions[person.id] = candidate;
+  }
+  return {positions, width: Math.max(320, ...Object.values(positions).map((p) => p.x + 232)), height: Math.max(220, ...Object.values(positions).map((p) => p.y + 186))};
+}

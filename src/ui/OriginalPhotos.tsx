@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ProjectSnapshot, RootsApi } from "./types";
+import { PhotoComparison } from "./PhotoComparison";
 export function OriginalPhoto({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
@@ -19,22 +20,31 @@ export function OriginalPhotos({
   ids,
   snapshot,
   api,
+  personId,
 }: {
   ids: string[];
   snapshot: ProjectSnapshot;
   api: RootsApi;
+  personId?: string;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [comparing, setComparing] = useState(false);
+  const pairs = (snapshot.photoPairs || []).filter((pair) => (!personId || pair.personIds.includes(personId)) && snapshot.assets.some((a) => a.id === pair.originalAssetId && a.mediaType.startsWith("image/")) && snapshot.assets.some((a) => a.id === pair.enhancedAssetId && a.mediaType.startsWith("image/")));
+  const pair = pairs.find((item) => item.originalAssetId === selected);
+  const galleryIds = ids.filter((id) => !pairs.some((item) => item.enhancedAssetId === id));
+  useEffect(() => { setSelected(null); setComparing(false); }, [personId]);
   const close = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const open = selected !== null;
-  const move = (delta: number) =>
+  const move = (delta: number) => {
+    setComparing(false);
     setSelected((current) =>
       current
-        ? ids[(ids.indexOf(current) + delta + ids.length) % ids.length]
+        ? galleryIds[(galleryIds.indexOf(current) + delta + galleryIds.length) % galleryIds.length]
         : null,
     );
+  };
   useEffect(() => {
     if (!open) return;
     close.current?.focus();
@@ -45,8 +55,8 @@ export function OriginalPhotos({
       }
       if (e.key === "Tab") {
         const buttons = [
-          ...(dialog.current?.querySelectorAll<HTMLButtonElement>(
-            "button:not([disabled])",
+          ...(dialog.current?.querySelectorAll<HTMLElement>(
+            "button:not([disabled]), input:not([disabled]), a[href], select:not([disabled]), textarea:not([disabled])",
           ) || []),
         ];
         const first = buttons[0],
@@ -59,6 +69,7 @@ export function OriginalPhotos({
           first?.focus();
         }
       }
+      if ((e.target as HTMLElement)?.closest('input[type="range"]')) return;
       if (e.key === "ArrowRight") {
         e.preventDefault();
         move(1);
@@ -73,7 +84,7 @@ export function OriginalPhotos({
       window.removeEventListener("keydown", listener, true);
       opener.current?.focus();
     };
-  }, [open, ids.join("|")]);
+  }, [open, galleryIds.join("|")]);
   if (!ids.length) return null;
   const name = (id: string) =>
     snapshot.assets.find((a) => a.id === id)?.originalName ||
@@ -87,6 +98,7 @@ export function OriginalPhotos({
               className="photo-open"
               onClick={(event) => {
                 opener.current = event.currentTarget;
+                setComparing(false);
                 setSelected(id);
               }}
               aria-label={`Enlarge ${name(id)}`}
@@ -96,6 +108,7 @@ export function OriginalPhotos({
                 alt={name(id)}
               />
             </button>
+            {pairs.some((pair) => pair.originalAssetId === id) && <button className="compare-photo-button" onClick={(event) => { opener.current = event.currentTarget; setSelected(id); setComparing(true); }}>Compare photos</button>}
             <figcaption>
               {name(id)}
               <br />
@@ -121,15 +134,16 @@ export function OriginalPhotos({
             ×
           </button>
           <div onClick={(e) => e.stopPropagation()}>
-            <OriginalPhoto
+            {comparing && pair ? <PhotoComparison key={pair.id} pair={pair} originalUrl={api.assetUrl(snapshot.projectId, pair.originalAssetId)} enhancedUrl={api.assetUrl(snapshot.projectId, pair.enhancedAssetId)} /> : <OriginalPhoto
               src={api.assetUrl(snapshot.projectId, selected)}
               alt={name(selected)}
-            />
+            />}
+            {pair && <button className="toggle-photo-comparison" onClick={() => setComparing(!comparing)}>{comparing ? "View complete original" : "Compare photos"}</button>}
             <p aria-live="polite">
-              {name(selected)} · Original {ids.indexOf(selected) + 1} of{" "}
-              {ids.length}
+              {name(selected)} · Photograph {galleryIds.indexOf(selected) + 1} of{" "}
+              {galleryIds.length}
             </p>
-            {ids.length > 1 && (
+            {galleryIds.length > 1 && (
               <nav
                 className="photo-navigation"
                 aria-label="Original photo navigation"

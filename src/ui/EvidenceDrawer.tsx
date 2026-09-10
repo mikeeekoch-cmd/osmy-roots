@@ -36,6 +36,7 @@ export function EvidenceDrawer({
   onClose,
   onEdit,
   onReviewProposal,
+  readOnly = false,
 }: {
   snapshot: ProjectSnapshot;
   api: RootsApi;
@@ -43,6 +44,7 @@ export function EvidenceDrawer({
   onClose: () => void;
   onEdit: (operation: GraphMutation["operation"], id: string) => void;
   onReviewProposal: (id: string) => void;
+  readOnly?: boolean;
 }) {
   const person =
     selection.kind === "person"
@@ -95,8 +97,8 @@ export function EvidenceDrawer({
             <br />
             {years(person)}
           </p>
-          <OriginalPhotos ids={person.photoIds} snapshot={snapshot} api={api} />
-          <button onClick={() => onEdit("editPerson", person.id)}>
+          <OriginalPhotos ids={person.photoIds} snapshot={snapshot} api={api} personId={person.id} />
+          <button disabled={readOnly} onClick={() => onEdit("editPerson", person.id)}>
             Edit person
           </button>
         </>
@@ -107,7 +109,7 @@ export function EvidenceDrawer({
             <span className="badge">{label(relationship.type)}</span>{" "}
             <span className="badge">{relationship.status}</span>
           </p>
-          <button onClick={() => onEdit("editRelationship", relationship.id)}>
+          <button disabled={readOnly} onClick={() => onEdit("editRelationship", relationship.id)}>
             Edit relationship
           </button>
         </>
@@ -189,7 +191,7 @@ export function EvidenceDrawer({
               .map((p) => (
                 <article className="story" key={p.id}>
                   <p>{p.text}</p>
-                  <button onClick={() => onReviewProposal(p.id)}>
+                  <button disabled={readOnly} onClick={() => onReviewProposal(p.id)}>
                     Correct interpretation
                   </button>
                 </article>

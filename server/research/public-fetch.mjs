@@ -68,14 +68,14 @@ export function isPrivateAddress(ip) {
 }
 
 /** Resolve and refuse any host that points at private space. */
-async function assertPublicHost(hostname) {
+async function assertPublicHost(hostname, lookup = dns.lookup) {
   if (net.isIP(hostname)) {
     if (isPrivateAddress(hostname)) throw Object.assign(new Error(`Refused private address ${hostname}`), { code: 'BLOCKED_PRIVATE' });
     return [hostname];
   }
   let records;
   try {
-    records = await dns.lookup(hostname, { all: true });
+    records = await lookup(hostname, { all: true });
   } catch (e) {
     throw Object.assign(new Error(`DNS lookup failed for ${hostname}: ${e.code || e.message}`), { code: 'DNS_FAILED' });
   }
@@ -129,7 +129,7 @@ function accessBarrier(status, text) {
  */
 export async function fetchPublicRecord({
   url, timeoutMs = DEFAULT_TIMEOUT_MS, maxBytes = DEFAULT_MAX_BYTES,
-  allowHosts, maxRedirects = 3, fetchImpl,
+  allowHosts, maxRedirects = 3, fetchImpl, lookupImpl,
 } = {}) {
   const startedAt = Date.now();
   const fail = (status, code, message, extra = {}) => ({
@@ -161,7 +161,7 @@ export async function fetchPublicRecord({
           { finalUrl: current.toString() });
       }
       try {
-        await assertPublicHost(current.hostname);
+        await assertPublicHost(current.hostname, lookupImpl || dns.lookup);
       } catch (e) {
         return fail(e.code === 'DNS_FAILED' ? 'unavailable' : 'blocked', e.code, e.message, { finalUrl: current.toString() });
       }

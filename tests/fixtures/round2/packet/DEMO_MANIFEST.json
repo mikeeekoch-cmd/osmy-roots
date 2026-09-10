@@ -1,0 +1,774 @@
+{
+  "schemaVersion": "roots-demo-v2",
+  "packetVersion": "fictional-v2.3",
+  "script": {
+    "title": "Fictional Vale family rehearsal",
+    "version": "1",
+    "sha256": "74ba2bfea33b4fa6fdeaded1ba25d5ecceab883f67f1a06de9ca65210f257c18"
+  },
+  "selectedPersonIds": [
+    "F001",
+    "F002",
+    "F003",
+    "F004",
+    "F005",
+    "F006",
+    "F007",
+    "F008",
+    "F009",
+    "F010",
+    "F011",
+    "F012",
+    "F013",
+    "F014",
+    "F015",
+    "F016",
+    "F017",
+    "F018",
+    "F019",
+    "F020",
+    "F021",
+    "F022",
+    "F023",
+    "F024",
+    "F025",
+    "F026",
+    "F027",
+    "F028",
+    "F029",
+    "F030",
+    "F031",
+    "F032",
+    "F033",
+    "F034",
+    "F035"
+  ],
+  "expectedRelationshipCount": 56,
+  "files": [
+    {
+      "path": "01-upload/01__Alder_Vale.jpg",
+      "sha256": "610119f6e14d9bd13339c89e9802340449f520435dae93728e3eca50494ed24d",
+      "bytes": 25069,
+      "sourceIds": [],
+      "evidenceRootIds": [
+        "fictional-photo-label:1"
+      ],
+      "lineage": []
+    },
+    {
+      "path": "01-upload/02__Ellis_and_Clara.jpg",
+      "sha256": "5d88e8b09c2bc24875dddb9ebaca2be8e1406e78d116a326a4fd3be4b059a1bb",
+      "bytes": 28232,
+      "sourceIds": [],
+      "evidenceRootIds": [
+        "fictional-photo-label:2"
+      ],
+      "lineage": []
+    },
+    {
+      "path": "01-upload/03__Martin_Vale.jpg",
+      "sha256": "70c1ba4d5bbfd70c5587b0fab9330fa95dcdd2aa299d972d7c434b8f71cfc21e",
+      "bytes": 25252,
+      "sourceIds": [],
+      "evidenceRootIds": [
+        "fictional-photo-label:3"
+      ],
+      "lineage": []
+    },
+    {
+      "path": "01-upload/04__Jonah_Vale.jpg",
+      "sha256": "9004828ac02028688b538b8143cb8e0b22e7a09604d3c0557e489079171bfffe",
+      "bytes": 25221,
+      "sourceIds": [],
+      "evidenceRootIds": [
+        "fictional-photo-label:4"
+      ],
+      "lineage": []
+    },
+    {
+      "path": "01-upload/05__Rowan_Vale.jpg",
+      "sha256": "ad8ea750dc19b872d60c86dc19d306bd8b30aa77cedd37be0da18748dc643b34",
+      "bytes": 25317,
+      "sourceIds": [],
+      "evidenceRootIds": [
+        "fictional-photo-label:5"
+      ],
+      "lineage": []
+    },
+    {
+      "path": "01-upload/06__Rowan_and_Jonah.jpg",
+      "sha256": "b437cb92515bb8baa7e9b22ff85ecc3fb0245702f3c5f01359493b2f23774249",
+      "bytes": 28791,
+      "sourceIds": [],
+      "evidenceRootIds": [
+        "fictional-photo-label:6"
+      ],
+      "lineage": []
+    },
+    {
+      "path": "01-upload/Family_Overview.pdf",
+      "sha256": "55c199bf3d4ec32bcb798070d8b90265fc6976d64a9df4be3082f93859397366",
+      "bytes": 3159,
+      "sourceIds": [
+        "family-overview"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Invented English source records, not private evidence",
+          "derivativeHash": "55c199bf3d4ec32bcb798070d8b90265fc6976d64a9df4be3082f93859397366",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "path": "01-upload/Family_Recollections.txt",
+      "sha256": "5af54440ec4f8bf044b6846b201d6e5497b86ddd917c86710c551f907a0de5bf",
+      "bytes": 1064,
+      "sourceIds": [
+        "family-recollections"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger:F005",
+        "fictional-ledger:F015",
+        "fictional-ledger:F017",
+        "fictional-ledger:FR039"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Invented English source records, not private evidence",
+          "derivativeHash": "5af54440ec4f8bf044b6846b201d6e5497b86ddd917c86710c551f907a0de5bf",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "path": "01-upload/Family_Register.csv",
+      "sha256": "e7d0b83f5b275da6a32f205c4feddc390304512035368ef8e7779254bda8841f",
+      "bytes": 4939,
+      "sourceIds": [
+        "family-register"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Invented English source records, not private evidence",
+          "derivativeHash": "e7d0b83f5b275da6a32f205c4feddc390304512035368ef8e7779254bda8841f",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "path": "01-upload/Family_Relationships.csv",
+      "sha256": "d9eda5282ad008ffe579e3c589dbeb70fc1afc1732d5249fbda73c4cb989a6bb",
+      "bytes": 3489,
+      "sourceIds": [
+        "family-relationships"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Invented English source records, not private evidence",
+          "derivativeHash": "d9eda5282ad008ffe579e3c589dbeb70fc1afc1732d5249fbda73c4cb989a6bb",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "path": "01-upload/Photo_Captions.txt",
+      "sha256": "72abcfb58bfe65729a577f0be17a4cbbc96f03d45b754a7657971613548e04be",
+      "bytes": 4944,
+      "sourceIds": [
+        "photo-captions"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Invented English source records, not private evidence",
+          "derivativeHash": "72abcfb58bfe65729a577f0be17a4cbbc96f03d45b754a7657971613548e04be",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "path": "01-upload/WhatsApp_Dad.zip",
+      "sha256": "052d91c0d804f4c9b81c57b2b0a5d2e4ca68db3d85f1e37251b47bdbfd72fffe",
+      "bytes": 997,
+      "sourceIds": [
+        "chat-dad"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger:F015"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Invented English source records, not private evidence",
+          "derivativeHash": "052d91c0d804f4c9b81c57b2b0a5d2e4ca68db3d85f1e37251b47bdbfd72fffe",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "path": "01-upload/WhatsApp_Family.zip",
+      "sha256": "8f390b72e9875640abde150d8b2a2d813c6f03c3a88bfc82de961e18e86b338a",
+      "bytes": 1234,
+      "sourceIds": [
+        "chat-family"
+      ],
+      "evidenceRootIds": [
+        "fictional-memory:17"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Invented English source records, not private evidence",
+          "derivativeHash": "8f390b72e9875640abde150d8b2a2d813c6f03c3a88bfc82de961e18e86b338a",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "path": "01-upload/WhatsApp_Mom.zip",
+      "sha256": "b2796bb6f7317d92a87505117fdc1eeb3bae87ede56872fe00b97d6b98dd9ab5",
+      "bytes": 1014,
+      "sourceIds": [
+        "chat-mom"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger:F017"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Invented English source records, not private evidence",
+          "derivativeHash": "b2796bb6f7317d92a87505117fdc1eeb3bae87ede56872fe00b97d6b98dd9ab5",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "path": "02-background/saved-family-folder/Family_Origin.txt",
+      "sha256": "2ed906e68b37aa7c594e3dd30a2959b4b3b91d064c702e46015329e326e5062c",
+      "bytes": 170,
+      "sourceIds": [
+        "saved-origin"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger:F005"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Repeated copy of initially supplied fictional ledger evidence",
+          "derivativeHash": "2ed906e68b37aa7c594e3dd30a2959b4b3b91d064c702e46015329e326e5062c",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "path": "02-background/saved-family-correspondence/Moving_to_Harbourfield.txt",
+      "sha256": "b7c55b1073069707f1b1b1fb0e6f06aa28f4d5fd2865a8d385207ddca8a18fb5",
+      "bytes": 246,
+      "sourceIds": [
+        "saved-movement"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger:F015"
+      ],
+      "lineage": [
+        {
+          "originalHash": "116774e1f51d12de58680018e87bd3651c7b3b934cfb66b8727fb3d8d85af3f8",
+          "originalLocator": "Repeated copy of initially supplied fictional ledger evidence",
+          "derivativeHash": "b7c55b1073069707f1b1b1fb0e6f06aa28f4d5fd2865a8d385207ddca8a18fb5",
+          "language": "en"
+        }
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "assetId": "F-PHOTO-01",
+      "file": "01__Alder_Vale.jpg",
+      "positions": [
+        {
+          "position": 1,
+          "personId": "F005",
+          "label": "Alder Vale (fictional label)",
+          "status": "confirmed"
+        }
+      ],
+      "support": [
+        {
+          "sourceId": "photo-captions",
+          "locator": "Photo_Captions.txt#L1-L147",
+          "quote": "Fictional archive card associated with Alder Vale by its supplied label. This is an illustration, not a portrait."
+        }
+      ]
+    },
+    {
+      "assetId": "F-PHOTO-02",
+      "file": "02__Ellis_and_Clara.jpg",
+      "positions": [
+        {
+          "position": 1,
+          "personId": null,
+          "label": "Unknown (left symbol)",
+          "status": "unresolved"
+        },
+        {
+          "position": 2,
+          "personId": null,
+          "label": "Unknown (right symbol)",
+          "status": "unresolved"
+        }
+      ],
+      "support": [
+        {
+          "sourceId": "photo-captions",
+          "locator": "Photo_Captions.txt#L1-L147",
+          "quote": "Fictional card labelled Ellis and Clara; the supplied label does not assign left-to-right identities. No real people are pictured."
+        }
+      ]
+    },
+    {
+      "assetId": "F-PHOTO-03",
+      "file": "03__Martin_Vale.jpg",
+      "positions": [
+        {
+          "position": 1,
+          "personId": "F019",
+          "label": "Martin Vale (fictional label)",
+          "status": "confirmed"
+        }
+      ],
+      "support": [
+        {
+          "sourceId": "photo-captions",
+          "locator": "Photo_Captions.txt#L1-L147",
+          "quote": "Fictional archive card associated with Martin Vale by its supplied label. This is an illustration, not a portrait."
+        }
+      ]
+    },
+    {
+      "assetId": "F-PHOTO-04",
+      "file": "04__Jonah_Vale.jpg",
+      "positions": [
+        {
+          "position": 1,
+          "personId": "F025",
+          "label": "Jonah Vale (fictional label)",
+          "status": "proposed"
+        }
+      ],
+      "support": [
+        {
+          "sourceId": "photo-captions",
+          "locator": "Photo_Captions.txt#L1-L147",
+          "quote": "Fictional archive card associated with Jonah Vale by its supplied label. This is an illustration, not a portrait."
+        }
+      ]
+    },
+    {
+      "assetId": "F-PHOTO-05",
+      "file": "05__Rowan_Vale.jpg",
+      "positions": [
+        {
+          "position": 1,
+          "personId": "F001",
+          "label": "Rowan Vale (fictional label)",
+          "status": "confirmed"
+        }
+      ],
+      "support": [
+        {
+          "sourceId": "photo-captions",
+          "locator": "Photo_Captions.txt#L1-L147",
+          "quote": "Fictional archive card associated with Rowan Vale by its supplied label. This is an illustration, not a portrait."
+        }
+      ]
+    },
+    {
+      "assetId": "F-PHOTO-06",
+      "file": "06__Rowan_and_Jonah.jpg",
+      "positions": [
+        {
+          "position": 1,
+          "personId": null,
+          "label": "Unknown (left symbol)",
+          "status": "unresolved"
+        },
+        {
+          "position": 2,
+          "personId": null,
+          "label": "Unknown (right symbol)",
+          "status": "unresolved"
+        }
+      ],
+      "support": [
+        {
+          "sourceId": "photo-captions",
+          "locator": "Photo_Captions.txt#L1-L147",
+          "quote": "Fictional card labelled Rowan and Jonah; the supplied label does not assign left-to-right identities. No real people are pictured."
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q1",
+      "category": "photo",
+      "prompt": "Whose labelled archive card is this?",
+      "recommendation": "Alder Vale, associated by the supplied fictional label.",
+      "support": [
+        {
+          "sourceId": "photo-captions",
+          "locator": "Photo_Captions.txt#L1-L147",
+          "quote": "Fictional archive card associated with Alder Vale by its supplied label. This is an illustration, not a portrait."
+        }
+      ],
+      "personIds": [
+        "F005"
+      ],
+      "effect": {
+        "kind": "annotation",
+        "photoAssetId": "F-PHOTO-01"
+      },
+      "requiresAstra": false
+    },
+    {
+      "id": "Q2",
+      "category": "kinship",
+      "prompt": "How is Martin related to Jonah?",
+      "recommendation": "Martin Vale is Jonah Vale's father, according to the supplied relationship ledger.",
+      "support": [
+        {
+          "sourceId": "family-recollections",
+          "locator": "Family_Recollections.txt#L1-L19",
+          "quote": "The fictional relationship ledger identifies Martin Vale as the father of Jonah Vale. Raw rows 39 and 46 repeat the same link; retain FR039 once."
+        }
+      ],
+      "personIds": [
+        "F019",
+        "F025"
+      ],
+      "effect": {
+        "kind": "relationship",
+        "relationshipId": "FR039"
+      },
+      "requiresAstra": false
+    },
+    {
+      "id": "Q3",
+      "category": "origin",
+      "prompt": "Where does the ledger place Alder?",
+      "recommendation": "Willowford, Northmere, as reported by the fictional ledger.",
+      "support": [
+        {
+          "sourceId": "family-recollections",
+          "locator": "Family_Recollections.txt#L1-L19",
+          "quote": "The fictional family ledger places Alder Vale's birth and lifetime residence in Willowford, Northmere."
+        }
+      ],
+      "personIds": [
+        "F005"
+      ],
+      "effect": {
+        "kind": "claim",
+        "personId": "F005",
+        "predicate": "origin"
+      },
+      "requiresAstra": false
+    },
+    {
+      "id": "Q4",
+      "category": "time",
+      "prompt": "How should Alder's life years appear?",
+      "recommendation": "About 1885 to about 1961; keep both years approximate.",
+      "support": [
+        {
+          "sourceId": "family-recollections",
+          "locator": "Family_Recollections.txt#L1-L19",
+          "quote": "The fictional family ledger records Alder Vale as born about 1885 and deceased about 1961. Both years are approximate."
+        }
+      ],
+      "personIds": [
+        "F005"
+      ],
+      "effect": {
+        "kind": "claim",
+        "personId": "F005",
+        "predicate": "life_period"
+      },
+      "requiresAstra": false
+    },
+    {
+      "id": "Q5",
+      "category": "movement",
+      "prompt": "Who moved to Harbourfield?",
+      "recommendation": "Ellis Vale moved from Willowford around 1936; the exact moving date is unknown.",
+      "support": [
+        {
+          "sourceId": "family-recollections",
+          "locator": "Family_Recollections.txt#L1-L19",
+          "quote": "The fictional family ledger places Ellis Vale in Willowford until about 1936, then in Harbourfield from about 1936 to 1980. The exact moving date is unknown."
+        }
+      ],
+      "personIds": [
+        "F015"
+      ],
+      "effect": {
+        "kind": "claim",
+        "personId": "F015",
+        "predicate": "movement"
+      },
+      "requiresAstra": false
+    },
+    {
+      "id": "Q6",
+      "category": "recollection",
+      "prompt": "Whose recollection belongs with Alder?",
+      "recommendation": "Keep Aunt Iris's attributed memory of Alder repairing wooden boats, preserving its gaps and attribution.",
+      "support": [
+        {
+          "sourceId": "chat-family",
+          "locator": "WhatsApp_Family.zip/_chat.txt",
+          "quote": "I remember Alder Vale working beside the river. He repaired wooden boats for neighbours. [Transcription gap.] People brought him cracked hulls and loose seats, and he kept working until the boats were ready to use again."
+        }
+      ],
+      "personIds": [
+        "F005"
+      ],
+      "effect": {
+        "kind": "story",
+        "personId": "F005"
+      },
+      "requiresAstra": true
+    },
+    {
+      "id": "Q7",
+      "category": "conflict",
+      "prompt": "Can we settle Clara's birth year?",
+      "recommendation": "Keep 1909 and 1911 as conflicting reports. Leave the birth year unresolved.",
+      "support": [
+        {
+          "sourceId": "family-recollections",
+          "locator": "Family_Recollections.txt#L1-L19",
+          "quote": "Clara Vale's fictional ledger birth field gives 1911. Its margin note reports 1909. No original birth certificate is supplied; keep the year unresolved."
+        }
+      ],
+      "personIds": [
+        "F017"
+      ],
+      "effect": {
+        "kind": "editorial",
+        "personId": "F017",
+        "predicate": "birth_conflict"
+      },
+      "requiresAstra": false
+    }
+  ],
+  "initialBranchIds": [
+    "F005",
+    "F015",
+    "F019",
+    "F025",
+    "F001"
+  ],
+  "initialReleaseOffsetSeconds": 35,
+  "batches": [
+    {
+      "id": "batch-1",
+      "personIds": [
+        "F010",
+        "F017",
+        "F028",
+        "F026",
+        "F030"
+      ],
+      "relationshipIds": [
+        "FR013",
+        "FR021",
+        "FR025",
+        "FR029",
+        "FR037",
+        "FR038",
+        "FR045",
+        "FR047",
+        "FR050"
+      ],
+      "dependencyIds": [
+        "initial"
+      ],
+      "releaseOffsetSeconds": 44
+    },
+    {
+      "id": "batch-2",
+      "personIds": [
+        "F009",
+        "F011",
+        "F012",
+        "F013",
+        "F014"
+      ],
+      "relationshipIds": [
+        "FR012",
+        "FR014",
+        "FR015",
+        "FR016",
+        "FR017",
+        "FR018",
+        "FR019",
+        "FR024"
+      ],
+      "dependencyIds": [
+        "batch-1"
+      ],
+      "releaseOffsetSeconds": 53
+    },
+    {
+      "id": "batch-3",
+      "personIds": [
+        "F016",
+        "F018",
+        "F020",
+        "F021",
+        "F022"
+      ],
+      "relationshipIds": [
+        "FR022",
+        "FR023",
+        "FR026",
+        "FR027",
+        "FR030",
+        "FR031",
+        "FR032",
+        "FR033",
+        "FR034",
+        "FR035"
+      ],
+      "dependencyIds": [
+        "batch-2"
+      ],
+      "releaseOffsetSeconds": 62
+    },
+    {
+      "id": "batch-4",
+      "personIds": [
+        "F023",
+        "F024",
+        "F027",
+        "F032",
+        "F031"
+      ],
+      "relationshipIds": [
+        "FR040",
+        "FR041",
+        "FR042",
+        "FR043",
+        "FR044",
+        "FR051",
+        "FR052",
+        "FR053"
+      ],
+      "dependencyIds": [
+        "batch-3"
+      ],
+      "releaseOffsetSeconds": 71
+    },
+    {
+      "id": "batch-5",
+      "personIds": [
+        "F002",
+        "F003",
+        "F004",
+        "F006",
+        "F007"
+      ],
+      "relationshipIds": [
+        "FR001",
+        "FR002",
+        "FR003",
+        "FR004",
+        "FR005",
+        "FR007",
+        "FR008",
+        "FR009",
+        "FR010"
+      ],
+      "dependencyIds": [
+        "batch-4"
+      ],
+      "releaseOffsetSeconds": 80
+    },
+    {
+      "id": "batch-6",
+      "personIds": [
+        "F008",
+        "F029",
+        "F033",
+        "F034",
+        "F035"
+      ],
+      "relationshipIds": [
+        "FR006",
+        "FR011",
+        "FR048",
+        "FR049",
+        "FR054",
+        "FR055",
+        "FR056",
+        "FR057"
+      ],
+      "dependencyIds": [
+        "batch-5"
+      ],
+      "releaseOffsetSeconds": 89
+    }
+  ],
+  "sourceJobs": [
+    {
+      "id": "saved-folder",
+      "kind": "saved_folder",
+      "filePaths": [
+        "02-background/saved-family-folder/Family_Origin.txt"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger:F005"
+      ],
+      "releaseOffsetSeconds": 53
+    },
+    {
+      "id": "saved-correspondence",
+      "kind": "saved_correspondence",
+      "filePaths": [
+        "02-background/saved-family-correspondence/Moving_to_Harbourfield.txt"
+      ],
+      "evidenceRootIds": [
+        "fictional-ledger:F015"
+      ],
+      "releaseOffsetSeconds": 71
+    }
+  ],
+  "requiredBookSections": [
+    "Dedication",
+    "Main family branch",
+    "Full family register",
+    "Reviewed recollection",
+    "Photographs",
+    "Sources and open questions"
+  ]
+}

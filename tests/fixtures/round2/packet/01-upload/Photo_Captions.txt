@@ -1,0 +1,146 @@
+[
+  {
+    "assetId": "F-PHOTO-01",
+    "file": "01__Alder_Vale.jpg",
+    "positions": [
+      {
+        "position": 1,
+        "personId": "F005",
+        "label": "Alder Vale (fictional label)",
+        "status": "confirmed"
+      }
+    ],
+    "support": [
+      {
+        "sourceId": "photo-captions",
+        "locator": "Photo_Captions.txt#L1-L147",
+        "quote": "Fictional archive card associated with Alder Vale by its supplied label. This is an illustration, not a portrait."
+      }
+    ],
+    "caption": "Fictional archive card associated with Alder Vale by its supplied label. This is an illustration, not a portrait.",
+    "sha256": "610119f6e14d9bd13339c89e9802340449f520435dae93728e3eca50494ed24d",
+    "evidenceRootId": "fictional-photo-label:1"
+  },
+  {
+    "assetId": "F-PHOTO-02",
+    "file": "02__Ellis_and_Clara.jpg",
+    "positions": [
+      {
+        "position": 1,
+        "personId": null,
+        "label": "Unknown (left symbol)",
+        "status": "unresolved"
+      },
+      {
+        "position": 2,
+        "personId": null,
+        "label": "Unknown (right symbol)",
+        "status": "unresolved"
+      }
+    ],
+    "support": [
+      {
+        "sourceId": "photo-captions",
+        "locator": "Photo_Captions.txt#L1-L147",
+        "quote": "Fictional card labelled Ellis and Clara; the supplied label does not assign left-to-right identities. No real people are pictured."
+      }
+    ],
+    "caption": "Fictional card labelled Ellis and Clara; the supplied label does not assign left-to-right identities. No real people are pictured.",
+    "sha256": "5d88e8b09c2bc24875dddb9ebaca2be8e1406e78d116a326a4fd3be4b059a1bb",
+    "evidenceRootId": "fictional-photo-label:2"
+  },
+  {
+    "assetId": "F-PHOTO-03",
+    "file": "03__Martin_Vale.jpg",
+    "positions": [
+      {
+        "position": 1,
+        "personId": "F019",
+        "label": "Martin Vale (fictional label)",
+        "status": "confirmed"
+      }
+    ],
+    "support": [
+      {
+        "sourceId": "photo-captions",
+        "locator": "Photo_Captions.txt#L1-L147",
+        "quote": "Fictional archive card associated with Martin Vale by its supplied label. This is an illustration, not a portrait."
+      }
+    ],
+    "caption": "Fictional archive card associated with Martin Vale by its supplied label. This is an illustration, not a portrait.",
+    "sha256": "70c1ba4d5bbfd70c5587b0fab9330fa95dcdd2aa299d972d7c434b8f71cfc21e",
+    "evidenceRootId": "fictional-photo-label:3"
+  },
+  {
+    "assetId": "F-PHOTO-04",
+    "file": "04__Jonah_Vale.jpg",
+    "positions": [
+      {
+        "position": 1,
+        "personId": "F025",
+        "label": "Jonah Vale (fictional label)",
+        "status": "proposed"
+      }
+    ],
+    "support": [
+      {
+        "sourceId": "photo-captions",
+        "locator": "Photo_Captions.txt#L1-L147",
+        "quote": "Fictional archive card associated with Jonah Vale by its supplied label. This is an illustration, not a portrait."
+      }
+    ],
+    "caption": "Fictional archive card associated with Jonah Vale by its supplied label. This is an illustration, not a portrait.",
+    "sha256": "9004828ac02028688b538b8143cb8e0b22e7a09604d3c0557e489079171bfffe",
+    "evidenceRootId": "fictional-photo-label:4"
+  },
+  {
+    "assetId": "F-PHOTO-05",
+    "file": "05__Rowan_Vale.jpg",
+    "positions": [
+      {
+        "position": 1,
+        "personId": "F001",
+        "label": "Rowan Vale (fictional label)",
+        "status": "confirmed"
+      }
+    ],
+    "support": [
+      {
+        "sourceId": "photo-captions",
+        "locator": "Photo_Captions.txt#L1-L147",
+        "quote": "Fictional archive card associated with Rowan Vale by its supplied label. This is an illustration, not a portrait."
+      }
+    ],
+    "caption": "Fictional archive card associated with Rowan Vale by its supplied label. This is an illustration, not a portrait.",
+    "sha256": "ad8ea750dc19b872d60c86dc19d306bd8b30aa77cedd37be0da18748dc643b34",
+    "evidenceRootId": "fictional-photo-label:5"
+  },
+  {
+    "assetId": "F-PHOTO-06",
+    "file": "06__Rowan_and_Jonah.jpg",
+    "positions": [
+      {
+        "position": 1,
+        "personId": null,
+        "label": "Unknown (left symbol)",
+        "status": "unresolved"
+      },
+      {
+        "position": 2,
+        "personId": null,
+        "label": "Unknown (right symbol)",
+        "status": "unresolved"
+      }
+    ],
+    "support": [
+      {
+        "sourceId": "photo-captions",
+        "locator": "Photo_Captions.txt#L1-L147",
+        "quote": "Fictional card labelled Rowan and Jonah; the supplied label does not assign left-to-right identities. No real people are pictured."
+      }
+    ],
+    "caption": "Fictional card labelled Rowan and Jonah; the supplied label does not assign left-to-right identities. No real people are pictured.",
+    "sha256": "b437cb92515bb8baa7e9b22ff85ecc3fb0245702f3c5f01359493b2f23774249",
+    "evidenceRootId": "fictional-photo-label:6"
+  }
+]

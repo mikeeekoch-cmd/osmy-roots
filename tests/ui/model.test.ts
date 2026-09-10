@@ -194,3 +194,34 @@ test("explicit branch selection stays on that person and ignores rejected parent
   );
   assert.deepEqual(s.relationships.slice(0, 2), before.slice(0, 2));
 });
+
+test("round-2 upload preflight uses the shared policy and retains a valid selection over 30 MB", async () => {
+  const {validateFiles, fileSize} = await import("../../src/ui/FilePicker");
+  const {UPLOAD_LIMITS} = await import("../../packages/contracts/round2");
+  assert.equal(validateFiles([{name: "First.zip", size: 20_000_000}, {name: "Second.zip", size: 20_000_000}]), null);
+  assert.equal(validateFiles(Array.from({length: 4}, (_, i) => ({name: `${i}.zip`, size: UPLOAD_LIMITS.maxFileBytes}))), null);
+  assert.match(validateFiles([{name: "Large.zip", size: UPLOAD_LIMITS.maxFileBytes + 1}])!, /Large.zip/);
+  assert.match(validateFiles(Array.from({length: 41}, (_, i) => ({name: `${i}.txt`, size: 1})))!, /Remove 1/);
+  assert.match(validateFiles(Array.from({length: 5}, (_, i) => ({name: `${i}.zip`, size: 21_000_000})))!, /100 MB/);
+  assert.equal(fileSize(UPLOAD_LIMITS.maxTotalBytes), "100 MB");
+});
+
+test("saved map positions remain fixed and new records do not overlap existing nodes", async () => {
+  const {stableFamilyLayout} = await import("../../src/ui/model");
+  const s = snapshot();
+  const first = stableFamilyLayout(s.people.slice(0, 3), s.relationships);
+  const next = stableFamilyLayout(s.people, s.relationships, first.positions);
+  for (const person of s.people.slice(0, 3)) assert.deepEqual(next.positions[person.id], first.positions[person.id]);
+  const positions = Object.values(next.positions);
+  assert.equal(new Set(positions.map((p) => `${p.x}:${p.y}`)).size, s.people.length);
+});
+
+test("photo comparison accepts only bounded normalized crops", async () => {
+  const {usableCrop} = await import("../../src/ui/PhotoComparison");
+  assert.equal(usableCrop(undefined), true);
+  assert.equal(usableCrop([0.1, 0.1, 0.8, 0.8]), true);
+  assert.equal(usableCrop([0, 0, 0, 1]), false);
+  assert.equal(usableCrop([-0.1, 0, 1, 1]), false);
+  assert.equal(usableCrop([0.5, 0, 0.6, 1]), false);
+  assert.equal(usableCrop([NaN, 0, 1, 1]), false);
+});

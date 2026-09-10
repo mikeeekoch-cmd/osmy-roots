@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 export const metadata = {
-  title: "Roots",
+  title: "Osmy Roots",
   description: "A source-backed family book",
 };
 export default function Layout({ children }: { children: ReactNode }) {

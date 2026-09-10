@@ -1,0 +1,14 @@
+beat,app_seconds,source,locator,person,photo,batch,saved_change,book_section
+Q1,8,photo-captions,F-PHOTO-01,F005,F-PHOTO-01,,annotation,Sources and open questions
+Q2,12,family-recollections,KINSHIP-01,F019;F025,,,relationship,Sources and open questions
+Q3,16,family-recollections,ORIGIN-01,F005,,,claim,Sources and open questions
+Q4,20,family-recollections,TIME-01,F005,,,claim,Sources and open questions
+Q5,24,family-recollections,MOVEMENT-01,F015,,,claim,Sources and open questions
+Q6,28,chat-family,_chat.txt:L2,F005,,,story,Reviewed recollection
+Q7,32,family-recollections,CONFLICT-01,F017,,,editorial,Sources and open questions
+batch-1,44,family-register;family-relationships,CSV rows for released IDs,F010;F017;F028;F026;F030,,batch-1,Commit supported eligible records only,Full family register
+batch-2,53,family-register;family-relationships,CSV rows for released IDs,F009;F011;F012;F013;F014,,batch-2,Commit supported eligible records only,Full family register
+batch-3,62,family-register;family-relationships,CSV rows for released IDs,F016;F018;F020;F021;F022,,batch-3,Commit supported eligible records only,Full family register
+batch-4,71,family-register;family-relationships,CSV rows for released IDs,F023;F024;F027;F032;F031,,batch-4,Commit supported eligible records only,Full family register
+batch-5,80,family-register;family-relationships,CSV rows for released IDs,F002;F003;F004;F006;F007,,batch-5,Commit supported eligible records only,Full family register
+batch-6,89,family-register;family-relationships,CSV rows for released IDs,F008;F029;F033;F034;F035,,batch-6,Commit supported eligible records only,Full family register
