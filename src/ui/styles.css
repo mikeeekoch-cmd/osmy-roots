@@ -2308,3 +2308,12 @@
 .photo-lightbox > div {
   max-width: 100%;
 }
+.setup-question h2:focus {
+  outline: none;
+}
+.roots-app .photo-lightbox .comparison-fallback button {
+  position: static;
+  display: block;
+  margin: 12px auto;
+  font-size: 12px;
+}

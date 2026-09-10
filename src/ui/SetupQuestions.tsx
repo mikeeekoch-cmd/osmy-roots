@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ProjectSnapshot } from "./types";
 import type {
   SetupAnswer,
@@ -151,6 +151,10 @@ function Question({
   const [text, setText] = useState(previous?.savedText || q.recommendation);
   const [baseVersion, setBaseVersion] = useState(snapshot.version);
   const [submitted, setSubmitted] = useState(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    heading.current?.focus();
+  }, [q.id]);
   const waiting = q.status === "waiting";
   const failed = q.status === "failed";
   const stale = editing && baseVersion !== snapshot.version;
@@ -165,7 +169,8 @@ function Question({
         questionId: q.id,
         action,
         ...(action === "correct" ? { text: text.trim() } : {}),
-        baseVersion: editing ? baseVersion : snapshot.version,
+        baseVersion:
+          editing && action === "correct" ? baseVersion : snapshot.version,
         requestId: crypto.randomUUID(),
       });
     } finally {
@@ -175,7 +180,9 @@ function Question({
   return (
     <article className="setup-question">
       <span className="eyebrow">{categoryLabels[q.category]}</span>
-      <h2>{q.prompt}</h2>
+      <h2 ref={heading} tabIndex={-1}>
+        {q.prompt}
+      </h2>
       {q.category === "photo" &&
         q.effect.photoAssetId &&
         snapshot.assets.some((a) => a.id === q.effect.photoAssetId) && (

@@ -13,7 +13,7 @@ export function OriginalPhoto({ src, alt }: { src: string; alt: string }) {
       Original unavailable
     </span>
   ) : (
-    <img src={src} alt={alt} onError={() => setFailed(true)} />
+    <img key={src} src={src} alt={alt} onError={() => setFailed(true)} />
   );
 }
 export function OriginalPhotos({
@@ -71,7 +71,10 @@ export function OriginalPhotos({
         ];
         const first = buttons[0],
           last = buttons.at(-1);
-        if (e.shiftKey && document.activeElement === first) {
+        if (!dialog.current?.contains(document.activeElement)) {
+          e.preventDefault();
+          first?.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last?.focus();
         } else if (!e.shiftKey && document.activeElement === last) {

@@ -65,6 +65,16 @@ function Comparison({
             ? "Enhanced photo unavailable. Showing the original."
             : "Original photo unavailable. Comparison cannot be shown."}
         </p>
+        <button
+          onClick={() => {
+            setFailed(null);
+            setOriginalSize(null);
+            setEnhancedSize(null);
+            setPosition(50);
+          }}
+        >
+          Retry comparison
+        </button>
       </div>
     );
   return (
