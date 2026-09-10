@@ -1,0 +1,1249 @@
+{
+ "schemaVersion": "roots-demo-v3",
+ "packetVersion": "fictional-round3-v1",
+ "inputFormat": "family_notes",
+ "identityKeys": {
+  "people": {
+   "Rowan Vale": "V001",
+   "Martin Vale": "V002",
+   "Clara Vale": "V003",
+   "Jonah Vale": "V004",
+   "Ellis Vale": "V005",
+   "Marta Vale": "V006"
+  },
+  "relationships": {},
+  "assets": {
+   "Ellis Vale.jpg": "photo-tw-01",
+   "Marta Vale.jpg": "photo-tw-02",
+   "Ellis and Marta.jpg": "photo-tw-03",
+   "The move to Harbourfield.jpg": "photo-tw-04",
+   "Jonah Vale.jpg": "photo-tw-05",
+   "Martin Vale.jpg": "photo-tw-06",
+   "Clara Vale.jpg": "photo-tw-07",
+   "Rowan and Martin.jpg": "photo-tw-08"
+  }
+ },
+ "selectedPersonIds": [
+  "V001",
+  "V002",
+  "V003",
+  "V004",
+  "V005",
+  "V006"
+ ],
+ "expectedRelationshipCount": 7,
+ "files": [
+  {
+   "path": "01-upload/Archive findings.txt",
+   "sha256": "f6fa30631d2a4fac36235db3bd7b1fa929ff11070bd11b2e27444b4d674e63b6",
+   "bytes": 790,
+   "sourceIds": [
+    "archive-findings"
+   ],
+   "evidenceRootIds": [
+    "doc-archive-findings"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Clara Vale.jpg",
+   "sha256": "7708fad28afaa4710637929b9ef02e9fbfaf2beace74df9f1bba9ace2471ab93",
+   "bytes": 17260,
+   "sourceIds": [
+    "source-photo-tw-07"
+   ],
+   "evidenceRootIds": [
+    "photo-7708fad28afaa4710637929b9ef02e9fbfaf2beace74df9f1bba9ace2471ab93"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Ellis Vale.jpg",
+   "sha256": "caa917f87a81a9dd2732454ba343ab06cd4a676c397333409dd9bab269167115",
+   "bytes": 184216,
+   "sourceIds": [
+    "source-photo-tw-01"
+   ],
+   "evidenceRootIds": [
+    "photo-caa917f87a81a9dd2732454ba343ab06cd4a676c397333409dd9bab269167115"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Ellis and Marta.jpg",
+   "sha256": "8e13573ea37048b5a69733ea566c11c23fa14d65516bd39b4750fe93637eca23",
+   "bytes": 184348,
+   "sourceIds": [
+    "source-photo-tw-03"
+   ],
+   "evidenceRootIds": [
+    "photo-8e13573ea37048b5a69733ea566c11c23fa14d65516bd39b4750fe93637eca23"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Family book excerpt.pdf",
+   "sha256": "b7a029b53722983f117dc2e391bdc8580c2796ce9893a3a74328b4311836f5f2",
+   "bytes": 4273,
+   "sourceIds": [
+    "book-excerpt"
+   ],
+   "evidenceRootIds": [
+    "doc-book-excerpt"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Family chronology.csv",
+   "sha256": "46b7c97b44fe0bbe058c931d3d13833ba6dd3d7b91502d841ac06fcffeb69e68",
+   "bytes": 1146,
+   "sourceIds": [
+    "family-chronology"
+   ],
+   "evidenceRootIds": [
+    "doc-family-chronology"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Family notes.txt",
+   "sha256": "0d8002d8b1243125f68fe1d5aac6a74efd8319cc4737e0105d8c5ddd8734cd1c",
+   "bytes": 1053,
+   "sourceIds": [
+    "family-notes"
+   ],
+   "evidenceRootIds": [
+    "doc-family-notes"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Jonah Vale.jpg",
+   "sha256": "d1ae560c3b1c0258dffa4877289f724968e43b770cc06aea817e16949d687b9a",
+   "bytes": 17364,
+   "sourceIds": [
+    "source-photo-tw-05"
+   ],
+   "evidenceRootIds": [
+    "photo-d1ae560c3b1c0258dffa4877289f724968e43b770cc06aea817e16949d687b9a"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Marta Vale.jpg",
+   "sha256": "e64990a188149c7ec64d16f2393e7ebcafc5538947cf7a85d61a166ee83fe574",
+   "bytes": 184314,
+   "sourceIds": [
+    "source-photo-tw-02"
+   ],
+   "evidenceRootIds": [
+    "photo-e64990a188149c7ec64d16f2393e7ebcafc5538947cf7a85d61a166ee83fe574"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Martin Vale.jpg",
+   "sha256": "b4cb9df7fbfc353fe6c0f23512eeaa89e9e31e7da849df0a8d1ea19aa4725643",
+   "bytes": 17283,
+   "sourceIds": [
+    "source-photo-tw-06"
+   ],
+   "evidenceRootIds": [
+    "photo-b4cb9df7fbfc353fe6c0f23512eeaa89e9e31e7da849df0a8d1ea19aa4725643"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Messages - Family.zip",
+   "sha256": "cdf4831e3b2eaed245b6c118c5a475d4b535418d26183270cf4101e28a12ed23",
+   "bytes": 392,
+   "sourceIds": [
+    "SRC_359ba0dfcc_011"
+   ],
+   "evidenceRootIds": [
+    "doc-SRC_359ba0dfcc_011"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Messages - Mum.zip",
+   "sha256": "16cc36f36e3b0916d70919543c0bbf57b95e9a8752c6e53ef7d234164255033f",
+   "bytes": 479,
+   "sourceIds": [
+    "SRC_2df9e6d96e_012"
+   ],
+   "evidenceRootIds": [
+    "doc-SRC_2df9e6d96e_012"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Photo notes.txt",
+   "sha256": "f5963b21b9d7fd1d08660776bf0003880f891e1fc1546086327860081cc8772e",
+   "bytes": 1301,
+   "sourceIds": [
+    "photo-notes"
+   ],
+   "evidenceRootIds": [
+    "doc-photo-notes"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/Rowan and Martin.jpg",
+   "sha256": "7757670cafe931f7f1368cd3f98297d89b752ef36d0b0b2ba825833a39838cf7",
+   "bytes": 17372,
+   "sourceIds": [
+    "source-photo-tw-08"
+   ],
+   "evidenceRootIds": [
+    "photo-7757670cafe931f7f1368cd3f98297d89b752ef36d0b0b2ba825833a39838cf7"
+   ],
+   "lineage": []
+  },
+  {
+   "path": "01-upload/The move to Harbourfield.jpg",
+   "sha256": "70655ae1ae2bf82faa1635a64b870db462937e5771a1dcd957982d2cf8425644",
+   "bytes": 184471,
+   "sourceIds": [
+    "source-photo-tw-04"
+   ],
+   "evidenceRootIds": [
+    "photo-70655ae1ae2bf82faa1635a64b870db462937e5771a1dcd957982d2cf8425644"
+   ],
+   "lineage": []
+  }
+ ],
+ "photos": [
+  {
+   "assetId": "photo-tw-01",
+   "file": "Ellis Vale.jpg",
+   "positions": [
+    {
+     "position": 1,
+     "personId": "V005",
+     "label": "Ellis Vale",
+     "status": "proposed"
+    }
+   ],
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Ellis Vale.jpg\n\nEllis Vale. The print carries his name and no date.\n\nPeople named in the caption: Ellis Vale.\nLeft to right: Ellis Vale.\n\n"
+    }
+   ],
+   "depictedPersonIds": [
+    "V005"
+   ],
+   "caption": "Ellis Vale. The print carries his name and no date.\n\nPeople named in the caption: Ellis Vale.\nLeft to right: Ellis Vale."
+  },
+  {
+   "assetId": "photo-tw-02",
+   "file": "Marta Vale.jpg",
+   "positions": [
+    {
+     "position": 1,
+     "personId": "V006",
+     "label": "Marta Vale",
+     "status": "proposed"
+    }
+   ],
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Marta Vale.jpg\n\nMarta Vale. An old portrait labelled with her name.\n\nPeople named in the caption: Marta Vale.\nLeft to right: Marta Vale.\n\n"
+    }
+   ],
+   "depictedPersonIds": [
+    "V006"
+   ],
+   "caption": "Marta Vale. An old portrait labelled with her name.\n\nPeople named in the caption: Marta Vale.\nLeft to right: Marta Vale."
+  },
+  {
+   "assetId": "photo-tw-03",
+   "file": "Ellis and Marta.jpg",
+   "positions": [],
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Ellis and Marta.jpg\n\nEllis Vale and Marta Vale. The names came with the photograph; their order was not written down.\n\nPeople named in the caption: Ellis Vale; Marta Vale.\n\n"
+    }
+   ],
+   "depictedPersonIds": [
+    "V005",
+    "V006"
+   ],
+   "caption": "Ellis Vale and Marta Vale. The names came with the photograph; their order was not written down.\n\nPeople named in the caption: Ellis Vale; Marta Vale."
+  },
+  {
+   "assetId": "photo-tw-04",
+   "file": "The move to Harbourfield.jpg",
+   "positions": [],
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## The move to Harbourfield.jpg\n\nThe family who left Alder Vale for Harbourfield: Ellis, Marta and Jonah. The old caption names Jonah on the left and gives no full order.\n\nPeople named in the caption: Ellis Vale; Marta Vale; Jonah Vale.\n\n"
+    }
+   ],
+   "depictedPersonIds": [
+    "V005",
+    "V006",
+    "V004"
+   ],
+   "caption": "The family who left Alder Vale for Harbourfield: Ellis, Marta and Jonah. The old caption names Jonah on the left and gives no full order.\n\nPeople named in the caption: Ellis Vale; Marta Vale; Jonah Vale."
+  },
+  {
+   "assetId": "photo-tw-05",
+   "file": "Jonah Vale.jpg",
+   "positions": [
+    {
+     "position": 1,
+     "personId": "V004",
+     "label": "Jonah Vale",
+     "status": "proposed"
+    }
+   ],
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Jonah Vale.jpg\n\nJonah Vale on his own. The name came with the photograph.\n\nPeople named in the caption: Jonah Vale.\nLeft to right: Jonah Vale.\n\n"
+    }
+   ],
+   "depictedPersonIds": [
+    "V004"
+   ],
+   "caption": "Jonah Vale on his own. The name came with the photograph.\n\nPeople named in the caption: Jonah Vale.\nLeft to right: Jonah Vale."
+  },
+  {
+   "assetId": "photo-tw-06",
+   "file": "Martin Vale.jpg",
+   "positions": [
+    {
+     "position": 1,
+     "personId": "V002",
+     "label": "Martin Vale",
+     "status": "proposed"
+    }
+   ],
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Martin Vale.jpg\n\nMartin Vale on his own.\n\nPeople named in the caption: Martin Vale.\nLeft to right: Martin Vale.\n\n"
+    }
+   ],
+   "depictedPersonIds": [
+    "V002"
+   ],
+   "caption": "Martin Vale on his own.\n\nPeople named in the caption: Martin Vale.\nLeft to right: Martin Vale."
+  },
+  {
+   "assetId": "photo-tw-07",
+   "file": "Clara Vale.jpg",
+   "positions": [
+    {
+     "position": 1,
+     "personId": "V003",
+     "label": "Clara Vale",
+     "status": "proposed"
+    }
+   ],
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Clara Vale.jpg\n\nClara Vale on her own.\n\nPeople named in the caption: Clara Vale.\nLeft to right: Clara Vale.\n\n"
+    }
+   ],
+   "depictedPersonIds": [
+    "V003"
+   ],
+   "caption": "Clara Vale on her own.\n\nPeople named in the caption: Clara Vale.\nLeft to right: Clara Vale."
+  },
+  {
+   "assetId": "photo-tw-08",
+   "file": "Rowan and Martin.jpg",
+   "positions": [],
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Rowan and Martin.jpg\n\nRowan and Martin Vale at the harbour. No date or left-to-right order was supplied.\n\nPeople named in the caption: Rowan Vale; Martin Vale.\n"
+    }
+   ],
+   "depictedPersonIds": [
+    "V001",
+    "V002"
+   ],
+   "caption": "Rowan and Martin Vale at the harbour. No date or left-to-right order was supplied.\n\nPeople named in the caption: Rowan Vale; Martin Vale."
+  }
+ ],
+ "questions": [
+  {
+   "id": "C1",
+   "category": "photo",
+   "prompt": "Is this the order of people in this photograph, from left to right?",
+   "recommendation": "",
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Rowan and Martin.jpg\n\nRowan and Martin Vale at the harbour. No date or left-to-right order was supplied.\n\nPeople named in the caption: Rowan Vale; Martin Vale.\n"
+    }
+   ],
+   "personIds": [
+    "V001",
+    "V002"
+   ],
+   "effect": {
+    "kind": "annotation",
+    "photoAssetId": "photo-tw-08"
+   },
+   "requiresAstra": false,
+   "status": "ready",
+   "origin": "prepared",
+   "photoAssetId": "photo-tw-08",
+   "photoEra": "modern"
+  },
+  {
+   "id": "C2",
+   "category": "photo",
+   "prompt": "The family label on this old portrait gives one name. Is that who this is?",
+   "recommendation": "Ellis Vale. The print carries his name and no date.",
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Ellis Vale.jpg\n\nEllis Vale. The print carries his name and no date.\n\nPeople named in the caption: Ellis Vale.\nLeft to right: Ellis Vale.\n\n"
+    }
+   ],
+   "personIds": [
+    "V005"
+   ],
+   "effect": {
+    "kind": "annotation",
+    "personId": "V005",
+    "photoAssetId": "photo-tw-01"
+   },
+   "requiresAstra": false,
+   "status": "ready",
+   "origin": "prepared",
+   "photoAssetId": "photo-tw-01",
+   "photoEra": "old"
+  },
+  {
+   "id": "C3",
+   "category": "kinship",
+   "prompt": "This old photograph is labelled as the family who left Alder Vale. Who is standing where?",
+   "recommendation": "",
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## The move to Harbourfield.jpg\n\nThe family who left Alder Vale for Harbourfield: Ellis, Marta and Jonah. The old caption names Jonah on the left and gives no full order.\n\nPeople named in the caption: Ellis Vale; Marta Vale; Jonah Vale.\n\n"
+    }
+   ],
+   "personIds": [
+    "V005",
+    "V006",
+    "V004"
+   ],
+   "effect": {
+    "kind": "annotation",
+    "photoAssetId": "photo-tw-04"
+   },
+   "requiresAstra": false,
+   "status": "ready",
+   "origin": "prepared",
+   "photoAssetId": "photo-tw-04",
+   "photoEra": "old"
+  },
+  {
+   "id": "C4",
+   "category": "origin",
+   "prompt": "Where was Ellis from?",
+   "recommendation": "Alder Vale.",
+   "support": [
+    {
+     "sourceId": "family-notes",
+     "locator": "Family notes.txt#L1-L52",
+     "quote": "## Ellis Vale\n\nEllis came from Alder Vale and was a harness-maker. Both years below are approximate.\n\nBorn around 1899. Died around 1971.\n\nHis partner was Marta Vale."
+    }
+   ],
+   "personIds": [
+    "V005"
+   ],
+   "effect": {
+    "kind": "claim",
+    "personId": "V005",
+    "predicate": "origin_place"
+   },
+   "requiresAstra": false,
+   "status": "ready",
+   "origin": "prepared"
+  },
+  {
+   "id": "C5",
+   "category": "recollection",
+   "prompt": "What does Clara remember about the move?",
+   "recommendation": "",
+   "support": [
+    {
+     "sourceId": "SRC_2df9e6d96e_012",
+     "locator": "Messages - Mum.zip/_chat.txt",
+     "quote": "Around 1946, from the story your dad told. I have never seen it written down."
+    }
+   ],
+   "personIds": [
+    "V004"
+   ],
+   "effect": {
+    "kind": "story",
+    "personId": "V004"
+   },
+   "requiresAstra": true,
+   "status": "ready",
+   "origin": "prepared"
+  },
+  {
+   "id": "C6",
+   "category": "conflict",
+   "prompt": "The notes hold two birth years for Marta. Can you settle them?",
+   "recommendation": "Keep 1902 and 1904 unresolved.",
+   "support": [
+    {
+     "sourceId": "family-notes",
+     "locator": "Family notes.txt#L1-L52",
+     "quote": "## Marta Vale\n\nMarta came from Alder Vale. One note gives 1902 and another gives 1904. This record contains an unresolved discrepancy.\n\nBorn around 1902 or around 1904. Died around 1984.\n\nHer partner was Ellis Vale."
+    }
+   ],
+   "personIds": [
+    "V006"
+   ],
+   "effect": {
+    "kind": "editorial",
+    "personId": "V006",
+    "predicate": "birth_date_conflict"
+   },
+   "requiresAstra": false,
+   "status": "ready",
+   "origin": "prepared"
+  }
+ ],
+ "photoPairs": [
+  {
+   "id": "pair-photo-tw-01",
+   "personIds": [
+    "V005"
+   ],
+   "originalAssetId": "photo-tw-01",
+   "originalHash": "caa917f87a81a9dd2732454ba343ab06cd4a676c397333409dd9bab269167115",
+   "enhancedAssetId": "photo-tw-01-enh",
+   "enhancedHash": "edde8534ab732d1546014d265363d7245185a0318958a7d310a9cf8855722e40",
+   "origin": "prepared",
+   "method": "luminance-only tone stretch, flat-area median denoise, low-amount clarity, thresholded unsharp; chroma preserved",
+   "originalLabel": "Original",
+   "enhancedLabel": "Enhanced",
+   "caption": "Enhanced for readability only. Same pixel dimensions, chroma untouched.",
+   "alignment": {
+    "mode": "aligned"
+   },
+   "evidenceRootId": "photo-caa917f87a81a9dd2732454ba343ab06cd4a676c397333409dd9bab269167115",
+   "preparedAt": "2026-09-10T20:00:00.000Z",
+   "qa": {
+    "status": "passed",
+    "reviewedAt": "2026-09-10T20:00:00.000Z",
+    "reviewer": "fixture generator",
+    "notes": "Identical dimensions, luminance-only transform, invented image."
+   }
+  },
+  {
+   "id": "pair-photo-tw-02",
+   "personIds": [
+    "V006"
+   ],
+   "originalAssetId": "photo-tw-02",
+   "originalHash": "e64990a188149c7ec64d16f2393e7ebcafc5538947cf7a85d61a166ee83fe574",
+   "enhancedAssetId": "photo-tw-02-enh",
+   "enhancedHash": "ccebcb0f3cfdb8133cbc1157c8f264e6a14ea7d7eceaa5aafe96e7cf77373748",
+   "origin": "prepared",
+   "method": "luminance-only tone stretch, flat-area median denoise, low-amount clarity, thresholded unsharp; chroma preserved",
+   "originalLabel": "Original",
+   "enhancedLabel": "Enhanced",
+   "caption": "Enhanced for readability only. Same pixel dimensions, chroma untouched.",
+   "alignment": {
+    "mode": "aligned"
+   },
+   "evidenceRootId": "photo-e64990a188149c7ec64d16f2393e7ebcafc5538947cf7a85d61a166ee83fe574",
+   "preparedAt": "2026-09-10T20:00:00.000Z",
+   "qa": {
+    "status": "passed",
+    "reviewedAt": "2026-09-10T20:00:00.000Z",
+    "reviewer": "fixture generator",
+    "notes": "Identical dimensions, luminance-only transform, invented image."
+   }
+  },
+  {
+   "id": "pair-photo-tw-03",
+   "personIds": [
+    "V005",
+    "V006"
+   ],
+   "originalAssetId": "photo-tw-03",
+   "originalHash": "8e13573ea37048b5a69733ea566c11c23fa14d65516bd39b4750fe93637eca23",
+   "enhancedAssetId": "photo-tw-03-enh",
+   "enhancedHash": "3c8910af1adad2a7c4e35ad63f524fcc8f183d2695ab91385786bfd7e879e48a",
+   "origin": "prepared",
+   "method": "luminance-only tone stretch, flat-area median denoise, low-amount clarity, thresholded unsharp; chroma preserved",
+   "originalLabel": "Original",
+   "enhancedLabel": "Enhanced",
+   "caption": "Enhanced for readability only. Same pixel dimensions, chroma untouched.",
+   "alignment": {
+    "mode": "aligned"
+   },
+   "evidenceRootId": "photo-8e13573ea37048b5a69733ea566c11c23fa14d65516bd39b4750fe93637eca23",
+   "preparedAt": "2026-09-10T20:00:00.000Z",
+   "qa": {
+    "status": "passed",
+    "reviewedAt": "2026-09-10T20:00:00.000Z",
+    "reviewer": "fixture generator",
+    "notes": "Identical dimensions, luminance-only transform, invented image."
+   }
+  },
+  {
+   "id": "pair-photo-tw-04",
+   "personIds": [
+    "V005",
+    "V006",
+    "V004"
+   ],
+   "originalAssetId": "photo-tw-04",
+   "originalHash": "70655ae1ae2bf82faa1635a64b870db462937e5771a1dcd957982d2cf8425644",
+   "enhancedAssetId": "photo-tw-04-enh",
+   "enhancedHash": "d37129da95eb15222f198bdec1ce24bee316f285db5bfe12566c65fd9e6351d3",
+   "origin": "prepared",
+   "method": "luminance-only tone stretch, flat-area median denoise, low-amount clarity, thresholded unsharp; chroma preserved",
+   "originalLabel": "Original",
+   "enhancedLabel": "Enhanced",
+   "caption": "Enhanced for readability only. Same pixel dimensions, chroma untouched.",
+   "alignment": {
+    "mode": "aligned"
+   },
+   "evidenceRootId": "photo-70655ae1ae2bf82faa1635a64b870db462937e5771a1dcd957982d2cf8425644",
+   "preparedAt": "2026-09-10T20:00:00.000Z",
+   "qa": {
+    "status": "passed",
+    "reviewedAt": "2026-09-10T20:00:00.000Z",
+    "reviewer": "fixture generator",
+    "notes": "Identical dimensions, luminance-only transform, invented image."
+   }
+  }
+ ],
+ "oldPhotoAssetIds": [
+  "photo-tw-01",
+  "photo-tw-02",
+  "photo-tw-03",
+  "photo-tw-04"
+ ],
+ "portraits": [
+  {
+   "personId": "V005",
+   "assetId": "photo-tw-01",
+   "kind": "solo",
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Ellis Vale.jpg\n\nEllis Vale. The print carries his name and no date.\n\nPeople named in the caption: Ellis Vale.\nLeft to right: Ellis Vale.\n\n"
+    }
+   ],
+   "reviewed": false
+  },
+  {
+   "personId": "V006",
+   "assetId": "photo-tw-02",
+   "kind": "solo",
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Marta Vale.jpg\n\nMarta Vale. An old portrait labelled with her name.\n\nPeople named in the caption: Marta Vale.\nLeft to right: Marta Vale.\n\n"
+    }
+   ],
+   "reviewed": false
+  },
+  {
+   "personId": "V004",
+   "assetId": "photo-tw-05",
+   "kind": "solo",
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Jonah Vale.jpg\n\nJonah Vale on his own. The name came with the photograph.\n\nPeople named in the caption: Jonah Vale.\nLeft to right: Jonah Vale.\n\n"
+    }
+   ],
+   "reviewed": false
+  },
+  {
+   "personId": "V002",
+   "assetId": "photo-tw-06",
+   "kind": "solo",
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Martin Vale.jpg\n\nMartin Vale on his own.\n\nPeople named in the caption: Martin Vale.\nLeft to right: Martin Vale.\n\n"
+    }
+   ],
+   "reviewed": false
+  },
+  {
+   "personId": "V003",
+   "assetId": "photo-tw-07",
+   "kind": "solo",
+   "support": [
+    {
+     "sourceId": "photo-notes",
+     "locator": "Photo notes.txt#L1-L57",
+     "quote": "## Clara Vale.jpg\n\nClara Vale on her own.\n\nPeople named in the caption: Clara Vale.\nLeft to right: Clara Vale.\n\n"
+    }
+   ],
+   "reviewed": false
+  }
+ ],
+ "initialBranchIds": [
+  "V001",
+  "V002",
+  "V003",
+  "V004"
+ ],
+ "researchSources": [
+  {
+   "id": "rs-1-notes",
+   "kind": "local",
+   "sourceIds": [
+    "family-notes",
+    "photo-notes"
+   ],
+   "cycleOrdinal": 1,
+   "query": "Vale family names, dates and places already written down",
+   "personIds": [
+    "V005",
+    "V004"
+   ]
+  },
+  {
+   "id": "rs-2-archive",
+   "kind": "local",
+   "sourceIds": [
+    "archive-findings"
+   ],
+   "cycleOrdinal": 2,
+   "query": "Vale entries in the Willowford parish registers",
+   "personIds": [
+    "V005"
+   ]
+  },
+  {
+   "id": "rs-3-book",
+   "kind": "local",
+   "sourceIds": [
+    "book-excerpt"
+   ],
+   "cycleOrdinal": 3,
+   "query": "Vale family book chapters and open questions",
+   "personIds": [
+    "V006"
+   ]
+  }
+ ],
+ "bookPlan": {
+  "id": "plan-fictional-round3",
+  "sourceBook": {
+   "title": "The Vale family book (fictional)",
+   "sha256": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+   "edition": "v1, 11 pages"
+  },
+  "language": "en",
+  "pageRange": [
+   35,
+   40
+  ],
+  "chapters": [
+   {
+    "id": "ch-dedication",
+    "title": "For Dad",
+    "text": "This book is for Martin Vale, who asked for it first.\n\nHe asked when I was seventeen, and again at twenty. I said yes both times and did nothing about it. This is late, and it is here.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.1"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, For Dad",
+      "quote": "This book is for Martin Vale, who asked for it first.\nHe asked when I was seventeen, and again at twenty. I said yes both times and did nothing ab\nout it. This is late, and it is here.\n\nAlder Vale\nThe Vale family comes from Alder Vale, a se"
+     }
+    ],
+    "personIds": [
+     "V002",
+     "V001"
+    ],
+    "assetIds": [],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "e7a3492d083c9d5ab9e7dd8b382df4df8c2908d092c62d5c287b7b9f99dd4959"
+   },
+   {
+    "id": "ch-alder-vale",
+    "title": "Alder Vale",
+    "text": "The Vale family comes from Alder Vale, a settlement on the western bank of the Willow river. The parish there kept registers from the 1790s, and the name Vale appears in them from the beginning.\n\nBy the 1890s Alder Vale had a mill, a school and about sixty households. The 2010 count recorded ninety-one residents.\n\nThe surname and the place name are the same word. The settlement was named for the family, and the family carries the name of its ground.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.2",
+     "vale_family_book.pdf p.3"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, Alder Vale",
+      "quote": "The Vale family comes from Alder Vale, a settlement on the western bank of the Willow river.\n The parish there kept registers from the 1790s, and the name Vale appears in them from the\nbeginning.\nBy the 1890s Alder Vale had a mill, a school"
+     }
+    ],
+    "personIds": [],
+    "assetIds": [],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "92e126bb713b0ee6e8cf99620033ad8513ccdaccb0b6212342e04b227a8ad890"
+   },
+   {
+    "id": "ch-ellis",
+    "title": "Ellis Vale",
+    "text": "Ellis Vale was born about 1899 in Alder Vale. He worked as a harness-maker, and the trade is what the family remembers first.\n\nHe married Marta Vale, born about 1902. Their son Jonah was born about 1930.\n\nEllis died about 1971. Both of his years are approximate and come from family notes rather than a certificate.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.4"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, Ellis Vale",
+      "quote": "Ellis Vale was born about 1899 in Alder Vale. He worked as a harness-maker, and the trade is\n what the family remembers first.\nHe married Marta Vale, born about 1902. Their son Jonah was born about 1930.\nEllis died about 1971. Both of his y"
+     }
+    ],
+    "personIds": [
+     "V005",
+     "V006"
+    ],
+    "assetIds": [
+     "photo-tw-01"
+    ],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "09e7db636d355eb44fafe893e2666ffceb8e204a3aad5c29a9d5b7e28a4ef8ff"
+   },
+   {
+    "id": "ch-jonah",
+    "title": "Jonah Vale",
+    "text": "Jonah Vale was born about 1930 in Alder Vale and moved with his parents to Harbourfield as a boy.\n\nHe worked at the harbour for forty years. His son Martin was born in 1962.\n\nJonah died in 1998.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.5"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, Jonah Vale",
+      "quote": "Jonah Vale was born about 1930 in Alder Vale and moved with his parents to Harbourfield as a\n boy.\nHe worked at the harbour for forty years. His son Martin was born in 1962.\nJonah died in 1998.\n\nMartin\nMartin Vale was born on 2 February 196"
+     }
+    ],
+    "personIds": [
+     "V004",
+     "V002"
+    ],
+    "assetIds": [],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "e3dfde3f4e39499d4d1e39573315726112b041040613e23cd91b5fefcedeefab"
+   },
+   {
+    "id": "ch-martin",
+    "title": "Martin Vale",
+    "text": "Martin Vale was born on 2 February 1962 in Willowford. He trained as a joiner and worked in Harbourfield.\n\nWith Clara Vale, born 1965 in Harbourfield, he brought up one son, Rowan.\n\nMartin died on 9 June 2019.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.6"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, Martin Vale",
+      "quote": "Martin Vale was born on 2 February 1962 in Willowford. He trained as a joiner and worked in\nHarbourfield.\nWith Clara Vale, born 1965 in Harbourfield, he brought up one son, Rowan.\nMartin died on 9 June 2019.\n\nRowan\nRowan Vale was born on 4"
+     }
+    ],
+    "personIds": [
+     "V002",
+     "V003",
+     "V001"
+    ],
+    "assetIds": [
+     "photo-tw-06"
+    ],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "2bebe24fa3155ad03578ec5cb2c3aa3fd5e0f7b924b4d31e285b40d7d1d1a972"
+   },
+   {
+    "id": "ch-rowan",
+    "title": "Rowan Vale",
+    "text": "Rowan Vale was born on 4 May 1994 in Willowford. Rowan collected the notes, photographs and messages that this book is made from.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.7"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, Rowan Vale",
+      "quote": "Rowan Vale was born on 4 May 1994 in Willowford. Rowan collected the notes, photographs and\nmessages that this book is made from.\n\nMove\nThe move from Alder Vale to Harbourfield happened around 1946. Clara remembered the year fro\nm a story,"
+     }
+    ],
+    "personIds": [
+     "V001"
+    ],
+    "assetIds": [],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "4bbb7e286428f4c2a937b3b1655c500612a19d42e8d4c1f054d4424e2918073a"
+   },
+   {
+    "id": "ch-move",
+    "title": "The move to Harbourfield",
+    "text": "The move from Alder Vale to Harbourfield happened around 1946. Clara remembered the year from a story, not from a document, and it is printed as a story.\n\nThe photograph labelled as the family who left Alder Vale shows Ellis, Marta and Jonah. The old caption names Jonah on the left. It does not give a full order, so the rest is left open.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.8"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, The move to Harbourfield",
+      "quote": "The move from Alder Vale to Harbourfield happened around 1946. Clara remembered the year fro\nm a story, not from a document, and it is printed as a story.\nThe photograph labelled as the family who left Alder Vale shows Ellis, Marta and Jona"
+     }
+    ],
+    "personIds": [
+     "V005",
+     "V006",
+     "V004"
+    ],
+    "assetIds": [
+     "photo-tw-04"
+    ],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "1b82d7f62a6f05223a68f58e77e62c6f419178bb9da6e1d6d051935c3ab35537"
+   },
+   {
+    "id": "ch-harness",
+    "title": "The harness-maker",
+    "text": "Of everything recorded about Ellis Vale, the part the family tells most often is the harness.\n\nHe worked with leather all his life. People came from the whole valley for his work. His funeral is remembered in the same terms.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.9"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, The harness-maker",
+      "quote": "Of everything recorded about Ellis Vale, the part the family tells most often is the harness\n.\nHe worked with leather all his life. People came from the whole valley for his work. His fun\neral is remembered in the same terms.\n\nOpen\nThese ar"
+     }
+    ],
+    "personIds": [
+     "V005"
+    ],
+    "assetIds": [],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "40aedde41162cd0aa52cd1838e198491240b61e47a542146bb9cb5e1c390a783"
+   },
+   {
+    "id": "ch-open",
+    "title": "What is still open",
+    "text": "These are the questions this edition has not answered.\n\nMarta Vale's birth year. One note says 1902 and another says 1904. There is no certificate, so both are kept and neither is marked correct.\n\nThe order of people in the two group photographs. Names came with them; positions did not.\n\nEllis Vale's own years. About 1899 to 1971, both approximate.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.10"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, What is still open",
+      "quote": "These are the questions this edition has not answered.\nMarta Vale’s birth year. One note says 1902 and another says 1904. There is no certificate,\nso both are kept and neither is marked correct.\nThe order of people in the two group photogra"
+     }
+    ],
+    "personIds": [
+     "V006",
+     "V005"
+    ],
+    "assetIds": [],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "de694246a71069b2e2b985ee248869b31280f3845a53fc48b3405ff7ef47e526"
+   },
+   {
+    "id": "ch-sources",
+    "title": "Sources and thanks",
+    "text": "This book stands on family sources first: Clara Vale's notes, the photographs kept in the family, and three saved message threads.\n\nWhere a statement rests on an uploaded file, the source register at the back gives that file and the passage gives its number. Where nobody could remember and no document was found, the entry says so.",
+    "sourceBookHash": "fb67955d3e0aedb0905f8922002a6fdb40ee7286be80a4f67cf40b0ae05b3c7b",
+    "sourceLocators": [
+     "vale_family_book.pdf p.11"
+    ],
+    "support": [
+     {
+      "sourceId": "book-excerpt",
+      "locator": "Family book excerpt.pdf, Sources and thanks",
+      "quote": "This book stands on family sources first: Clara Vale’s notes, the photographs kept in the fa\nmily, and three saved message threads.\nWhere a statement rests on an uploaded file, the source register at the back gives that file\n and the passag"
+     }
+    ],
+    "personIds": [
+     "V003"
+    ],
+    "assetIds": [],
+    "claimIds": [],
+    "origin": "prepared",
+    "language": "en",
+    "fingerprint": "1338ac146d0889614ea8e3027893b491ac36b9498b6511f5ca974cc5c0709285"
+   }
+  ],
+  "selectedPersonIds": [
+   "V001",
+   "V002",
+   "V003",
+   "V004",
+   "V005",
+   "V006"
+  ],
+  "selectedOriginalAssetIds": [
+   "photo-tw-01",
+   "photo-tw-02",
+   "photo-tw-03",
+   "photo-tw-04",
+   "photo-tw-05",
+   "photo-tw-06",
+   "photo-tw-07",
+   "photo-tw-08"
+  ],
+  "coverage": [
+   {
+    "fileHash": "f6fa30631d2a4fac36235db3bd7b1fa929ff11070bd11b2e27444b4d674e63b6",
+    "sourceIds": [
+     "archive-findings"
+    ],
+    "personIds": [],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Archive findings.txt"
+   },
+   {
+    "fileHash": "7708fad28afaa4710637929b9ef02e9fbfaf2beace74df9f1bba9ace2471ab93",
+    "sourceIds": [
+     "source-photo-tw-07"
+    ],
+    "personIds": [
+     "V003"
+    ],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Clara Vale.jpg"
+   },
+   {
+    "fileHash": "caa917f87a81a9dd2732454ba343ab06cd4a676c397333409dd9bab269167115",
+    "sourceIds": [
+     "source-photo-tw-01"
+    ],
+    "personIds": [
+     "V005"
+    ],
+    "chapterIds": [
+     "ch-ellis"
+    ],
+    "pages": [],
+    "zipPath": "originals/Ellis Vale.jpg"
+   },
+   {
+    "fileHash": "8e13573ea37048b5a69733ea566c11c23fa14d65516bd39b4750fe93637eca23",
+    "sourceIds": [
+     "source-photo-tw-03"
+    ],
+    "personIds": [
+     "V005",
+     "V006"
+    ],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Ellis and Marta.jpg"
+   },
+   {
+    "fileHash": "b7a029b53722983f117dc2e391bdc8580c2796ce9893a3a74328b4311836f5f2",
+    "sourceIds": [
+     "book-excerpt"
+    ],
+    "personIds": [],
+    "chapterIds": [
+     "ch-dedication",
+     "ch-alder-vale",
+     "ch-ellis",
+     "ch-jonah",
+     "ch-martin",
+     "ch-rowan",
+     "ch-move",
+     "ch-harness",
+     "ch-open",
+     "ch-sources"
+    ],
+    "pages": [],
+    "zipPath": "originals/Family book excerpt.pdf"
+   },
+   {
+    "fileHash": "46b7c97b44fe0bbe058c931d3d13833ba6dd3d7b91502d841ac06fcffeb69e68",
+    "sourceIds": [
+     "family-chronology"
+    ],
+    "personIds": [],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Family chronology.csv"
+   },
+   {
+    "fileHash": "0d8002d8b1243125f68fe1d5aac6a74efd8319cc4737e0105d8c5ddd8734cd1c",
+    "sourceIds": [
+     "family-notes"
+    ],
+    "personIds": [],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Family notes.txt"
+   },
+   {
+    "fileHash": "d1ae560c3b1c0258dffa4877289f724968e43b770cc06aea817e16949d687b9a",
+    "sourceIds": [
+     "source-photo-tw-05"
+    ],
+    "personIds": [
+     "V004"
+    ],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Jonah Vale.jpg"
+   },
+   {
+    "fileHash": "e64990a188149c7ec64d16f2393e7ebcafc5538947cf7a85d61a166ee83fe574",
+    "sourceIds": [
+     "source-photo-tw-02"
+    ],
+    "personIds": [
+     "V006"
+    ],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Marta Vale.jpg"
+   },
+   {
+    "fileHash": "b4cb9df7fbfc353fe6c0f23512eeaa89e9e31e7da849df0a8d1ea19aa4725643",
+    "sourceIds": [
+     "source-photo-tw-06"
+    ],
+    "personIds": [
+     "V002"
+    ],
+    "chapterIds": [
+     "ch-martin"
+    ],
+    "pages": [],
+    "zipPath": "originals/Martin Vale.jpg"
+   },
+   {
+    "fileHash": "cdf4831e3b2eaed245b6c118c5a475d4b535418d26183270cf4101e28a12ed23",
+    "sourceIds": [
+     "SRC_359ba0dfcc_011"
+    ],
+    "personIds": [],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Messages - Family.zip"
+   },
+   {
+    "fileHash": "16cc36f36e3b0916d70919543c0bbf57b95e9a8752c6e53ef7d234164255033f",
+    "sourceIds": [
+     "SRC_2df9e6d96e_012"
+    ],
+    "personIds": [],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Messages - Mum.zip"
+   },
+   {
+    "fileHash": "f5963b21b9d7fd1d08660776bf0003880f891e1fc1546086327860081cc8772e",
+    "sourceIds": [
+     "photo-notes"
+    ],
+    "personIds": [],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Photo notes.txt"
+   },
+   {
+    "fileHash": "7757670cafe931f7f1368cd3f98297d89b752ef36d0b0b2ba825833a39838cf7",
+    "sourceIds": [
+     "source-photo-tw-08"
+    ],
+    "personIds": [
+     "V001",
+     "V002"
+    ],
+    "chapterIds": [],
+    "pages": [],
+    "zipPath": "originals/Rowan and Martin.jpg"
+   },
+   {
+    "fileHash": "70655ae1ae2bf82faa1635a64b870db462937e5771a1dcd957982d2cf8425644",
+    "sourceIds": [
+     "source-photo-tw-04"
+    ],
+    "personIds": [
+     "V005",
+     "V006",
+     "V004"
+    ],
+    "chapterIds": [
+     "ch-move"
+    ],
+    "pages": [],
+    "zipPath": "originals/The move to Harbourfield.jpg"
+   }
+  ]
+ },
+ "requiredBookSections": [
+  "dedication",
+  "contents",
+  "register",
+  "exhibits",
+  "sources",
+  "open-questions"
+ ]
+}
