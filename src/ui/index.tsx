@@ -174,7 +174,8 @@ export function RootsApp({
     changedId?: string,
     background = false,
   ): Promise<boolean> {
-    if (downloadLock.current || (!background && active.current)) return false;
+    if (downloadLock.current || sealed || (!background && active.current))
+      return false;
     const epoch = projectEpoch.current;
     if (background) setContributionsRunning((n) => n + 1);
     else {
@@ -187,6 +188,9 @@ export function RootsApp({
       if (mounted.current && epoch === projectEpoch.current) {
         if (!saveSnapshot(next)) return true;
         setDownloaded(false);
+        setDelivery((current) =>
+          current === "completed" && next.run ? current : "idle",
+        );
         const savedPerson =
           changedId ||
           (snapshot?.projectId === next.projectId
@@ -246,11 +250,7 @@ export function RootsApp({
     }
   }
   async function newProject() {
-    if (
-      snapshot?.run &&
-      !snapshot.run.sealedAt &&
-      !["completed", "cancelled"].includes(snapshot.run.phase)
-    ) {
+    if (snapshot?.run && !sealed) {
       if (!api.cancelRun) {
         setError(
           "This connection cannot stop the current run yet. Reconnect to the updated application before starting another project.",
@@ -278,6 +278,7 @@ export function RootsApp({
     } catch {}
   }
   const sealed =
+    (!!snapshot?.run && delivery === "completed") ||
     !!snapshot?.run?.sealedAt ||
     ["sealing", "completed", "cancelled"].includes(snapshot?.run?.phase || "");
   const needsSetup =
