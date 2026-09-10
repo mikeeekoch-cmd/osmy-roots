@@ -488,8 +488,9 @@ function buildDocument({ snapshot, bookPlan, passages, getImage, photoPairs, por
     flow.note('Raised or still unanswered in this project');
     for (const q of live) {
       flow.ensure(24);
-      flow.para(`${q.text || q.prompt || q.uncertainty || 'Unresolved'}`, { size: 9, leading: 12.5, font: 'serif', color: INK, indentX: MARGIN + 10 });
-      if (q.sourceIds?.length) flow.note(`${markersFor(q.sourceIds, register)}`);
+      const marker = markersFor(q.sourceIds, register);
+      const text = q.text || q.prompt || q.uncertainty || 'Unresolved';
+      flow.para(marker ? `${text} ${marker}` : text, { size: 9, leading: 12.5, font: 'serif', color: INK, indentX: MARGIN + 10 });
     }
   }
 

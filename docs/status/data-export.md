@@ -7,6 +7,87 @@ Round-2 evidence below the separator is historical and unchanged.
 Merged `origin/codex/engineering` at `0eea05b` (which contains `a7d50ab` and `fc93d39`) into
 `codex/data-export` as a merge commit. No history was reset and no branch was force-pushed.
 
+## Delivered
+
+Every number below was measured, not planned. Private names, paths, hashes and family text
+stay in the ignored v3 packet.
+
+**Packet.** `demo-artefacts-v3` is frozen: 33 input files, 12,954,046 bytes, 9 parsed
+documents, 24 original photographs, 12 of them declared old. v1 and v2 are byte-for-byte
+unchanged; the v2 manifest still hashes to its recorded value. The production parser reads the
+packet in about 190 ms with zero issues and zero warnings: 35 people, 56 relationships, 24
+photo annotations, 12 chat messages. Limits used: 33 of 40 files, 12.9 MB of 100 MB, largest
+file 2,041,455 bytes of 25 MB. No shared limit change is requested.
+
+**Old photographs and pairs.** 12 of 12 prepared, 12 of 12 passed visual QA, 0 missing. Each
+enhanced version has the same pixel dimensions as its original and a normalised
+cross-correlation against it above 0.996, so alignment is exact by construction and no
+registration step is involved. The pass is luminance-only: tone stretch, flat-area denoise,
+low-amount clarity, thresholded unsharp, chroma untouched. Every pair was inspected beside its
+original at 780 px; two were retuned after the first pass darkened the shadows too far and
+re-inspected. The two pre-existing curated candidates stay rejected. Records carry parent hash,
+evidence root, tool, method, parameters, luminance statistics, preparation time, alignment and
+the QA note.
+
+**Portraits.** 12 people now have a unique supported portrait: 11 solo photographs whose photo
+note names exactly one person in an explicit left-to-right line, plus one reviewed crop whose
+caption states the position. No face was recognised and folder membership was never treated as
+identity.
+
+**Autofill.** 17 source-backed fields across self and the four relative cards, each with real
+spans. Two fields stay absent because the notes say the value was never recorded, and one
+carries a real conflict from the source.
+
+**Six checks.** Exactly six, three distinct photographs, one modern and two old, one live
+recollection that runs an actual model interpretation and one genuine unresolved conflict. Two
+of the six are answered unknown because the sources do not settle them.
+
+**The book.** A 37-page English edition, inside the 35-40 target, built by a real paginating
+renderer: a two-pass contents page carrying actual page numbers, 30 prepared chapters with
+their source-book page ranges, the current project record beside each profile, a register of
+all 35 people, an exhibit for every one of the 24 originals with the 12 pairs labelled
+Original and Enhanced, a numbered register of all 33 sources with hashes and excerpts, and the
+open questions. No blank, duplicated or filler page: the renderer picks a layout density to
+fit and, when material is genuinely short, says so instead of padding. All 37 pages were
+rendered and visually inspected. Four defects found that way were fixed: a cover caption
+overrunning the version line, register columns printed over the section introduction, a long
+locator list running off the right margin, and exhibit captions colliding with the next
+exhibit. A fifth, raw JSON printed for relationship claims whose value arrives as a string,
+also affected the existing four-page book.
+
+**Export.** The bundle is 57 entries: book.pdf, book.html with the prepared chapters and a
+labelled pair view, the editable map, project.json, sources.json, research-notes.json,
+starting-context.json, coverage.json, README, 24 originals, 12 enhanced derivatives and 12
+document originals. Guards pass with zero warnings. The coverage ledger accounts for all 33
+input files, 33 printed, 0 unprinted, with originals, derivatives and container extracts
+counted separately. Portable reopen was verified in an empty store: 48 assets, every recorded
+hash matches, all 36 photographs decode, and the book's page count matches the ledger.
+
+**Retrieval.** A configurable search-provider adapter (Brave or SerpAPI, selected by
+environment) and a bounded crawler over the existing fetcher. With no provider configured the
+adapter reports `not_configured` and returns nothing; it never invents a URL. Provider results
+are filtered through the same host allowlist the fetcher enforces. Counters derive from
+distinct successful operations, so retries, redirects and cache hits cannot inflate them.
+**No search provider is configured on this machine.** That is a real dependency for the third
+research cycle's public step, not a defect: the cycle still runs its local scope and reports
+the provider state honestly.
+
+**Public twin.** `tests/fixtures/round3/packet` is a generated fictional family that passes the
+same roots-demo-v3 validation, with four aligned pairs of its own.
+
+**Checks.** 213 tests pass, up from the 171 baseline. TypeScript passes. The production build
+passes.
+
+## Still open for other owners
+
+- Provider credentials and application OAuth are Mike's. Until a provider is configured the
+  third cycle's public search reports `not_configured`.
+- No-answer photo pairs are auto-attached today; that promotion should not apply to v3 pairs.
+- There is no general reopen-time validation that a pair's parent original is present.
+- Two browser rehearsals need the integrated application. The packet, pairs, book plan,
+  manifest, presenter cues and export path are ready and frozen; the runtime candidate is not
+  mine to declare.
+
 ## First handoff: inventory, book source, chapters, old photos, pairs
 
 Delivered as facts, from actual file inspection. Private names, paths, hashes and family text
