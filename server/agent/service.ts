@@ -34,7 +34,7 @@ export async function createProject(raw:unknown,files:InputFile[]=[],modules:Dat
  for(const asset of s.assets){const file=files.find(f=>f.originalName===asset.originalName);if(file){if(asset.contentHash&&createHash('sha256').update(file.bytes).digest('hex')!==asset.contentHash)throw new AppError('An original asset does not match its saved hash.');await saveAsset(id,asset.id,file.bytes)}}
  event(s,{runId:id,operation:'normalize_entity',origin:seed||input.preparedPacket?'prepared':'live',state:'completed',finding:seed||input.preparedPacket?`Imported ${s.people.length} existing people. This is prepared evidence.`:'Saved the supplied starting person. Planning uses the supplied evidence.'});
  await createSavedProject(s);
- const remaining=files.filter(f=>f!==json);if(input.context.trim()||remaining.length)return addContribution(id,{text:input.context,files:remaining},modules);
+ const remaining=files.filter(f=>f!==json);if(input.context.trim()||remaining.length||input.publicRecordUrl)return addContribution(id,{text:input.context,files:remaining,publicRecordUrl:input.publicRecordUrl},modules);
  return s;
 }
 export interface ServerContribution {text?:string;files?:InputFile[];targetPersonId?:string;requestId?:string;publicRecordUrl?:string}
@@ -42,9 +42,11 @@ export async function addContribution(projectId:string,input:ServerContribution,
  if(!input.text?.trim()&&!input.files?.length&&!input.publicRecordUrl)throw new AppError('Add text, a file, or a public source URL.');
  const current=await loadProject(projectId);if(input.targetPersonId&&!current.people.some(p=>p.id===input.targetPersonId))throw new AppError('Target person not found.');
  const ingestion=await modules.ingestContribution({text:input.text,files:input.files,targetPersonId:input.targetPersonId});
- let candidates:Source[]=[];let assetsToSave:{assetId:string;bytes:Uint8Array}[]=[];
- await updateProject(projectId,s=>{const merged=mergeIngestion(s,ingestion);candidates=ingestion.sources.map(source=>s.sources.find(x=>x.id===merged.sourceMap.get(source.id))!).filter(Boolean);assetsToSave=ingestion.assetBytes.map(b=>({...b,assetId:merged.assetMap.get(b.assetId)||b.assetId}));});
- for(const bytes of assetsToSave)await saveAsset(projectId,bytes.assetId,bytes.bytes);
+ let candidates:Source[]=[];
+ for(const bytes of ingestion.assetBytes)await saveAsset(projectId,bytes.assetId,bytes.bytes);
+ await updateProject(projectId,s=>{const merged=mergeIngestion(s,ingestion);candidates=ingestion.sources.map(source=>s.sources.find(x=>x.id===merged.sourceMap.get(source.id))!).filter(Boolean);
+ if(input.targetPersonId){const person=s.people.find(p=>p.id===input.targetPersonId)!;const before=structuredClone(person.photoIds);const photoIds=ingestion.assets.filter(a=>a.mediaType.startsWith('image/')).map(a=>merged.assetMap.get(a.id)||a.id);person.photoIds=[...new Set([...person.photoIds,...photoIds])];if(person.photoIds.length!==before.length){s.history.push({eventId:randomUUID(),at:now(),actor:'local-user',action:'attach_photo',before,after:person.photoIds,sourceIds:ingestion.assets.filter(a=>photoIds.includes(merged.assetMap.get(a.id)||a.id)).map(a=>merged.sourceMap.get(a.sourceId)||a.sourceId),claimIds:[],projectVersion:s.version+1});s.bookStatus=s.bookPassages.length?'stale':'empty'}}
+ });
  if(input.publicRecordUrl){const runId=randomUUID();await updateProject(projectId,s=>event(s,{runId,operation:'retrieve_website',origin:'live',state:'running',finding:'Fetching the supplied public source with time and size limits.'}));let fetched;try{fetched=await modules.fetchPublicRecord({url:input.publicRecordUrl,timeoutMs:8000,maxBytes:2_000_000})}catch{fetched={status:'unavailable' as const,error:'The public retrieval adapter failed.'}}await updateProject(projectId,s=>{if(fetched.status==='ok'&&fetched.source){const existing=s.sources.find(x=>x.contentHash===fetched.source!.contentHash);if(!existing)s.sources.push(fetched.source);const source=existing||fetched.source;candidates.push(source);event(s,{runId,operation:'retrieve_website',origin:source.origin,state:'completed',sourceId:source.id,finding:'Retrieved one public source. Identity is still unconfirmed.'})}else event(s,{runId,operation:'retrieve_website',origin:'live',state:fetched.status==='blocked'?'blocked':'failed',error:fetched.error||`Public retrieval ${fetched.status}.`,finding:'No live website result. Local family evidence is still available.'})});}
  const source=candidates.find(x=>x.originalText.trim());if(!source)return loadProject(projectId);
  const runId=randomUUID();let shouldRun=false;
