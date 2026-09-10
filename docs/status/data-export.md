@@ -1,3 +1,74 @@
+# Round 3 data/export and content status, September 10, 2026
+
+Owner: Claude Code Mike. This round I also carry the former Product content role; there is no
+fourth content agent. Round-3 execution start recorded by the lead: 2026-09-10T20:08:05Z.
+Round-2 evidence below the separator is historical and unchanged.
+
+Merged `origin/codex/engineering` at `0eea05b` (which contains `a7d50ab` and `fc93d39`) into
+`codex/data-export` as a merge commit. No history was reset and no branch was force-pushed.
+
+## First handoff: inventory, book source, chapters, old photos, pairs
+
+Delivered as facts, from actual file inspection. Private names, paths, hashes and family text
+stay in the ignored v3 packet; only counts and structure appear here.
+
+**Input inventory.** One new private packet `demo-artefacts-v3` is being frozen; v1 and v2 are
+preserved untouched. The selection is 33 files: 9 parsed documents and 24 original photographs.
+19 files carry over byte-identical from v2. Totals: about 11.4 MB, largest single file
+2,041,455 bytes. That is 33 of the 40-file limit, ~11.4 MB of 100 MB, and well inside the
+25 MB per-file cap, so no shared limit change is requested. Counted separately: 24 original
+photographs, 0 uploaded derivatives, 3 chat containers holding 12 extracted messages.
+The v2 numbers were 20 files / 6 documents / 14 photographs; 35 remains a person count.
+
+**Controlling book source.** The current 112-page Russian reference is selected as the
+controlling edition, verified page count and SHA-256 recorded, together with its editable
+`.docx` master. The 99-page print layout and the older 147-page draft are recorded as
+alternatives and explicitly NOT selected: the trailing numeral in Mike's message is ambiguous
+and is not treated as permission to replace the latest book. Audit result: no complete English
+long edition exists in any bounded location. The English 35-40-page edition is therefore a new
+derivative with per-chapter source page and paragraph lineage. The reference PDF is larger than
+the per-file cap, so it is not uploaded; it enters the input set only as a bounded English
+excerpt document.
+
+**Chapter plan.** 16 prepared English chapters mapped to the source's Contents, Preface,
+Parts I-III and appendices, budgeted at 38-40 pages: 4 front matter, 1 places, 9 narrative
+and archive chapters, 16 profile and register pages, 6 story pages, 6 photo/document exhibit
+pages, 3 source pages, 2 open-question pages. Actual pagination is reported by the renderer;
+no blank, duplicated or filler pages. All 35 selected people appear in the register, all 24
+originals get a readable placement, every document gets a source entry with excerpts while its
+complete original stays in the ZIP.
+
+**Old photographs and pair readiness.** The old-photo subset is declared explicitly: 12 of the
+24 originals, 8 carried from v2 and 4 newly selected. Pair completion is currently 0 of 12.
+The two pre-existing curated derivative candidates were inspected side by side with their
+originals and are REJECTED: both are reframed reinterpretations with changed detail, so they
+prove nothing about slider readiness. Other AI-style variants in the private library are
+rejected on the same ground. Pairs will be prepared with a pixel-geometry-preserving tone,
+contrast, denoise and unsharp pass, so the enhanced file has identical dimensions to its
+original and alignment is exact by construction rather than by registration. No inpainting,
+colourisation, upscaling, rotation, cropping or content change. Each pair records parent hash,
+evidence root, tool and method, preparation time, alignment mode and an actual visual QA
+verdict. A missing pair stays an explicit incomplete requirement.
+
+**Portraits.** Unique source-annotated solo portraits now exist for 12 people, which is why
+four of the ten new photographs are modern solo portraits: it removes the repeated group
+portrait on the map. One group photograph supports one reviewed crop because its caption states
+the position explicitly. Everyone else falls back to initials or an honestly labelled group
+image. No face recognition, and folder membership is never treated as identity.
+
+**Retrieval access.** Local search and permitted public fetch exist. A general search provider
+adapter and a bounded crawl executor do not, and are mine to add. Provider credentials remain
+Mike's dependency; an unconfigured provider reports `configured:false` and a real
+blocked/no-match outcome, never an invented result.
+
+**Schema needs against the published round-3 contracts.** The published `DemoManifestV3Schema`,
+`PhotoPairV3Schema`, `PortraitSchema`, `BookPlanSchema` and `BookEditionSchema` cover this
+content as published; no contract change is requested. Two state-side warnings for the lead:
+no-answer photo pairs are auto-attached today and should not promote v3 pairs, and there is no
+general reopen-time validation that a pair's parent original is present.
+
+---
+
 # Round 2 data/export status, September 10, 2026
 
 Execution owner: Codex data/export subagent covering the Claude assignment. No claim of execution in Claude Code. Lead integrates changes on codex/engineering; the original codex/data-export history is preserved.
