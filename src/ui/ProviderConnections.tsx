@@ -26,24 +26,26 @@ export function ProviderConnections({api, onImport}: {api?: RootsApi; onImport?:
     {(["drive", "gmail"] as const).map(provider => {
       const state = connections.find(c => c.provider === provider);
       // A server read receipt is required even if a stale payload says connected.
-      const connected = state?.status === "connected" && !!state.verifiedAt && !!state.connectionId;
+      const demo = state?.mode === "demo";
+      const connected = state?.status === "connected" && (demo || !!state.verifiedAt && !!state.connectionId);
       const name = provider === "drive" ? "Google Drive" : "Gmail";
       return <article className="provider-card" key={provider}>
-        <div className="provider-heading"><img src={providerMarks[provider]} alt="" width="32" height="32" /><strong>{name}</strong><span className={connected ? "connection-verified" : "muted"}>{loading ? "Checking…" : pending === provider ? "Connecting…" : connected ? "Connected" : state?.status === "expired" ? "Expired" : state?.status === "error" ? "Needs attention" : state?.status === "connecting" || state?.status === "connected" ? "Verification needed" : state ? "Not connected" : "Status unavailable"}</span></div>
+        <div className="provider-heading"><img src={providerMarks[provider]} alt="" width="32" height="32" /><strong>{name}</strong>{demo && <span className="badge">Demo</span>}<span className={connected ? "connection-verified" : "muted"}>{loading ? "Checking…" : pending === provider ? "Connecting…" : connected ? "Connected" : state?.status === "expired" ? "Expired" : state?.status === "error" ? "Needs attention" : state?.status === "connecting" || state?.status === "connected" ? "Verification needed" : state ? "Not connected" : "Status unavailable"}</span></div>
         {state?.accountDisplay && <small>{state.accountDisplay}</small>}
         <div className="provider-actions">
-          {!connected && <button type="button" disabled={!!pending || !state?.configured || !api?.connectProvider} onClick={() => void action(provider, async () => { const {url} = await api!.connectProvider!(provider); const target = new URL(url, window.location.origin); if (!['http:', 'https:'].includes(target.protocol)) throw new Error("Invalid connection destination."); window.open(target.href, "_blank", "noopener,noreferrer"); })}>{state?.status === "expired" ? "Reconnect" : "Connect"}</button>}
+          {!connected && <button type="button" disabled={!!pending || !state?.configured || !api?.connectProvider} onClick={() => void action(provider, async () => { const {url} = await api!.connectProvider!(provider); if (demo) { await refresh(); return; } const target = new URL(url, window.location.origin); if (!['http:', 'https:'].includes(target.protocol)) throw new Error("Invalid connection destination."); window.open(target.href, "_blank", "noopener,noreferrer"); })}>{state?.status === "expired" ? "Reconnect" : "Connect"}</button>}
           <button type="button" disabled={!!pending || !api?.getConnections} onClick={() => void refresh()}>Refresh status</button>
         </div>
         <details><summary>Selected sources & connection details</summary>
+          {demo && <p>Demonstration connection using prepared local copies. This is not live Google access.</p>}
           {!state?.configured && <p>Provider access is not configured. You can still select saved copies as files.</p>}
           {state?.verifiedAt && <p>Last successful check: {new Date(state.verifiedAt).toLocaleString("en-US")}</p>}
           {state?.error && <p className="error">{state.error}</p>}
           {!!state?.selectedScope.length && <p>Selected scope: {state.selectedScope.join(", ")}</p>}
-          <label className="field">{provider === "drive" ? "Selected folder or file IDs" : "Selected message IDs"}<textarea value={selected[provider]} onChange={e => setSelected(s => ({...s, [provider]: e.target.value}))} placeholder="One source ID per line" rows={2} /></label>
-          <div className="provider-actions"><button type="button" disabled={!!pending || !state?.configured || !api?.verifyConnection} onClick={() => void action(`verify-${provider}`, async () => update(await api!.verifyConnection!(provider, selected[provider].split(/[\n,]/).map(s => s.trim()).filter(Boolean))))}>Verify selected access</button>
+          {!demo && <label className="field">{provider === "drive" ? "Selected folder or file IDs" : "Selected message IDs"}<textarea value={selected[provider]} onChange={e => setSelected(s => ({...s, [provider]: e.target.value}))} placeholder="One source ID per line" rows={2} /></label>}
+          <div className="provider-actions">{!demo && <button type="button" disabled={!!pending || !state?.configured || !api?.verifyConnection} onClick={() => void action(`verify-${provider}`, async () => update(await api!.verifyConnection!(provider, selected[provider].split(/[\n,]/).map(s => s.trim()).filter(Boolean))))}>Verify selected access</button>}
           {connected && api?.disconnectProvider && <button type="button" disabled={!!pending} onClick={() => void action(`disconnect-${provider}`, async () => update(await api.disconnectProvider!(provider)))}>Disconnect</button>}
-          {connected && onImport && <button type="button" disabled={!!pending || !selected[provider].trim()} onClick={() => void action(`import-${provider}`, async () => { await onImport(provider, selected[provider].split(/[\n,]/).map(s => s.trim()).filter(Boolean)); })}>Import selected sources</button>}</div>
+          {connected && !demo && onImport && <button type="button" disabled={!!pending || !selected[provider].trim()} onClick={() => void action(`import-${provider}`, async () => { await onImport(provider, selected[provider].split(/[\n,]/).map(s => s.trim()).filter(Boolean)); })}>Import selected sources</button>}</div>
         </details>
       </article>;
     })}

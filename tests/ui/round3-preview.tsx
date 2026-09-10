@@ -28,7 +28,7 @@ let current = fresh();
 try {const saved=localStorage.getItem(storage); if(saved) current=JSON.parse(saved);} catch {}
 let missing = false;
 const save = () => {current.version++; localStorage.setItem(storage,JSON.stringify(current)); return structuredClone(current);};
-let statuses: ConnectionStatus[] = ["drive","gmail"].map(provider=>({provider:provider as "drive"|"gmail",status:"disconnected",selectedScope:[],configured:false}));
+let statuses: ConnectionStatus[] = ["drive","gmail"].map(provider=>({provider:provider as "drive"|"gmail",mode:"live",status:"disconnected",selectedScope:[],configured:false}));
 const unavailable=async()=>{throw new Error("Fictional UI harness: use the real API for this action.");};
 const api:RootsApi={
   getSnapshot:async()=>structuredClone(current),createProject:async(input)=>{current=fresh();current.input=input;return save();},
