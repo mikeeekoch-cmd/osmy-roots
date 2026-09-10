@@ -293,7 +293,7 @@ async function prepareIntake(id: string, deps: ResearchDeps) {
               source.evidenceRootIds || source.contentHash,
               span.quote,
             ]);
-            if (!r.validationOutcomes.some((v) => v.key === key))
+            if (!r.validationOutcomes.some((v) => v.key === key && v.method === "astra"))
               r.validationOutcomes.push({
                 key,
                 sourceId: source.id,
@@ -596,7 +596,7 @@ export async function executeResearch(id: string, deps: ResearchDeps = {}) {
           } else result.resultIds = [existing.id];
           for (const span of out.proposal.support) {
             const key = digest([out.proposal.evidenceRootIds, span.quote]);
-            if (!r.validationOutcomes.some((v) => v.key === key))
+            if (!r.validationOutcomes.some((v) => v.key === key && v.method === "astra"))
               r.validationOutcomes.push({
                 key,
                 sourceId: span.sourceId,
