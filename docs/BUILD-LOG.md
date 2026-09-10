@@ -35,3 +35,7 @@ Mike authorized a 90-minute local prototype built by Codex Mike, Codex Natalia a
 ## Detailed worker acceptance specifications
 
 Expanded all three launch prompts into concrete file/module outputs, input/output contracts, on-screen behavior and per-owner acceptance. Added one shared synthetic source-to-story-to-book scenario and PROTOTYPE-CONTRACT.md. This is a documentation clarification; it does not start or reset the lead clock or implement app functionality.
+
+## Final P0/P1 and owner swap
+
+Mike explicitly assigned UI/animations to Codex Natalia and ingestion/export to Claude Code. Added bounded local search/public retrieval to Claude’s P0, query/analysis orchestration to Codex Mike, event-driven motion to Natalia, and a gated next queue with honest cached/mock boundaries. Updated all three prompts, contracts and current instructions. This is documentation only; no worker was launched, no clock reset, and no application/search result is claimed.

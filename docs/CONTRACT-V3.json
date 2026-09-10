@@ -183,13 +183,17 @@
       "dependency-files"
     ],
     "Codex Natalia": [
-      "server/ingestion",
-      "server/export",
-      "tests/data-export"
+      "src/ui",
+      "UI tests",
+      "animations"
     ],
     "Claude Code Mike": [
-      "src/ui"
+      "server/ingestion",
+      "server/research",
+      "server/export",
+      "tests/data-export",
+      "tests/research"
     ]
   },
-  "sprint": "90-minute local prototype; docs/EXECUTION.md overrides broad V3 acceptance."
+  "sprint": "Final P0/P1 gates in docs/SCOPE-PRIORITIES.md. Codex Natalia owns UI; Claude owns files/retrieval/export."
 }

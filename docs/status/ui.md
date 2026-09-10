@@ -1,4 +1,4 @@
-# Claude Code Mike: status
+# Codex Natalia: UI and animations
 
 Assigned, not dispatched by this documentation update. The owner fills this file at execution start.
 
@@ -8,3 +8,5 @@ Assigned, not dispatched by this documentation update. The owner fills this file
 - Implemented / checked: no new application work claimed by this plan.
 - Next step: run your prompt in docs/prompts/.
 - Blocker / question for Mike: report after inspecting current environment.
+
+- Final owner swap applies. Track P0 checks, integrated acceptance, P1 start and mocked/prepared behavior separately. No worker is started by this template.

@@ -2,6 +2,10 @@
 
 Current execution plan. Supersedes V3 ownership, earlier absolute engineering milestones and any preparation-only hold. The product remains the two-screen experience in docs/PRODUCT.md. The team is Codex (Mike), Codex (Natalia) and Claude Code (Mike). Gemini is not on this sprint's critical path.
 
+## Final P0 and next-scope contract
+
+Read [SCOPE-PRIORITIES.md](SCOPE-PRIORITIES.md). Codex Natalia owns UI and animations; Claude owns files, search/retrieval and export. This replaces the previous assignments. P0 must be checked and integrated before P1. Local evidence search and one bounded public fetch adapter are P0; multi-query discovery and crawling are P1. Conditional external access failures stay visible.
+
 ## Objective and deadline
 
 We cannot deliver a fully functioning, production-ready application in 90 minutes. Deliver a convincing local prototype with one reliable, demonstrable journey. Optimize for jury comprehension, visible human contribution and an emotional family-book finish. Cut scope when needed and record the cut. Do not claim we will win or that a prepared result is live.
@@ -13,8 +17,8 @@ T0 is when the lead starts execution. Record T0 and T0+90 minutes in UTC and loc
 | Owner / branch | Owns | Does not own |
 | --- | --- | --- |
 | Codex Mike / codex/engineering | packages/contracts, server/agent, server/state, server/events, src/app integration, package/config/lockfiles, integration-tests, docs/status/lead.md | Worker modules before agreed handoff |
-| Codex Natalia / codex/data-export | server/ingestion, server/export, tests/data-export, docs/status/data-export.md | Astra orchestration, application routes, UI, shared contracts or lockfile |
-| Claude Code Mike / codex/ui | src/ui, UI tests, docs/status/ui.md | Backend, routing wrappers, shared contracts or lockfile |
+| Claude Code Mike / codex/data-export | server/ingestion, server/research, server/export, tests/data-export, tests/research, docs/status/data-export.md | Astra orchestration, application routes, UI, shared contracts or lockfile |
+| Codex Natalia / codex/ui | src/ui, UI tests, animations, docs/status/ui.md | Backend, routing wrappers, shared contracts or lockfile |
 
 Use separate clones across laptops and a separate worktree for simultaneous chats on the same laptop. You are not alone in the codebase. Preserve other edits. Never use destructive reset, force-push shared branches or edit another worker's module without coordination. Only the lead integrates worker commits into codex/engineering and merges the checked result into main. Workers hand off a remote branch and commit, not an assumed shared local file.
 
@@ -32,7 +36,7 @@ This repository is public. Keep actual family data/photos/chats, raw model paylo
 
 | Time | Exit criterion |
 | --- | --- |
-| T+0 to 10 | Lead publishes scaffold, a working dev command, shared types and sample source/event/review/book payloads. Confirm API readiness immediately. Natalia designs pure import/export modules; Claude builds the shell with a marked fixture adapter in parallel. |
+| T+0 to 10 | Lead publishes scaffold, a working dev command, shared types and sample source/event/review/book payloads. Confirm API readiness immediately. Claude builds pure import/export/retrieval modules; Natalia builds the shell with a marked fixture adapter in parallel. |
 | T+10 to 35 | Each worker pushes a callable first version. UI displays the local family seed and a contribution. Data/export modules accept the agreed DTOs. Lead gets one real source-linked Astra proposal or reports the exact dependency blocking it. |
 | T+35 to 55 | Integrate the first source → proposal → human review → persisted graph change → book passage → PDF/ZIP route. Do not defer first integration until minute 80. |
 | T+55 to 70 | Fix core failures. Verify unknown, citation integrity, duplicate input, edit persistence/reopen and download contents. Apply the cut list to anything threatening the route. |
@@ -58,7 +62,7 @@ At T+90 the app runs locally from documented commands; the two screens work; one
 
 ## Concrete build specifications
 
-Read [PROTOTYPE-CONTRACT.md](PROTOTYPE-CONTRACT.md) for shared state, Natalia module signatures, the UI adapter and the same acceptance scenario for all three owners. Each prompt below is now an executable task specification with exact deliverables and verification, not only a role assignment.
+Read [PROTOTYPE-CONTRACT.md](PROTOTYPE-CONTRACT.md) for shared state, Claude module signatures, the UI adapter and the same acceptance scenario for all three owners. Each prompt below is now an executable task specification with exact deliverables and verification, not only a role assignment.
 
 ## Launch prompts
 

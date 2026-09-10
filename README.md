@@ -58,7 +58,8 @@ pnpm run doctor
 | [Architecture](docs/ARCHITECTURE.md) | Evidence model, run state and corrections |
 | [V3 contract](docs/CONTRACT-V3.json) | Shared data, review, progress and export envelopes |
 | [Execution](docs/EXECUTION.md) | Current 90-minute plan, three owners and scope cuts |
-| [Launch prompts](docs/prompts/) | Codex Mike, Codex Natalia and Claude Code Mike |
+| [P0 and next scope](docs/SCOPE-PRIORITIES.md) | Per-interface acceptance, search, animation and mock boundaries |
+| [Launch prompts](docs/prompts/) | Mike: agent/integration; Natalia: UI; Claude: files/search/export |
 | [Setup](docs/SETUP.md) | Local environment and deployment verification |
 | [Readiness](docs/READINESS.md) | Verified capabilities and remaining dependencies |
 | [Demo](docs/DEMO.md) | Demo script and submission preparation |

@@ -1,6 +1,6 @@
 # Architecture V3 with 90-minute override
 
-For the current 90-minute sprint, use local single-user persistence behind a storage interface and bind the server to localhost. Supabase/Auth/RLS, multiuser isolation and hosting are future work unless already working; do not block the prototype on their credentials. Lead owns agent/state/events and routes; Natalia owns ingestion/export; Claude owns UI. docs/EXECUTION.md controls current ownership and acceptance.
+For the current 90-minute sprint, use local single-user persistence behind a storage interface and bind the server to localhost. Supabase/Auth/RLS, multiuser isolation and hosting are future work unless already working; do not block the prototype on their credentials. Lead owns agent/state/events and routes; Claude owns ingestion/retrieval/export; Natalia owns UI/animations. docs/EXECUTION.md controls current ownership and acceptance.
 
 Longer-term proposed stack: Next.js App Router, React/TypeScript, Node 24, Tailwind, React Flow/elkjs, Zod, the official OpenAI SDK and Supabase Postgres/private Storage. Pin compatible versions at scaffold. Render is a proposed Node hosting target; no service is provisioned. These are implementation decisions for the first milestone, not claims of installed dependencies.
 
@@ -59,3 +59,5 @@ research/               # source research handoff; private findings excluded
 ```
 
 These directories are planned. Preparation does not include an application scaffold.
+
+Current P0: Claude parses files, searches actual local sources and fetches one bounded public URL. Mike plans queries, interprets actual extracted/retrieved text with Astra and saves review decisions. Natalia renders events and animates actual accepted changes. P1 adds configured web search and a limited same-site crawl only after integrated P0. See SCOPE-PRIORITIES.md.

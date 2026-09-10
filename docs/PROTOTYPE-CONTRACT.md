@@ -14,7 +14,7 @@ This is a build specification, not implemented functionality. It makes the three
 - History records event ID, timestamp, actor, before/after values, source/claim IDs and project version. Preserve accepted/unknown/rejected and corrected states. Avoid stale overwrites.
 - A book passage contains text, claim/source IDs and acceptedStateVersion. An affected correction marks it stale until regenerated. A factual passage without a valid source is rejected by validation.
 
-## Natalia exports these functions
+## Claude exports these functions
 
 1. `importPreparedFamily({seedJson, mediaFiles}) -> ImportResult`: normalize the prior private seed, preserve original IDs, return normalized records and warnings. Do not infer new people from photographs.
 2. `ingestContribution({text?, files?, targetPersonId?}) -> IngestionResult`: return parsed sources, original assets and per-file outcomes (`parsed`, `stored_only`, `failed`). Return duplicate hashes so the lead can deduplicate against saved sources. Do not invoke the LLM or commit graph edits.
@@ -22,19 +22,27 @@ This is a build specification, not implemented functionality. It makes the three
 
 `ImportResult` contains people, relationships, claims, stories, sources, assets, history, issues, layout and warnings. `IngestionResult` contains sources, assets, duplicateHashes and files; each file outcome contains uploadId, originalName, status, sourceIds, assetIds and warnings. Asset bytes are returned to the lead for private storage; metadata contains no public URL. The lead adds projectId/version and persists the result.
 
-Choose async functions. Pass ordinary typed objects and bytes. No database, server port, OAuth or framework-specific request objects inside these modules. Natalia may split these across server/ingestion and server/export. The lead owns persistence and the route wrappers.
+Choose async functions. Pass ordinary typed objects and bytes. No database, server port, OAuth or framework-specific request objects inside these modules. Claude may split these across server/ingestion and server/export. The lead owns persistence and the route wrappers.
 
-## Claude consumes one RootsApi adapter
+## Natalia consumes one RootsApi adapter
 
 - `createProject(input, files) -> ProjectSnapshot`: validate the compact form, import prepared data or supplied input, start internal processing and open the workspace.
 - `getSnapshot(projectId, afterSequence?) -> ProjectSnapshot`: current graph, proposals, concise events/counters and book state. Simple polling while a run is active is sufficient; SSE is optional.
 - `addContribution(projectId, {text?, files?, targetPersonId?}) -> ProjectSnapshot`: ingest, run bounded model analysis, produce a pending proposal. The existing accepted graph remains usable during analysis.
 - `reviewProposal(projectId, {proposalId, action, baseVersion, corrections?}) -> ProjectSnapshot`: accept/correct/reject/unknown with saved history and conflict handling.
 - `mutateGraph(projectId, {operation, entityId?, values?, baseVersion}) -> ProjectSnapshot`: add/edit a person or relationship; one-level undo is sufficient for the prototype. Reject self-parent links/cycles. Edits persist, rather than only moving UI labels.
-- `downloadFamilyBook(projectId) -> Blob`: lead regenerates any required current passage, then invokes Natalia's bundle builder. Return a real ZIP or a visible error.
+- `downloadFamilyBook(projectId) -> Blob`: lead regenerates any required current passage, then invokes Claude's bundle builder. Return a real ZIP or a visible error.
 - `assetUrl(projectId, assetId) -> string`: read-only URL scoped to an asset in this project. No path traversal or raw server path exposure.
 
-The lead implements the adapter and thin Next.js routes; Claude exports `RootsApp({api})` from src/ui/index.tsx. Claude never calls Natalia's modules or the OpenAI SDK directly. Natalia never reaches into React components. Route spellings can be chosen by the lead, but method names and payloads must be published in the contract handoff. This avoids parallel incompatible API design.
+The lead implements the adapter and thin Next.js routes; Natalia exports `RootsApp({api})` from src/ui/index.tsx. Natalia never calls Claude's modules or the OpenAI SDK directly. Claude never reaches into React components. Route spellings can be chosen by the lead, but method names and payloads must be published in the contract handoff. This avoids parallel incompatible API design.
+
+## Research boundary: Claude retrieves, Mike interprets, Natalia displays
+
+Claude exports searchLocalSources({query, sources, limit}) returning {hits: [{sourceId, snippet, locator, score}], status}; and fetchPublicRecord({url, timeoutMs, maxBytes}) returning {status, source?, finalUrl?, retrievedAt?, error?}. A fetched source uses the same source envelope as parsed files and retains original text and exact URL/locator. The lead chooses the bounded operation, persists events and runs Astra on returned content; the UI only renders those events.
+
+P0 uses local evidence search and one bounded public URL adapter. Use default limits of 8 seconds and 2 MB per page and validate public destinations/redirects. Actual fetch success, no-match and access failure are distinct. Cached fallback does not pass the live-fetch check. No successful lookup is a family identity match until evidence supports it. P1 adds searchWeb(query, limit=3) through an existing provider, then crawlSource(startUrl, maxPages=3) restricted to permitted same-site links. See SCOPE-PRIORITIES.md before starting P1.
+
+File parsing and model analysis are different: Claude extracts/preserves bytes/text; Mike turns that actual text into proposed claims/questions. Images may be stored/displayed in P0 with supplied captions. Prepared OCR is labeled; image interpretation and restoration cannot be inferred from upload success.
 
 ## Source of visible state
 
