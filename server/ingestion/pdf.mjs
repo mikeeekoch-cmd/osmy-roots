@@ -4,13 +4,23 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 const exec = promisify(execFile);
+
+/**
+ * Pages read from an uploaded PDF. Ten was enough for a one-page personal note, but a
+ * family-book excerpt runs to tens of pages and a chapter beyond the cap would silently
+ * lose its citable text. Forty pages stays well inside the 10 second and 2 MB limits,
+ * which are the actual protections here.
+ */
+export const MAX_PDF_PAGES = 40;
+
 /** Actual Poppler extraction. A missing binary or image-only PDF fails explicitly. */
-export async function extractPdfText(bytes) {
+export async function extractPdfText(bytes, { maxPages = MAX_PDF_PAGES } = {}) {
   if (Buffer.from(bytes).subarray(0, 5).toString() !== '%PDF-') throw new Error('Invalid PDF signature');
+  const pages = Math.max(1, Math.min(Number(maxPages) || MAX_PDF_PAGES, MAX_PDF_PAGES));
   const dir = await mkdtemp(join(tmpdir(), 'roots-pdf-'));
   try {
     const file = join(dir, 'input.pdf'); await writeFile(file, bytes, { mode: 0o600 });
-    const { stdout } = await exec(process.env.ROOTS_PDFTOTEXT || 'pdftotext', ['-layout', '-enc', 'UTF-8', '-f', '1', '-l', '10', file, '-'], { timeout: 10000, maxBuffer: 2 * 1024 * 1024, encoding: 'utf8' });
+    const { stdout } = await exec(process.env.ROOTS_PDFTOTEXT || 'pdftotext', ['-layout', '-enc', 'UTF-8', '-f', '1', '-l', String(pages), file, '-'], { timeout: 10000, maxBuffer: 2 * 1024 * 1024, encoding: 'utf8' });
     const text = stdout.replace(/\f/g, '\n').trim();
     if (!text) throw new Error('PDF has no extractable text; OCR was not performed');
     return text;

@@ -12,6 +12,7 @@
 
 import { createZip } from './zip.mjs';
 import { renderBookPdf } from './book-pdf.mjs';
+import { renderBookEdition } from './book-edition.mjs';
 import { renderBookHtml } from './book-html.mjs';
 import { selectBranch, deepestLineFocus } from './branch.mjs';
 import { partitionPassages, openQuestionsFrom } from './select.mjs';
@@ -21,6 +22,7 @@ import { SCHEMA_VERSION } from '../contracts/types.mjs';
 import { sha256 } from '../ingestion/hash.mjs';
 
 export { renderBookPdf } from './book-pdf.mjs';
+export { renderBookEdition, TARGET_MIN_PAGES, TARGET_MAX_PAGES } from './book-edition.mjs';
 export { renderBookHtml } from './book-html.mjs';
 export { selectBranch, deepestLineFocus } from './branch.mjs';
 export { createZip } from './zip.mjs';
@@ -136,27 +138,47 @@ export async function buildFamilyBundle({ snapshot, passages = [], resolveAsset,
 
   const { current: currentPassages, stale, invalid } = partitionPassages(passages, version);
 
-  // --- book.pdf, with a recorded fallback if the full layout cannot be produced.
+  // --- book.pdf. With a book plan the download is the full paginated edition; the
+  // four-page layout stays the fallback and the compact mode for older packets.
   let pdf;
+  let edition = null;
   const cuts = [];
-  try {
-    pdf = renderBookPdf({
-      snapshot: exportSnapshot, passages, branch, options: { ...options, focusPersonId, englishOnly },
-      getImage: (assetId) => resolvedAssets.get(assetId) || null,
-    });
-  } catch (e) {
-    warnings.push(`Four-page book layout failed (${e.message}). Falling back to a short PDF with the same essential content.`);
-    cuts.push('four_page_layout');
-    pdf = renderBookPdf({
-      snapshot: { ...exportSnapshot, assets: [] }, passages, branch,
-      options: { ...options, focusPersonId, englishOnly }, getImage: () => null,
-    });
+  const wantsEdition = Boolean(options.bookPlan) && options.edition !== 'compact';
+  if (wantsEdition) {
+    try {
+      edition = renderBookEdition({
+        snapshot: exportSnapshot, bookPlan: options.bookPlan, passages,
+        photoPairs: options.photoPairs || [], portraits: options.portraits || [],
+        options: { ...options, focusPersonId, englishOnly },
+        getImage: (assetId) => resolvedAssets.get(assetId) || null,
+      });
+      pdf = { bytes: edition.bytes, pages: edition.pages, warnings: edition.warnings, cuts: edition.cuts };
+    } catch (e) {
+      warnings.push(`Full edition failed (${e.message}). Falling back to the four-page layout with the same evidence.`);
+      cuts.push('full_edition');
+      edition = null;
+    }
+  }
+  if (!pdf) {
+    try {
+      pdf = renderBookPdf({
+        snapshot: exportSnapshot, passages, branch, options: { ...options, focusPersonId, englishOnly },
+        getImage: (assetId) => resolvedAssets.get(assetId) || null,
+      });
+    } catch (e) {
+      warnings.push(`Four-page book layout failed (${e.message}). Falling back to a short PDF with the same essential content.`);
+      cuts.push('four_page_layout');
+      pdf = renderBookPdf({
+        snapshot: { ...exportSnapshot, assets: [] }, passages, branch,
+        options: { ...options, focusPersonId, englishOnly }, getImage: () => null,
+      });
+    }
   }
   warnings.push(...pdf.warnings);
   cuts.push(...(pdf.cuts || []));
   guardFailures.push(...(pdf.guardFailures || []));
 
-  const bookHtml = renderBookHtml({ snapshot: exportSnapshot, passages, branch, assetPaths, options: { ...options, focusPersonId } });
+  const bookHtml = renderBookHtml({ snapshot: exportSnapshot, passages, branch, assetPaths, options: { ...options, focusPersonId, photoPairs: options.photoPairs || [], bookPlan: edition ? options.bookPlan : null } });
 
   // --- project.json keeps ALL people and edges, not only the printed branch.
   const projectJson = {
@@ -245,6 +267,13 @@ export async function buildFamilyBundle({ snapshot, passages = [], resolveAsset,
     note: 'What the project started from, so a reader can tell supplied evidence from later additions.',
   };
 
+  const coverageLedger = edition
+    ? buildCoverageLedger({
+      edition, snapshot: exportSnapshot, bookPlan: options.bookPlan, assetPaths,
+      photoPairs: options.photoPairs || [], oldPhotoAssetIds: options.oldPhotoAssetIds || [],
+    })
+    : null;
+
   const readme = `# Roots family project export
 
 Generated ${new Date().toISOString()} from project version ${version}.
@@ -253,7 +282,7 @@ Generated ${new Date().toISOString()} from project version ${version}.
 
 | File | Contents |
 | --- | --- |
-| book.pdf | Illustrated English book, ${pdf.pages} page(s) |
+| book.pdf | Illustrated English book, ${pdf.pages} page(s)${edition ? `, ${edition.sections.length} sections` : ''} |${coverageLedger ? '\n| coverage.json | Every input file mapped to its sources, people, chapters, book pages and archive path |' : ''}
 | book.html | The same book as a readable web page |
 | project.json | Complete editable project: every person, relationship, claim, story and history entry |
 | sources.json | Every source with its exact locator, hash and original text |
@@ -291,6 +320,7 @@ ${stale.length ? `\n**${stale.length} passage(s) were excluded as stale** and ar
     { path: 'starting-context.json', bytes: JSON.stringify(startingContext, null, 2) },
     { path: 'README.md', bytes: readme },
   ];
+  if (coverageLedger) entries.push({ path: 'coverage.json', bytes: JSON.stringify(coverageLedger, null, 2) });
   for (const [, resolved] of resolvedAssets) entries.push({ path: resolved.path, bytes: resolved.bytes, store: true });
 
   // English filenames only in the demo bundle.
@@ -344,6 +374,92 @@ ${stale.length ? `\n**${stale.length} passage(s) were excluded as stale** and ar
 }
 
 /** Small standalone map so the tree can be read without the app. */
+/**
+ * Coverage ledger: one row per input file. Each row says which sources and people it
+ * produced, which prepared chapter used it, the actual book pages it reached (as text,
+ * as an exhibit, or both), and the path its complete original keeps in this archive.
+ *
+ * A file that reached no page keeps its bytes and carries an explicit omission reason,
+ * so nothing disappears quietly. Originals, derivatives and container extracts are
+ * counted separately: an enhanced photograph is not a second original, and a message
+ * pulled out of a chat archive is not a second uploaded file.
+ */
+export function buildCoverageLedger({ edition, snapshot, bookPlan, assetPaths, photoPairs = [], oldPhotoAssetIds = [] }) {
+  const pagesByChapter = new Map();
+  const pagesByAsset = new Map();
+  const pagesBySource = new Map();
+  for (const row of edition.coverage || []) {
+    if (row.chapterId) pagesByChapter.set(row.chapterId, row.pages || []);
+    if (row.assetId) pagesByAsset.set(row.assetId, row.pages || []);
+    if (row.sourceId) pagesBySource.set(row.sourceId, row.pages || []);
+  }
+  const annotations = new Map((snapshot.photoAnnotations || []).map((a) => [a.assetId, a]));
+  const pairByOriginal = new Map(photoPairs.map((p) => [p.originalAssetId, p]));
+  const assetByHash = new Map();
+  for (const a of snapshot.assets || []) if (a.contentHash) assetByHash.set(a.contentHash, a);
+  const sourceByHash = new Map();
+  for (const src of snapshot.sources || []) if (src.contentHash) sourceByHash.set(src.contentHash, src);
+
+  const union = (...lists) => [...new Set(lists.flat().filter((n) => Number.isFinite(n)))].sort((a, b) => a - b);
+
+  const rows = (bookPlan?.coverage || []).map((entry) => {
+    const asset = assetByHash.get(entry.fileHash);
+    const source = sourceByHash.get(entry.fileHash);
+    const annotation = asset ? annotations.get(asset.id) : null;
+    const pair = asset ? pairByOriginal.get(asset.id) : null;
+    const chapterPages = (entry.chapterIds || []).flatMap((id) => pagesByChapter.get(id) || []);
+    const exhibitPages = asset ? pagesByAsset.get(asset.id) || [] : [];
+    const linkedSourceIds = new Set([...(entry.sourceIds || []), ...(source ? [source.id] : [])]);
+    const sourcePages = [...linkedSourceIds].flatMap((id) => pagesBySource.get(id) || []);
+    const pages = union(chapterPages, exhibitPages, sourcePages);
+    return {
+      ...entry,
+      role: annotation ? 'original_photograph' : 'document',
+      assetId: asset?.id || null,
+      personIds: annotation ? annotation.depictedPersonIds || [] : entry.personIds || [],
+      pages,
+      chapterPages: union(chapterPages),
+      exhibitPages: union(exhibitPages),
+      sourceRegisterPages: union(sourcePages),
+      zipPath: (asset && assetPaths.get(asset.id)) || (source && assetPaths.get(`original-${source.id}`)) || entry.zipPath,
+      enhanced: pair
+        ? { assetId: pair.enhancedAssetId, hash: pair.enhancedHash, parentHash: pair.originalHash, zipPath: assetPaths.get(pair.enhancedAssetId) || null, alignment: pair.alignment?.mode || null, qa: pair.qa?.status || null }
+        : null,
+      printed: pages.length > 0,
+      omission: pages.length ? undefined : (entry.omission || 'This file reached no printed page. Its complete original and its record still travel in this archive.'),
+    };
+  });
+
+  const originals = (snapshot.assets || []).filter((a) => annotations.has(a.id));
+  // Only the declared old photographs need an enhanced version. A modern photograph
+  // without a pair is the intended state, not a gap.
+  const declaredOld = new Set(oldPhotoAssetIds);
+  const missingPairs = [...declaredOld].filter((id) => !pairByOriginal.has(id));
+  return {
+    schemaVersion: 'roots-coverage-v1',
+    generatedAt: new Date().toISOString(),
+    pageCount: edition.pages,
+    layoutDensity: edition.density,
+    sections: edition.sections.map((sec) => ({ id: sec.id, title: sec.title, startPage: sec.startPage, endPage: sec.endPage })),
+    counts: {
+      inputFiles: rows.length,
+      originalPhotographs: originals.length,
+      derivatives: photoPairs.length,
+      documents: rows.filter((r) => r.role === 'document').length,
+      containerExtracts: (snapshot.sources || []).filter((s) => s.kind === 'reconstructed_chat').length,
+      people: (snapshot.people || []).length,
+      chapters: (bookPlan?.chapters || []).length,
+      printedFiles: rows.filter((r) => r.printed).length,
+      unprintedFiles: rows.filter((r) => !r.printed).length,
+    },
+    oldPhotographs: declaredOld.size,
+    oldPhotographsWithoutAnEnhancedVersion: missingPairs,
+    modernPhotographsWithoutAPair: originals.filter((a) => !declaredOld.has(a.id)).length,
+    rows,
+    note: 'Derivatives are never counted as originals. Every row keeps its complete original in this archive whether or not it reached a printed page.',
+  };
+}
+
 function renderEditableMap(snapshot, branch, assetPaths) {
   const data = {
     people: (snapshot.people || []).map((p) => ({
