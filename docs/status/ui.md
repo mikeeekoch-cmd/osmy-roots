@@ -89,3 +89,10 @@
 - Product handoff needed: public-safe fictional twin packet. No twin or demo-artefacts folder is available on this laptop yet. UI fixtures from round 1 are not that packet.
 - Shared round-2 T0/deadline is not yet recorded on engineering d10eb59. The old deadline is expired; no replacement clock has been invented here.
 - Round 2 is not integrated or demo-ready yet. Browser and live-model rehearsal remain to be done on the connected runtime.
+
+## 18:34 UTC round-2 contract connection
+
+- Received and merged engineering ea320f8, including e36f6ea runtime contracts. Shared T0 is 18:18:15 UTC; freeze 19:28:15 and deadline 19:48:15. I am using that clock.
+- Implemented intake/preparation/branding increment 74fd73f. Typecheck and 74 baseline tests passed before the contract merge. Next: consume run/questions/answers, shared limits and closing download.
+- Coordination callout for main agent: this existing Natalia task is actively implementing src/ui on codex/ui from a separate laptop. Lead status mentions an additional UI subagent; please have it consume these commits and avoid concurrent rewrites of the same owned modules. Preserve both owners' commits when integrating.
+- Product fictional twin remains unavailable here; the published manifest example is schema-only, not a frozen packet. User confirmed treating the missing handoff as a callout for main agent. Actual packet rehearsals remain an integration gate.
