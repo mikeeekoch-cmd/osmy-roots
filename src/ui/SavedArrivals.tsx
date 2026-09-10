@@ -20,12 +20,28 @@ export function savedDelta(
         return !prior || JSON.stringify(prior) !== JSON.stringify(item);
       })
       .map((item) => item.id);
-  const personIds = changed(before.people, after.people);
+  const changedPeople = changed(before.people, after.people);
+  const changedClaims = changed(before.claims, after.claims);
   const relationshipIds = changed(before.relationships, after.relationships);
   const photoIds = [...new Set(after.people.flatMap((p) => p.photoIds))].filter(
     (id) => !before.people.some((p) => p.photoIds.includes(id)),
   );
   const storyIds = changed(before.stories, after.stories);
+  const personIds = [
+    ...new Set([
+      ...changedPeople,
+      ...after.stories
+        .filter((story) => storyIds.includes(story.id))
+        .map((story) => story.personId),
+      ...after.claims
+        .filter(
+          (claim) =>
+            changedClaims.includes(claim.id) &&
+            after.people.some((p) => p.id === claim.subjectId),
+        )
+        .map((claim) => claim.subjectId),
+    ]),
+  ];
   return personIds.length ||
     relationshipIds.length ||
     photoIds.length ||
@@ -57,7 +73,25 @@ export function SavedArrivals({
       key={delta.version}
       aria-label="Saved family updates"
     >
-      <span role="status">Saved updates · {items.join(" · ")}</span>
+      <span role="status">
+        Saved updates · {items.join(" · ")}
+        {delta.storyIds.slice(0, 1).map((id) => {
+          const story = snapshot.stories.find((story) => story.id === id);
+          return (
+            story && (
+              <button
+                className="saved-story"
+                key={id}
+                onClick={() => onSelect(story.personId)}
+              >
+                {story.text.slice(0, 160)}
+                {story.text.length > 160 ? "…" : ""}{" "}
+                <small>· {story.status.replaceAll("_", " ")}</small>
+              </button>
+            )
+          );
+        })}
+      </span>
       <div>
         {delta.photoIds.slice(0, 3).map((id) => {
           const person = snapshot.people.find((p) => p.photoIds.includes(id));

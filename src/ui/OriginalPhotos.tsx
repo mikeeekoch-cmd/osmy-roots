@@ -21,27 +21,33 @@ export function OriginalPhotos({
   snapshot,
   api,
   personId,
+  comparisonFor,
 }: {
   ids: string[];
   snapshot: ProjectSnapshot;
   api: RootsApi;
   personId?: string;
+  comparisonFor?: (originalId: string) => {enhancedUrl: string; aligned: boolean} | undefined;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [comparing, setComparing] = useState(false);
   const pairs = (snapshot.photoPairs || []).filter((pair) => (!personId || pair.personIds.includes(personId)) && snapshot.assets.some((a) => a.id === pair.originalAssetId && a.mediaType.startsWith("image/")) && snapshot.assets.some((a) => a.id === pair.enhancedAssetId && a.mediaType.startsWith("image/")));
   const pair = pairs.find((item) => item.originalAssetId === selected);
+  const suppliedPair = selected ? comparisonFor?.(selected) : undefined;
   const galleryIds = ids.filter((id) => !pairs.some((item) => item.enhancedAssetId === id));
   useEffect(() => { setSelected(null); setComparing(false); }, [personId]);
   const close = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const open = selected !== null;
+  const idsRef = useRef(galleryIds);
+  idsRef.current = galleryIds;
+  useEffect(() => { if (selected && !galleryIds.includes(selected)) { setSelected(null); setComparing(false); } }, [galleryIds.join("|"), selected]);
   const move = (delta: number) => {
     setComparing(false);
     setSelected((current) =>
       current
-        ? galleryIds[(galleryIds.indexOf(current) + delta + galleryIds.length) % galleryIds.length]
+        ? idsRef.current[(idsRef.current.indexOf(current) + delta + idsRef.current.length) % idsRef.current.length]
         : null,
     );
   };
@@ -69,7 +75,7 @@ export function OriginalPhotos({
           first?.focus();
         }
       }
-      if ((e.target as HTMLElement)?.closest('input[type="range"]')) return;
+      if ((e.target as HTMLElement)?.matches('input, textarea, select, [role="slider"]')) return;
       if (e.key === "ArrowRight") {
         e.preventDefault();
         move(1);
@@ -84,7 +90,7 @@ export function OriginalPhotos({
       window.removeEventListener("keydown", listener, true);
       opener.current?.focus();
     };
-  }, [open, galleryIds.join("|")]);
+  }, [open]);
   if (!ids.length) return null;
   const name = (id: string) =>
     snapshot.assets.find((a) => a.id === id)?.originalName ||
@@ -92,7 +98,7 @@ export function OriginalPhotos({
   return (
     <>
       <div className="photo-gallery">
-        {ids.map((id) => (
+        {galleryIds.map((id) => (
           <figure key={id}>
             <button
               className="photo-open"
@@ -108,12 +114,13 @@ export function OriginalPhotos({
                 alt={name(id)}
               />
             </button>
-            {pairs.some((pair) => pair.originalAssetId === id) && <button className="compare-photo-button" onClick={(event) => { opener.current = event.currentTarget; setSelected(id); setComparing(true); }}>Compare photos</button>}
+            {(pairs.some((pair) => pair.originalAssetId === id) || comparisonFor?.(id)) && <button className="compare-photo-button" onClick={(event) => { opener.current = event.currentTarget; setSelected(id); setComparing(true); }}>Compare photos</button>}
             <figcaption>
               {name(id)}
               <br />
               Original file
             </figcaption>
+            <PhotoCaption assetId={id} snapshot={snapshot} />
           </figure>
         ))}
       </div>
@@ -123,7 +130,7 @@ export function OriginalPhotos({
           className="photo-lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label="Original photograph"
+          aria-label={comparing ? "Original and enhanced photographs" : "Original photograph"}
           onClick={() => setSelected(null)}
         >
           <button
@@ -134,11 +141,11 @@ export function OriginalPhotos({
             ×
           </button>
           <div onClick={(e) => e.stopPropagation()}>
-            {comparing && pair ? <PhotoComparison key={pair.id} pair={pair} originalUrl={api.assetUrl(snapshot.projectId, pair.originalAssetId)} enhancedUrl={api.assetUrl(snapshot.projectId, pair.enhancedAssetId)} /> : <OriginalPhoto
+            {comparing && pair ? <PhotoComparison key={pair.id} pair={pair} originalUrl={api.assetUrl(snapshot.projectId, pair.originalAssetId)} enhancedUrl={api.assetUrl(snapshot.projectId, pair.enhancedAssetId)} /> : comparing && suppliedPair ? <PhotoComparison originalUrl={api.assetUrl(snapshot.projectId, selected)} enhancedUrl={suppliedPair.enhancedUrl} aligned={suppliedPair.aligned} caption={name(selected)} /> : <OriginalPhoto
               src={api.assetUrl(snapshot.projectId, selected)}
               alt={name(selected)}
             />}
-            {pair && <button className="toggle-photo-comparison" onClick={() => setComparing(!comparing)}>{comparing ? "View complete original" : "Compare photos"}</button>}
+            {(pair || suppliedPair) && <button className="toggle-photo-comparison" onClick={() => setComparing(!comparing)}>{comparing ? "View complete original" : "Compare photos"}</button>}
             <p aria-live="polite">
               {name(selected)} · Photograph {galleryIds.indexOf(selected) + 1} of{" "}
               {galleryIds.length}
@@ -163,5 +170,32 @@ export function OriginalPhotos({
         </div>
       )}
     </>
+  );
+}
+
+function PhotoCaption({
+  assetId,
+  snapshot,
+}: {
+  assetId: string;
+  snapshot: ProjectSnapshot;
+}) {
+  const annotation = snapshot.photoAnnotations?.find(
+    (a) => a.assetId === assetId,
+  );
+  if (!annotation?.positions.length) return null;
+  return (
+    <details className="photo-identities">
+      <summary>People, left to right</summary>
+      <ol>
+        {[...annotation.positions]
+          .sort((a, b) => a.position - b.position)
+          .map((position) => (
+            <li key={position.position} value={position.position}>
+              {position.label || "Unknown"} <small>· {position.status}</small>
+            </li>
+          ))}
+      </ol>
+    </details>
   );
 }

@@ -1721,3 +1721,10 @@
 .source-connection-cards button { text-align: left; display: flex; flex-direction: column; gap: 3px; }
 .source-connection-cards span { font-size: 12px; }
 .source-connection-cards small { color: var(--muted); }
+
+.photo-identities { font-size: 11px; margin-top: 7px; text-align: left; }
+.photo-identities summary { cursor: pointer; }
+.photo-identities ol { padding-left: 18px; line-height: 1.6; }
+.photo-identities small { color: var(--muted); }
+.preparation-state { margin: auto; max-width: 560px; padding: 34px; text-align: center; }
+.preparation-state p { font-size: 14px; line-height: 1.6; }

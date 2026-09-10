@@ -7,8 +7,9 @@ import { resolve } from "node:path";
 const require = createRequire(import.meta.url);
 const { build } = createRequire(require.resolve("tsx/package.json"))("esbuild");
 const connected = process.env.ROOTS_UI_CONNECTED === "1";
-const port = connected ? 3102 : 3101;
-const entry = connected ? "connected" : "preview";
+const round2 = process.env.ROOTS_UI_ROUND2 === "1";
+const port = round2 ? 3103 : connected ? 3102 : 3101;
+const entry = round2 ? "round2-preview" : connected ? "connected" : "preview";
 const output = resolve(".ui-preview", entry);
 await mkdir(output, { recursive: true });
 await build({
@@ -44,7 +45,7 @@ createServer(async (req, res) => {
     if (req.url === "/") {
       res.setHeader("content-type", "text/html");
       res.end(
-        `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Roots — ${connected ? "connected UI" : "development replay"}</title><link rel="stylesheet" href="/${entry}.css"></head><body style="margin:0"><div id="root"></div><script src="/${entry}.js"></script></body></html>`,
+        `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Osmy Roots · ${connected ? "connected UI" : "development replay"}</title><link rel="stylesheet" href="/${entry}.css"></head><body style="margin:0"><div id="root"></div><script src="/${entry}.js"></script></body></html>`,
       );
       return;
     }

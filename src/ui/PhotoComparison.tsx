@@ -9,19 +9,21 @@ function cropStyle(crop: Crop = fullCrop): CSSProperties {
   return { position: "absolute", width: `${100 / w}%`, height: `${100 / h}%`, maxWidth: "none", maxHeight: "none", left: `${-x / w * 100}%`, top: `${-y / h * 100}%`, objectFit: "fill" };
 }
 export const usableCrop = (crop: Crop | undefined) => !crop || crop.every(Number.isFinite) && crop[0] >= 0 && crop[1] >= 0 && crop[2] > 0 && crop[3] > 0 && crop[0] + crop[2] <= 1 && crop[1] + crop[3] <= 1;
-export function PhotoComparison({ pair, originalUrl, enhancedUrl }: {
-  pair: PhotoPair; originalUrl: string; enhancedUrl: string;
-}) {
+type ComparisonProps = {originalUrl: string; enhancedUrl: string} & ({pair: PhotoPair; caption?: never; aligned?: never} | {pair?: never; caption: string; aligned: boolean});
+export function PhotoComparison(props: ComparisonProps) {
+  return <Comparison key={`${props.originalUrl}|${props.enhancedUrl}|${props.pair?.id || props.aligned}`} {...props} />;
+}
+function Comparison({ pair, originalUrl, enhancedUrl, caption, aligned: suppliedAlignment }: ComparisonProps) {
   const [position, setPosition] = useState(50);
   const [original, setOriginal] = useState<Dimensions | null>(null);
   const [enhanced, setEnhanced] = useState<Dimensions | null>(null);
   const [originalFailed, setOriginalFailed] = useState(false);
   const [enhancedFailed, setEnhancedFailed] = useState(false);
-  const originalCrop = pair.alignment.originalCrop || fullCrop;
-  const enhancedCrop = pair.alignment.enhancedCrop || fullCrop;
+  const originalCrop = pair?.alignment.originalCrop || fullCrop;
+  const enhancedCrop = pair?.alignment.enhancedCrop || fullCrop;
   const ratio = original ? original.width * originalCrop[2] / (original.height * originalCrop[3]) : 4 / 3;
   const enhancedRatio = enhanced ? enhanced.width * enhancedCrop[2] / (enhanced.height * enhancedCrop[3]) : ratio;
-  const aligned = pair.alignment.mode === "aligned" && usableCrop(pair.alignment.originalCrop) && usableCrop(pair.alignment.enhancedCrop) && (!original || !enhanced || Math.abs(ratio - enhancedRatio) / ratio < 0.03);
+  const aligned = (pair ? pair.alignment.mode === "aligned" : suppliedAlignment) && usableCrop(pair?.alignment.originalCrop) && usableCrop(pair?.alignment.enhancedCrop) && (!original || !enhanced || Math.abs(ratio - enhancedRatio) / ratio < 0.03);
   const load = (setter: (d: Dimensions) => void) => (e: React.SyntheticEvent<HTMLImageElement>) => setter({width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight});
   if (originalFailed) return <p className="photo-comparison-error" role="status">The original photograph is unavailable. This pair cannot be compared.</p>;
   return <section className="photo-comparison" aria-label="Compare original and enhanced photograph">
@@ -38,8 +40,8 @@ export function PhotoComparison({ pair, originalUrl, enhancedUrl }: {
       </div>
       {original && enhanced && <div className="comparison-presets" aria-label="Photo comparison views"><button onClick={() => setPosition(100)}>Full original</button><button onClick={() => setPosition(50)}>Half and half</button><button onClick={() => setPosition(0)}>Full enhanced</button></div>}
     </> : <div className="comparison-side-by-side"><figure><img src={originalUrl} alt="Original photograph" onLoad={load(setOriginal)} onError={() => setOriginalFailed(true)} /><figcaption>Original</figcaption></figure><figure><img src={enhancedUrl} alt="Enhanced photograph" onLoad={load(setEnhanced)} onError={() => setEnhancedFailed(true)} /><figcaption>Enhanced</figcaption></figure></div>}
-    <p className="comparison-caption">{pair.caption}</p>
+    <p className="comparison-caption">{pair?.caption || caption}</p>
     {!aligned && !enhancedFailed && <small>The versions use different framing, so they are shown side by side.</small>}
-    <details className="comparison-provenance"><summary>About this enhancement</summary><p>{pair.origin === "prepared" ? "Prepared before this session." : "Created during this session."} {pair.method}</p><p>The original remains the historical evidence. Enhanced details are a visual interpretation.</p></details>
+    {pair && <details className="comparison-provenance"><summary>About this enhancement</summary><p>{pair.origin === "prepared" ? "Prepared before this session." : "Created during this session."} {pair.method}</p><p>The original remains the historical evidence. Enhanced details are a visual interpretation.</p></details>}
   </section>;
 }

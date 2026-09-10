@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { SetupAnswer, SetupQuestion } from "../../packages/contracts/round2";
 import type { ProjectSnapshot, RootsApi } from "./types";
 import { OriginalPhoto } from "./OriginalPhotos";
+import { PreparationState } from "./PreparationState";
 
 const categoryLabels: Record<SetupQuestion["category"], string> = { photo: "The people in your photograph", kinship: "A family connection", origin: "Where the story begins", time: "A place in time", movement: "The journeys they made", recollection: "A story worth keeping", conflict: "What stays open" };
 export const nextUnansweredQuestion = (snapshot: ProjectSnapshot) => {
@@ -16,23 +17,24 @@ export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClos
   onSource: (sourceId: string) => void; onClose?: () => void; onRetry?: () => void;
 }) {
   const run = snapshot.run!;
-  const [index, setIndex] = useState(() => Math.min(nextUnansweredQuestion(snapshot), run.questions.length - 1));
+  const [index, setIndex] = useState(() => Math.max(0, Math.min(nextUnansweredQuestion(snapshot), run.questions.length - 1)));
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const [editVersion, setEditVersion] = useState(snapshot.version);
   const [answerError, setAnswerError] = useState("");
   const [reviewing, setReviewing] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
-  const question = run.questions[index];
+  const question = run.questions[Math.min(index, Math.max(0, run.questions.length - 1))];
   const answer = run.answers.find((a) => a.questionId === question?.id);
   const answered = new Set(run.answers.map((a) => a.questionId)).size;
   const allAnswered = answered === run.questions.length;
   useEffect(() => { setEditing(false); setDraft(""); setAnswerError(""); }, [question?.id]);
-  if (!question || (allAnswered && !reviewing && !onClose)) return <section className="setup-questions setup-complete" aria-live="polite">
+  if (!question) return <PreparationState title={run.phase === "failed" ? "Your sources need attention" : "Preparing your family sources"} summary={run.error || "Reading your supplied files and checking their source references."} active={run.phase === "preparing" || run.modelStatus === "running"} />;
+  if (allAnswered && !reviewing && !onClose) return <section className="setup-questions setup-complete" aria-live="polite">
     <span className="setup-complete-mark" aria-hidden="true">✓</span>
     <span className="eyebrow">Your seven checks are saved</span>
     <h2>Your first family branch is taking shape</h2>
-    <p>We are adding the supported records and keeping your unknowns open.</p>
+    <p>{run.error || "We are adding the supported records and keeping your unknowns open."}</p>
     <button onClick={() => { setIndex(0); setReviewing(true); }}>Review your answers</button>
     {run.modelStatus === "running" && <p className="preparation-note"><span className="spinner" />Astra is still analyzing the supplied recollection.</p>}
   </section>;

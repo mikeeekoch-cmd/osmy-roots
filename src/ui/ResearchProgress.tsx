@@ -48,12 +48,24 @@ export function ResearchProgress({
             ? "Working…"
             : storedOriginal(latest)
               ? "Original saved"
-              : "Up to date"}
+              : snapshot.run?.phase === "questions"
+                ? "Your turn"
+                : snapshot.run?.phase === "growing"
+                  ? "Adding supplied records"
+                  : snapshot.run?.phase === "completed"
+                    ? "Book download sent"
+                    : "Up to date"}
         </strong>
       </div>
       <p className="current-action" aria-live="polite">
         {!busy
-          ? "Up to date. Add another clue while you review."
+          ? snapshot.run?.phase === "questions"
+            ? "Check the source-backed answers. Unknowns can stay open."
+            : snapshot.run?.phase === "growing"
+              ? "Saved family records will appear here as they are added. You can explore the map."
+              : snapshot.run?.phase === "completed"
+                ? "This edition is saved. Your download was sent to the browser."
+                : "Up to date. Add another clue while you review."
           : (latest && findingText(latest)) ||
             (latest
               ? operationText[latest.operation]

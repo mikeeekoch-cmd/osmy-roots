@@ -92,14 +92,16 @@ export function RootsApp({
   useEffect(() => {
     if (!snapshot) return;
     let cancelled = false;
+    let polling = false;
     const timer = setInterval(async () => {
-      if (document.visibilityState === "hidden") return;
+      if (document.visibilityState === "hidden" || polling) return;
+      polling = true;
       try {
         const next = await api.getSnapshot(snapshot.projectId);
-        if (!cancelled) saveSnapshot(next);
+        if (!cancelled) { saveSnapshot(next); setError((current) => current?.startsWith("Connection interrupted:") ? null : current); }
       } catch (e) {
         if (!cancelled) setError(`Connection interrupted: ${errorMessage(e)}`);
-      }
+      } finally { polling = false; }
     }, 2500);
     return () => {
       cancelled = true;
@@ -428,7 +430,7 @@ export function RootsApp({
                   key={`${editor.operation}-${editor.entityId || "new"}`}
                   snapshot={snapshot}
                   {...editor}
-                  busy={busy}
+                  busy={busy || download || closed}
                   onClose={() => setEditor(null)}
                   onSave={async (mutation) => {
                     if (

@@ -1,6 +1,6 @@
 # Codex Natalia: UI and animations
 
-## Current handoff: 17:14 UTC
+## Historical round-1 handoff: 17:14 UTC
 
 - Ready to integrate: **codex/ui, code c78696c**, on lead/main a5de7c4. Full assignment P0 is connected; P1 source-to-person motion, branch navigation and accessible gallery paging are implemented and browser-checked after the lead opened the gate.
 - **Validation:** typecheck PASS, all 72 tests PASS, production build PASS. Production server starts successfully and browser restores the saved project. Production Unknown remained unresolved with zero acceptance receipts. Two existing dynamic local-storage tracing warnings remain in lead-owned server/state/store.ts; no UI build error.
@@ -115,3 +115,24 @@
 - Added explicit Retry source analysis for a failed question when the lead retry API is available. No visible clock or timer-derived percentage is rendered.
 - Validation at conflict resolution: TypeScript PASS; 10 UI tests PASS before merge and rerun below. Desktop intake observed through the actual Next server at 1440x900. The subsequent CUA file-chooser call stalled and was interrupted, so no completed browser rehearsal or mobile/slider pass is claimed here. Lead owns final two actual rehearsals.
 - Local QA server was started on port 3100 with a fictional manifest and isolated /private/tmp data directory. Private model dispatch is blocked pending the lead's approval resolution; this UI owner has not initiated one.
+
+
+## External Natalia browser checks at bc6fe9a
+
+The external owner reported typecheck, 77 tests and production build passing, plus browser checks on the explicitly labeled UI contract harness. These checks are retained in tests/ui/ROUND2-BROWSER-CHECKS.md and do not establish the current integrated packet rehearsal gate.
+
+## Photo view and browser QA increment be72363
+
+- Added PhotoComparison and OriginalPhotos integration via a render-only adapter. The divider starts at 50%; pointer/keyboard controls, original/full-enhanced views, side-by-side fallback, missing-image fallback and pair-change reset are implemented. Slider arrows no longer page the gallery; the focus trap includes inputs; Escape restores the opener.
+- Actual browser verified two fictional UI pairs, unpaired gallery paging, missing derivative and unchanged camera/node coordinates across a saved-snapshot arrival. Ordered photo labels use snapshot.photoAnnotations; reconstructed/translated source details are explicit.
+- The real app's separate Open saved project restored the fictional roots-v1 gallery and both PNG originals. Unknown persisted through refresh. No local live-model result is claimed.
+- Preparation failure preserved selected files and fields; export failure remained retryable with no false completion. Detailed scope/evidence: tests/ui/ROUND2-BROWSER-CHECKS.md.
+- Remaining lead callout: publish photo-pair metadata and connect the optional run methods. EvidenceDrawer can bind OriginalPhotos.comparisonFor after the shared type exists. No pair/name guessing or competing runtime schema was added. Product twin remains missing here.
+
+
+## Second shared UI reconciliation
+
+- Merged external be72363, bc6fe9a and c79fa7f history while preserving the current API adapter, cached-PDF preview, source-analysis retry and typed photo-pair provenance/crops.
+- Ported camera interaction guards, gallery focus stability and removed-photo reset, ordered source-backed photo captions, honest empty/preparation/failure rendering and stale passage labels. The isolated external comparison harness retains its view-only adapter signature.
+- Current v2 packet intentionally has no enhanced pairs; its original photographs use the ordinary gallery. Optional comparison remains for prior projects with validated metadata.
+- Post-resolution checks: TypeScript PASS; all 10 current UI tests PASS; conflict-marker scan clean. No private model dispatch or integrated rehearsal was performed by this owner.

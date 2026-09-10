@@ -32,6 +32,7 @@ export function FamilyCanvas({
     [scale, setScale] = useState(0.8),
     [offset, setOffset] = useState({ x: 20, y: 20 });
   const viewport = useRef<HTMLDivElement>(null);
+  const cameraTouched = useRef(false);
   const savedPositions = useRef<Record<string, {x: number; y: number}>>({});
   const seenPeople = useRef(new Set(snapshot.people.map((p) => p.id)));
   const [arriving, setArriving] = useState<string[]>([]);
@@ -94,14 +95,17 @@ export function FamilyCanvas({
   };
   const fitRef = useRef(fit);
   fitRef.current = fit;
+  const viewKey = all ? "all" : branchPersonId || "default";
   useEffect(() => {
+    cameraTouched.current = false;
     fitRef.current();
     if (!viewport.current) return;
-    const observer = new ResizeObserver(() => fitRef.current());
+    const observer = new ResizeObserver(() => { if (!cameraTouched.current) fitRef.current(); });
     observer.observe(viewport.current);
     return () => observer.disconnect();
-  }, [all, branchPersonId]);
+  }, [viewKey, snapshot.projectId]);
   const focus = (id: string, inspect = true) => {
+    cameraTouched.current = true;
     setBranchPersonId(id);
     const p = layout.positions[id];
     if (!p) {
@@ -191,6 +195,7 @@ export function FamilyCanvas({
             (e.target as HTMLElement).closest('button,a,input,[role="button"]')
           )
             return;
+          cameraTouched.current = true;
           pan.current = {
             x: e.clientX,
             y: e.clientY,
@@ -371,18 +376,18 @@ export function FamilyCanvas({
         <div className="zoom-tools">
           <button
             aria-label="Zoom out"
-            onClick={() => setScale((s) => Math.max(0.2, s - 0.15))}
+            onClick={() => { cameraTouched.current = true; setScale((s) => Math.max(0.2, s - 0.15)); }}
           >
             −
           </button>
           <span>{Math.round(scale * 100)}%</span>
           <button
             aria-label="Zoom in"
-            onClick={() => setScale((s) => Math.min(1.8, s + 0.15))}
+            onClick={() => { cameraTouched.current = true; setScale((s) => Math.min(1.8, s + 0.15)); }}
           >
             +
           </button>
-          <button onClick={fit}>Fit</button>
+          <button onClick={() => { cameraTouched.current = true; fit(); }}>Fit</button>
         </div>
       </div>
     </section>
