@@ -1,0 +1,14 @@
+{
+  "name": "osmy-roots",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Evidence-backed family trees and family stories — engineering preparation",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=24 <25" },
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "doctor": "node scripts/doctor.mjs",
+    "doctor:api": "node scripts/doctor.mjs --api"
+  }
+}
