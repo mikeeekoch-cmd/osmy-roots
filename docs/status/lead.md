@@ -14,3 +14,14 @@
 - Worker handoff: Natalia exports RootsApp from src/ui/index.tsx; Claude exports modules from server/ingestion/index.ts, server/research/index.ts and server/export/index.ts. Please consume published types without editing them; request additive changes here.
 - Scope: local single-user storage; text/JSON/photos first; prepared/synthetic sources always labeled. OAuth, cloud, universal chat imports, broad crawling, restoration and standalone editable HTML map deferred.
 - P1 gate: CLOSED until integrated P0 has passed; fix integration first.
+
+## 16:40 UTC checkpoint
+
+- Contracts published: e838039 on codex/engineering, before T+10. Worker handoff details: docs/CONTRACT-HANDOFF.md. Automatic approval review blocked a direct scaffold push to main; continue consuming codex/engineering.
+- Scaffold verified: pnpm dev served HTTP 200 on 127.0.0.1:3000. Typecheck passed.
+- Implemented: serialized atomic local persistence; citation/reference/cycle checks; accepted/unknown/rejected/corrected decisions; fixed-ID idempotent review; manual graph edits and one-level undo; real-event counters; official Astra structured analysis and passage adapter; HTTP/RootsApi integration wrappers.
+- Tests: 10 consequential state tests passed (node --import tsx --test integration-tests/state.test.ts). Worker modules are still behind an explicit unavailable boundary; no full app pass claimed.
+- Actual inference attempt: gpt-6-astra, 2095 ms, HTTP 429, credit_balance_exhausted. No live proposal generated. Server key configured locally without exposing it. Mike asked to apply credits or use a funded project.
+- Private Scope Review and Engineering handoff refreshed at version 16:24:37 UTC. Current scope agrees with repo. Private material remains excluded.
+- Both external workers confirmed running. UI branch is now visible; first data/export branch not yet pushed.
+- Next: integrate worker modules, test source-to-review/book transitions and model failures, resolve credited model access. P1 remains closed.
