@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectSnapshot, RootsApi } from "./types";
-import { branchIds, familyLayout, isParent, years } from "./model";
+import {
+  branchIds,
+  familyLayout,
+  stableFamilyLayout,
+  isParent,
+  years,
+} from "./model";
 import { OriginalPhoto } from "./OriginalPhotos";
 import { SourceConnection, type SavedConnection } from "./SourceConnection";
 export function FamilyCanvas({
@@ -8,6 +14,8 @@ export function FamilyCanvas({
   api,
   selectedId,
   highlightId,
+  changedPersonIds = [],
+  changedRelationshipIds = [],
   savedConnection,
   onSelect,
   onRelationship,
@@ -17,12 +25,14 @@ export function FamilyCanvas({
   api: RootsApi;
   selectedId: string | null;
   highlightId: string | null;
+  changedPersonIds?: string[];
+  changedRelationshipIds?: string[];
   savedConnection?: SavedConnection | null;
   onSelect: (id: string) => void;
   onRelationship: (id: string) => void;
   onAdd: () => void;
 }) {
-  const [all, setAll] = useState(false),
+  const [all, setAll] = useState(!!snapshot.run),
     [branchPersonId, setBranchPersonId] = useState<string | undefined>(),
     [query, setQuery] = useState(""),
     [scale, setScale] = useState(0.8),
@@ -43,8 +53,25 @@ export function FamilyCanvas({
   const people = all
     ? snapshot.people
     : snapshot.people.filter((p) => branch.has(p.id));
+  const savedPositions = useRef<{
+    project: string;
+    positions: Record<string, { x: number; y: number }>;
+  }>({ project: snapshot.projectId, positions: {} });
   const layout = useMemo(() => {
-    const full = familyLayout(people, snapshot.relationships);
+    const full = snapshot.run
+      ? stableFamilyLayout(
+          people,
+          snapshot.relationships,
+          savedPositions.current.project === snapshot.projectId
+            ? savedPositions.current.positions
+            : {},
+        )
+      : { ...familyLayout(people, snapshot.relationships), minX: 0, minY: 0 };
+    if (all)
+      savedPositions.current = {
+        project: snapshot.projectId,
+        positions: full.positions,
+      };
     if (all) return full;
     const ordered = [...people].sort(
       (a, b) => full.positions[a.id].y - full.positions[b.id].y,
@@ -53,28 +80,36 @@ export function FamilyCanvas({
       positions: Object.fromEntries(
         ordered.map((p, i) => [p.id, { x: 30, y: 16 + i * 78 }]),
       ),
+      minX: 0,
+      minY: 0,
       width: 320,
       height: Math.max(1, ordered.length) * 78 + 16,
     };
   }, [people, snapshot.relationships, all]);
-  const layoutKey = JSON.stringify(layout.positions);
+  const layoutRef = useRef(layout);
+  layoutRef.current = layout;
   const fit = () => {
     if (!viewport.current) return;
+    const currentLayout = layoutRef.current;
     const rect = viewport.current.getBoundingClientRect();
     const next = Math.max(
       0.2,
       Math.min(
         1,
         Math.min(
-          (rect.width - 50) / layout.width,
-          (rect.height - 40) / layout.height,
+          (rect.width - 50) / currentLayout.width,
+          (rect.height - 40) / currentLayout.height,
         ),
       ),
     );
     setScale(next);
     setOffset({
-      x: (rect.width - layout.width * next) / 2,
-      y: Math.max(15, (rect.height - layout.height * next) / 2),
+      x:
+        (rect.width - currentLayout.width * next) / 2 -
+        currentLayout.minX * next,
+      y:
+        Math.max(15, (rect.height - currentLayout.height * next) / 2) -
+        currentLayout.minY * next,
     });
   };
   useEffect(() => {
@@ -83,7 +118,7 @@ export function FamilyCanvas({
     const observer = new ResizeObserver(() => fit());
     observer.observe(viewport.current);
     return () => observer.disconnect();
-  }, [all, layoutKey]);
+  }, [all, branchPersonId, snapshot.projectId]);
   const focus = (id: string, inspect = true) => {
     setBranchPersonId(id);
     const p = layout.positions[id];
@@ -102,12 +137,6 @@ export function FamilyCanvas({
     }
     if (inspect) onSelect(id);
   };
-  useEffect(() => {
-    if (highlightId) {
-      if (!layout.positions[highlightId]) setAll(true);
-      else focus(highlightId, false);
-    }
-  }, [highlightId, all]);
   const results = query.trim()
     ? snapshot.people.filter((p) =>
         `${p.displayNameEn} ${p.originalName || ""}`
@@ -259,7 +288,7 @@ export function FamilyCanvas({
                 return (
                   <g
                     key={r.id}
-                    className={`edge ${r.status === "accepted" ? "" : "uncertain"} ${parent ? "" : "partner"}`}
+                    className={`edge ${changedRelationshipIds.includes(r.id) ? "just-saved-edge" : ""} ${r.status === "accepted" ? "" : "uncertain"} ${parent ? "" : "partner"}`}
                   >
                     <path d={d} />
                     <path
@@ -315,7 +344,7 @@ export function FamilyCanvas({
               return (
                 <button
                   key={p.id}
-                  className={`person-node ${selectedId === p.id ? "selected" : ""} ${highlightId === p.id ? "just-saved" : ""}`}
+                  className={`person-node ${selectedId === p.id ? "selected" : ""} ${highlightId === p.id || changedPersonIds.includes(p.id) ? "just-saved" : ""}`}
                   style={{ left: pos.x, top: pos.y }}
                   onClick={() => onSelect(p.id)}
                 >

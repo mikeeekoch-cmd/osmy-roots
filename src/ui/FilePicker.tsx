@@ -1,3 +1,4 @@
+import { formatBytes, uploadIssue, UPLOAD_LIMITS } from "./upload";
 import { useEffect, useRef, useState } from "react";
 
 function Thumbnail({ file }: { file: File }) {
@@ -91,6 +92,18 @@ export function FilePicker({
           </small>
         )}
       </div>
+      {!compact && (
+        <small className="upload-limits">
+          Up to {UPLOAD_LIMITS.maxFiles} files ·{" "}
+          {formatBytes(UPLOAD_LIMITS.maxTotalBytes)} total ·{" "}
+          {formatBytes(UPLOAD_LIMITS.maxFileBytes)} per file
+        </small>
+      )}
+      {uploadIssue(files) && (
+        <p className="error upload-issue" role="alert">
+          {uploadIssue(files)}
+        </p>
+      )}
       {files.length > 0 && (
         <p className="file-total" role="status">
           {files.length} {files.length === 1 ? "file" : "files"} selected ·{" "}
@@ -123,10 +136,4 @@ export function FilePicker({
       )}
     </div>
   );
-}
-
-export function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }

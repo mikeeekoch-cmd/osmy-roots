@@ -99,6 +99,29 @@ export function ResearchProgress({
           ))}
         </details>
       )}
+      {snapshot.sources.some((source) =>
+        ["saved_folder", "saved_correspondence"].includes(source.kind),
+      ) && (
+        <div className="source-connection-cards">
+          {snapshot.sources
+            .filter((source) =>
+              ["saved_folder", "saved_correspondence"].includes(source.kind),
+            )
+            .map((source) => (
+              <button key={source.id} onClick={() => onSource(source.id)}>
+                <strong>
+                  {source.kind === "saved_folder" ? "Google Drive" : "Email"}
+                </strong>
+                <span>
+                  {source.kind === "saved_folder"
+                    ? "Saved family folder"
+                    : "Saved family correspondence"}
+                </span>
+                <small>Supplied copy · Inspect source ↗</small>
+              </button>
+            ))}
+        </div>
+      )}
       <h3>Research activity</h3>
       <ol className="activity">
         {events

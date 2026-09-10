@@ -90,7 +90,7 @@
 - Shared round-2 T0/deadline is not yet recorded on engineering d10eb59. The old deadline is expired; no replacement clock has been invented here.
 - Round 2 is not integrated or demo-ready yet. Browser and live-model rehearsal remain to be done on the connected runtime.
 
-## 18:34 UTC round-2 contract connection
+## Round-2 contract connection
 
 - Received and merged engineering ea320f8, including e36f6ea runtime contracts. Shared T0 is 18:18:15 UTC; freeze 19:28:15 and deadline 19:48:15. I am using that clock.
 - Implemented intake/preparation/branding increment 74fd73f. Typecheck and 74 baseline tests passed before the contract merge. Next: consume run/questions/answers, shared limits and closing download.

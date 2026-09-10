@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { GraphMutation, ProjectSnapshot, RootsApi } from "./types";
+import { SetupQuestions } from "./SetupQuestions";
+import { PreparationState } from "./PreparationState";
+import { SavedArrivals, savedDelta, type SavedDelta } from "./SavedArrivals";
+import { BookPreview } from "./BookPreview";
 import { Brand } from "./Brand";
 import { InputScreen } from "./InputScreen";
 import { FamilyCanvas } from "./FamilyCanvas";
@@ -29,6 +33,11 @@ export function RootsApp({
     [contributionsRunning, setContributionsRunning] = useState(0),
     [error, setError] = useState<string | null>(null),
     [download, setDownload] = useState(false),
+    [delivery, setDelivery] = useState<
+      "idle" | "sealing" | "delivering" | "completed" | "failed"
+    >("idle"),
+    [reviewSetup, setReviewSetup] = useState(false),
+    [arrivals, setArrivals] = useState<SavedDelta | null>(null),
     [downloaded, setDownloaded] = useState(false),
     [selection, setSelection] = useState<{
       kind: "person" | "relationship" | "source";
@@ -46,15 +55,23 @@ export function RootsApp({
     [panel, setPanel] = useState<"map" | "progress" | "human">("map"),
     [restoring, setRestoring] = useState(true);
   const active = useRef(false),
-    mounted = useRef(true);
+    mounted = useRef(true),
+    latestSnapshot = useRef<ProjectSnapshot | null>(null),
+    downloadLock = useRef(false),
+    projectEpoch = useRef(0);
   const saveSnapshot = (next: ProjectSnapshot) => {
-    setSnapshot((current) =>
-      current &&
-      current.projectId === next.projectId &&
-      current.version > next.version
-        ? current
-        : next,
-    );
+    const current = latestSnapshot.current;
+    if (current?.projectId === next.projectId && current.version > next.version)
+      return;
+    if (
+      current?.projectId === next.projectId &&
+      next.version > current.version
+    ) {
+      const delta = savedDelta(current, next);
+      if (delta) setArrivals(delta);
+    }
+    latestSnapshot.current = next;
+    setSnapshot(next);
     try {
       localStorage.setItem(`roots-last-project-${mode}`, next.projectId);
     } catch {
@@ -87,22 +104,44 @@ export function RootsApp({
     };
   }, [api, initialProjectId, mode]);
   useEffect(() => {
-    if (!snapshot) return;
+    if (
+      !snapshot ||
+      snapshot.run?.phase === "completed" ||
+      snapshot.run?.phase === "cancelled"
+    )
+      return;
     let cancelled = false;
+    let polling = false;
     const timer = setInterval(async () => {
-      if (document.visibilityState === "hidden") return;
+      if (
+        document.visibilityState === "hidden" ||
+        polling ||
+        downloadLock.current
+      )
+        return;
+      polling = true;
       try {
-        const next = await api.getSnapshot(snapshot.projectId);
+        const next = await api.getSnapshot(
+          snapshot.projectId,
+          latestSnapshot.current?.run?.nextSequence,
+        );
         if (!cancelled) saveSnapshot(next);
       } catch (e) {
         if (!cancelled) setError(`Connection interrupted: ${errorMessage(e)}`);
+      } finally {
+        polling = false;
       }
     }, 2500);
     return () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [api, snapshot?.projectId, download]);
+  }, [api, snapshot?.projectId, snapshot?.run?.phase, download]);
+  useEffect(() => {
+    if (!arrivals) return;
+    const timer = setTimeout(() => setArrivals(null), 5000);
+    return () => clearTimeout(timer);
+  }, [arrivals]);
   useEffect(() => {
     if (!highlight) return;
     const timer = setTimeout(() => setHighlight(null), 2400);
@@ -128,7 +167,8 @@ export function RootsApp({
     changedId?: string,
     background = false,
   ): Promise<boolean> {
-    if (!background && active.current) return false;
+    if (downloadLock.current || (!background && active.current)) return false;
+    const epoch = projectEpoch.current;
     if (background) setContributionsRunning((n) => n + 1);
     else {
       active.current = true;
@@ -137,7 +177,7 @@ export function RootsApp({
     setError(null);
     try {
       const next = await action();
-      if (mounted.current) {
+      if (mounted.current && epoch === projectEpoch.current) {
         saveSnapshot(next);
         setDownloaded(false);
         const savedPerson =
@@ -163,41 +203,95 @@ export function RootsApp({
     }
   }
   async function downloadBook() {
-    if (!snapshot || download) return;
+    if (!snapshot || downloadLock.current) return;
+    downloadLock.current = true;
     setDownload(true);
+    setDelivery("sealing");
     setError(null);
     try {
       const blob = await api.downloadFamilyBook(snapshot.projectId);
       if (!blob.size)
-        throw new Error("The export was empty. No file was downloaded.");
+        throw new Error("The export was empty. Please retry the download.");
+      setDelivery("delivering");
       const url = URL.createObjectURL(blob),
         anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = "osmy-roots-family-book.zip";
+      document.body.appendChild(anchor);
       anchor.click();
+      anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
       setDownloaded(true);
-      saveSnapshot(await api.getSnapshot(snapshot.projectId));
+      setDelivery("completed");
+      try {
+        saveSnapshot(await api.getSnapshot(snapshot.projectId));
+      } catch {
+        setError(
+          "Your file was sent to the browser. Project status could not refresh; reopen this project to check its saved state.",
+        );
+      }
     } catch (e) {
+      setDelivery("failed");
       setError(errorMessage(e));
     } finally {
+      downloadLock.current = false;
       setDownload(false);
     }
   }
+  async function newProject() {
+    if (
+      snapshot?.run &&
+      !["completed", "cancelled"].includes(snapshot.run.phase)
+    ) {
+      if (!api.cancelRun) {
+        setError(
+          "This connection cannot stop the current run yet. Reconnect to the updated application before starting another project.",
+        );
+        return;
+      }
+      if (!(await perform(() => api.cancelRun!(snapshot.projectId)))) return;
+    }
+    projectEpoch.current += 1;
+    latestSnapshot.current = null;
+    setSnapshot(null);
+    setSelection(null);
+    setEditor(null);
+    setFocusedProposalId(null);
+    setSavedConnection(null);
+    setHighlight(null);
+    setArrivals(null);
+    setPanel("map");
+    setError(null);
+    setDownloaded(false);
+    setDelivery("idle");
+    setReviewSetup(false);
+    try {
+      localStorage.removeItem(`roots-last-project-${mode}`);
+    } catch {}
+  }
+  const sealed =
+    !!snapshot?.run?.sealedAt ||
+    ["sealing", "completed", "cancelled"].includes(snapshot?.run?.phase || "");
+  const needsSetup =
+    !!snapshot?.run && (!snapshot.run.initialSavedAt || reviewSetup) && !sealed;
   const running =
-    busy ||
-    contributionsRunning > 0 ||
-    !!snapshot?.researchEvents.some(
-      (e) =>
-        e.state === "running" &&
-        !snapshot.researchEvents.some(
-          (other) =>
-            other.runId === e.runId &&
-            other.operation === e.operation &&
-            other.sequence > e.sequence &&
-            other.state !== "running",
-        ),
-    );
+    !sealed &&
+    (busy ||
+      snapshot?.run?.modelStatus === "running" ||
+      snapshot?.run?.phase === "preparing" ||
+      snapshot?.run?.phase === "preparing_book" ||
+      contributionsRunning > 0 ||
+      !!snapshot?.researchEvents.some(
+        (e) =>
+          e.state === "running" &&
+          !snapshot.researchEvents.some(
+            (other) =>
+              other.runId === e.runId &&
+              other.operation === e.operation &&
+              other.sequence > e.sequence &&
+              other.state !== "running",
+          ),
+      ));
   return (
     <div className="roots-app">
       <header className="roots-header">
@@ -221,20 +315,7 @@ export function RootsApp({
           <button
             className="new-project-button"
             disabled={busy || download || contributionsRunning > 0}
-            onClick={() => {
-              setSnapshot(null);
-              setSelection(null);
-              setEditor(null);
-              setFocusedProposalId(null);
-              setSavedConnection(null);
-              setHighlight(null);
-              setPanel("map");
-              setError(null);
-              setDownloaded(false);
-              try {
-                localStorage.removeItem(`roots-last-project-${mode}`);
-              } catch {}
-            }}
+            onClick={() => void newProject()}
           >
             New project
           </button>
@@ -247,17 +328,19 @@ export function RootsApp({
         {snapshot && (
           <>
             <span className="book-state">
-              {snapshot.bookStatus === "stale"
-                ? "Book needs updating"
-                : snapshot.bookStatus === "current"
-                  ? "Book is up to date"
-                  : snapshot.bookStatus === "failed"
-                    ? "Book generation needs attention"
-                    : snapshot.bookStatus === "generating"
-                      ? "Preparing your book…"
-                      : downloaded
-                        ? "Download saved"
-                        : "Your story, taking shape"}
+              {delivery === "completed" || snapshot.run?.phase === "completed"
+                ? "Book download sent"
+                : snapshot.bookStatus === "stale"
+                  ? "Book needs updating"
+                  : snapshot.bookStatus === "current"
+                    ? "Book is up to date"
+                    : snapshot.bookStatus === "failed"
+                      ? "Book generation needs attention"
+                      : snapshot.bookStatus === "generating"
+                        ? "Preparing your book…"
+                        : downloaded
+                          ? "Download saved"
+                          : "Your story, taking shape"}
             </span>
             <button
               className="primary download-button"
@@ -267,11 +350,18 @@ export function RootsApp({
               {download ? (
                 <>
                   <span className="spinner" />
-                  Preparing your book…
+                  {delivery === "delivering"
+                    ? "Sending your download…"
+                    : "Finishing your book…"}
                 </>
               ) : (
                 <>
-                  ↓ <span>Download family book</span>
+                  ↓{" "}
+                  <span>
+                    {delivery === "failed"
+                      ? "Retry book download"
+                      : "Download family book"}
+                  </span>
                 </>
               )}
             </button>
@@ -308,9 +398,9 @@ export function RootsApp({
             </button>
             <button
               aria-pressed={panel === "human"}
-              onClick={() => setPanel("human")}
+              onClick={() => setPanel(needsSetup ? "map" : "human")}
             >
-              Your turn{" "}
+              {needsSetup ? "Source questions" : "Your turn"}{" "}
               {snapshot.proposals.some((p) => p.status === "pending")
                 ? "●"
                 : ""}
@@ -324,7 +414,9 @@ export function RootsApp({
               </button>
             </div>
           )}
-          <main className={`research-workspace show-${panel}`}>
+          <main
+            className={`research-workspace show-${panel} ${needsSetup ? "setup-workspace" : ""}`}
+          >
             <ResearchProgress
               snapshot={snapshot}
               busy={running}
@@ -335,67 +427,120 @@ export function RootsApp({
               }}
             />
             <div className="center-workspace">
-              <FamilyCanvas
-                snapshot={snapshot}
-                api={api}
-                selectedId={selection?.kind === "person" ? selection.id : null}
-                highlightId={highlight}
-                savedConnection={savedConnection}
-                onSelect={(id) => {
-                  setSelection({ kind: "person", id });
-                  setEditor(null);
-                }}
-                onRelationship={(id) => {
-                  setSelection({ kind: "relationship", id });
-                  setEditor(null);
-                }}
-                onAdd={() => {
-                  setEditor({ operation: "addPerson" });
-                  setSelection(null);
-                }}
-              />
-              {snapshot.bookPassages.length > 0 && (
-                <details className="book-passage">
-                  <summary>
-                    Current family-book passage · {snapshot.bookStatus}
-                  </summary>
-                  {snapshot.bookPassages.map((p) => (
-                    <article key={p.id}>
-                      <p>{p.text}</p>
-                      {p.sourceLocators.map((span, i) => (
-                        <button
-                          className="text-button"
-                          key={i}
-                          onClick={() =>
-                            setSelection({ kind: "source", id: span.sourceId })
-                          }
-                        >
-                          {span.locator}
-                        </button>
-                      ))}
-                    </article>
-                  ))}
-                </details>
+              {needsSetup ? (
+                <>
+                  {snapshot.run!.questions.length ? (
+                    <SetupQuestions
+                      snapshot={snapshot}
+                      api={api}
+                      busy={busy || download}
+                      onSource={(id) => setSelection({ kind: "source", id })}
+                      onAnswer={(answer) =>
+                        perform(() => {
+                          if (!api.answerSetupQuestion)
+                            throw new Error(
+                              "The question-saving API is not connected yet. Your answer has not been saved.",
+                            );
+                          return api.answerSetupQuestion(
+                            snapshot.projectId,
+                            answer,
+                          );
+                        })
+                      }
+                    />
+                  ) : (
+                    <PreparationState
+                      summary={
+                        snapshot.run!.error ||
+                        "Reading your files and checking the source references."
+                      }
+                      active={snapshot.run!.phase !== "failed"}
+                    />
+                  )}
+                  {reviewSetup && (
+                    <button onClick={() => setReviewSetup(false)}>
+                      Return to family map
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {arrivals && (
+                    <SavedArrivals
+                      delta={arrivals}
+                      snapshot={snapshot}
+                      api={api}
+                      onSelect={(id) => setSelection({ kind: "person", id })}
+                    />
+                  )}
+                  <FamilyCanvas
+                    snapshot={snapshot}
+                    api={api}
+                    selectedId={
+                      selection?.kind === "person" ? selection.id : null
+                    }
+                    highlightId={highlight}
+                    changedPersonIds={arrivals?.personIds}
+                    changedRelationshipIds={arrivals?.relationshipIds}
+                    savedConnection={savedConnection}
+                    onSelect={(id) => {
+                      setSelection({ kind: "person", id });
+                      setEditor(null);
+                    }}
+                    onRelationship={(id) => {
+                      setSelection({ kind: "relationship", id });
+                      setEditor(null);
+                    }}
+                    onAdd={() => {
+                      setEditor({ operation: "addPerson" });
+                      setSelection(null);
+                    }}
+                  />
+                  <BookPreview
+                    snapshot={snapshot}
+                    busy={busy || download}
+                    delivery={delivery}
+                    onPrepare={
+                      api.prepareFamilyBook
+                        ? () =>
+                            void perform(() =>
+                              api.prepareFamilyBook!(snapshot.projectId),
+                            )
+                        : undefined
+                    }
+                    onDownload={() => void downloadBook()}
+                    onSource={(id) => setSelection({ kind: "source", id })}
+                  />
+                  {snapshot.run && (
+                    <button
+                      className="text-button review-setup"
+                      onClick={() => setReviewSetup(true)}
+                      disabled={sealed}
+                    >
+                      Review setup answers
+                    </button>
+                  )}
+                  <div className="canvas-footer">
+                    <button
+                      disabled={busy || sealed || !snapshot.history.length}
+                      onClick={() =>
+                        void perform(() =>
+                          api.mutateGraph(snapshot.projectId, {
+                            operation: "undo",
+                            baseVersion: snapshot.version,
+                            requestId: crypto.randomUUID(),
+                          }),
+                        )
+                      }
+                    >
+                      ↶ Undo last change
+                    </button>
+                    <span>
+                      PDF, editable project, evidence & originals in one ZIP
+                    </span>
+                  </div>
+                </>
               )}
-              <div className="canvas-footer">
-                <button
-                  disabled={busy || !snapshot.history.length}
-                  onClick={() =>
-                    void perform(() =>
-                      api.mutateGraph(snapshot.projectId, {
-                        operation: "undo",
-                        baseVersion: snapshot.version,
-                        requestId: crypto.randomUUID(),
-                      }),
-                    )
-                  }
-                >
-                  ↶ Undo last change
-                </button>
-                <span>
-                  PDF, editable project, evidence & originals in one ZIP
-                </span>
-              </div>
               {selection && (
                 <EvidenceDrawer
                   key={`${selection.kind}-${selection.id}`}
@@ -408,6 +553,12 @@ export function RootsApp({
                     setPanel("human");
                   }}
                   onEdit={(operation, entityId) => {
+                    if (sealed) {
+                      setError(
+                        "This book is sealed. Open its saved project to start a new editable copy.",
+                      );
+                      return;
+                    }
                     setEditor({ operation, entityId });
                     setSelection(null);
                   }}
@@ -436,68 +587,73 @@ export function RootsApp({
                 />
               )}
             </div>
-            <HumanContributionPanel
-              snapshot={snapshot}
-              selectedId={selection?.kind === "person" ? selection.id : null}
-              busy={busy}
-              focusedProposalId={focusedProposalId}
-              onFocusProposal={setFocusedProposalId}
-              onContribute={(input) =>
-                perform(
-                  () =>
-                    api.addContribution(snapshot.projectId, {
-                      ...input,
-                      requestId: crypto.randomUUID(),
-                    }),
-                  undefined,
-                  true,
-                )
-              }
-              onReview={(input) => {
-                const proposal = snapshot.proposals.find(
-                  (p) => p.id === input.proposalId,
-                );
-                return perform(
-                  async () => {
-                    const saved = await api.reviewProposal(snapshot.projectId, {
-                      ...input,
-                      requestId: crypto.randomUUID(),
-                    });
-                    const reviewed = saved.proposals.find(
-                      (p) => p.id === input.proposalId,
-                    );
-                    const person = saved.people.find(
-                      (p) => p.id === reviewed?.personId,
-                    );
-                    const source = saved.sources.find((s) =>
-                      reviewed?.sourceIds.includes(s.id),
-                    );
-                    if (
-                      mounted.current &&
-                      ["accept", "correct"].includes(input.action) &&
-                      reviewed &&
-                      ["accepted", "corrected"].includes(reviewed.status) &&
-                      person &&
-                      source
-                    ) {
-                      setSelection(null);
-                      setSavedConnection({
-                        key: `${saved.version}-${reviewed.id}`,
-                        personId: person.id,
-                        personName: person.displayNameEn,
-                        sourceLabel: source.title || source.originalLocator,
-                      });
-                    }
-                    return saved;
-                  },
-                  ["accept", "correct"].includes(input.action)
-                    ? input.corrections?.personId ||
-                        proposal?.personId ||
-                        undefined
-                    : undefined,
-                );
-              }}
-            />
+            {!needsSetup && (
+              <HumanContributionPanel
+                snapshot={snapshot}
+                selectedId={selection?.kind === "person" ? selection.id : null}
+                busy={busy || sealed || download}
+                focusedProposalId={focusedProposalId}
+                onFocusProposal={setFocusedProposalId}
+                onContribute={(input) =>
+                  perform(
+                    () =>
+                      api.addContribution(snapshot.projectId, {
+                        ...input,
+                        requestId: crypto.randomUUID(),
+                      }),
+                    undefined,
+                    true,
+                  )
+                }
+                onReview={(input) => {
+                  const proposal = snapshot.proposals.find(
+                    (p) => p.id === input.proposalId,
+                  );
+                  return perform(
+                    async () => {
+                      const saved = await api.reviewProposal(
+                        snapshot.projectId,
+                        {
+                          ...input,
+                          requestId: crypto.randomUUID(),
+                        },
+                      );
+                      const reviewed = saved.proposals.find(
+                        (p) => p.id === input.proposalId,
+                      );
+                      const person = saved.people.find(
+                        (p) => p.id === reviewed?.personId,
+                      );
+                      const source = saved.sources.find((s) =>
+                        reviewed?.sourceIds.includes(s.id),
+                      );
+                      if (
+                        mounted.current &&
+                        ["accept", "correct"].includes(input.action) &&
+                        reviewed &&
+                        ["accepted", "corrected"].includes(reviewed.status) &&
+                        person &&
+                        source
+                      ) {
+                        setSelection(null);
+                        setSavedConnection({
+                          key: `${saved.version}-${reviewed.id}`,
+                          personId: person.id,
+                          personName: person.displayNameEn,
+                          sourceLabel: source.title || source.originalLocator,
+                        });
+                      }
+                      return saved;
+                    },
+                    ["accept", "correct"].includes(input.action)
+                      ? input.corrections?.personId ||
+                          proposal?.personId ||
+                          undefined
+                      : undefined,
+                  );
+                }}
+              />
+            )}
           </main>
         </>
       )}

@@ -91,8 +91,12 @@ export function EvidenceDrawer({
       {person && (
         <>
           <p className="muted">
-            {person.originalName}
-            <br />
+            {!snapshot.run && (
+              <>
+                {person.originalName}
+                <br />
+              </>
+            )}
             {years(person)}
           </p>
           <OriginalPhotos ids={person.photoIds} snapshot={snapshot} api={api} />

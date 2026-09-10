@@ -174,16 +174,14 @@ test("partners occupy adjacent cards on one generation without changing genealog
 
 test("explicit branch selection stays on that person and ignores rejected parents", () => {
   const s = snapshot();
-  s.relationships = s.people
-    .slice(0, -1)
-    .map((p, i) => ({
-      id: `branch-${i}`,
-      fromPersonId: p.id,
-      toPersonId: s.people[i + 1].id,
-      type: "parent",
-      claimIds: [],
-      status: "accepted",
-    }));
+  s.relationships = s.people.slice(0, -1).map((p, i) => ({
+    id: `branch-${i}`,
+    fromPersonId: p.id,
+    toPersonId: s.people[i + 1].id,
+    type: "parent",
+    claimIds: [],
+    status: "accepted",
+  }));
   const before = structuredClone(s.relationships);
   assert.equal(branchIds(s, s.people[0].id).size, 5);
   assert.equal(branchIds(s, s.people[4].id).size, 5);
@@ -193,4 +191,73 @@ test("explicit branch selection stays on that person and ignores rejected parent
     [s.people[3].id, s.people[4].id],
   );
   assert.deepEqual(s.relationships.slice(0, 2), before.slice(0, 2));
+});
+
+test("saved arrivals follow versioned entity changes, not polling or event-only updates", async () => {
+  const { savedDelta } = await import("../../src/ui/SavedArrivals");
+  const before = snapshot(),
+    after = snapshot();
+  assert.equal(savedDelta(before, after), null);
+  after.version++;
+  after.researchEvents.push(event({ eventId: "work-only" }));
+  assert.equal(savedDelta(before, after), null);
+  after.people[0].displayNameEn = "Corrected name";
+  after.people[0].photoIds = ["new-original"];
+  const result = savedDelta(before, after)!;
+  assert.deepEqual(result.personIds, [after.people[0].id]);
+  assert.deepEqual(result.photoIds, ["new-original"]);
+  assert.equal(savedDelta(after, before), null);
+  after.projectId = "another-project";
+  assert.equal(savedDelta(before, after), null);
+});
+
+test("progressive family layout preserves every existing node and separates arrivals", async () => {
+  const { stableFamilyLayout } = await import("../../src/ui/model");
+  const s = snapshot();
+  const first = stableFamilyLayout(s.people.slice(0, 2), []);
+  const edges: typeof s.relationships = s.people
+    .slice(0, -1)
+    .map((p, i) => ({
+      id: `saved-${i}`,
+      fromPersonId: p.id,
+      toPersonId: s.people[i + 1].id,
+      type: "parent",
+      claimIds: [],
+      status: "accepted",
+    }));
+  const next = stableFamilyLayout(s.people, edges, first.positions);
+  for (const p of s.people.slice(0, 2))
+    assert.deepEqual(next.positions[p.id], first.positions[p.id]);
+  assert.equal(
+    new Set(Object.values(next.positions).map((p) => `${p.x}:${p.y}`)).size,
+    s.people.length,
+  );
+  assert.deepEqual(s.people, snapshot().people);
+});
+
+test("client upload policy matches shared byte limits, accepts valid >30MB and names the bad file", async () => {
+  const { uploadIssue, UPLOAD_LIMITS } = await import("../../src/ui/upload");
+  const files = [
+    { name: "one.pdf", size: 20_000_000 },
+    { name: "two.zip", size: 20_000_000 },
+  ];
+  assert.equal(uploadIssue(files), null);
+  assert.equal(
+    uploadIssue([{ name: "at-limit.pdf", size: UPLOAD_LIMITS.maxFileBytes }]),
+    null,
+  );
+  assert.match(
+    uploadIssue([
+      { name: "too-large.pdf", size: UPLOAD_LIMITS.maxFileBytes + 1 },
+    ])!,
+    /too-large.pdf/,
+  );
+  assert.match(
+    uploadIssue(
+      Array.from({ length: 41 }, (_, i) => ({ name: `${i}.txt`, size: 1 })),
+    )!,
+    /40/,
+  );
+  assert.match(uploadIssue([{ name: "empty.txt", size: 0 }])!, /empty.txt/);
+  assert.equal(files.length, 2);
 });

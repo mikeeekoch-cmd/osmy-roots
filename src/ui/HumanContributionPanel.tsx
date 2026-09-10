@@ -1,3 +1,4 @@
+import { uploadIssue } from "./upload";
 import { useState } from "react";
 import type { ProjectSnapshot, ReviewDecision, RootsApi } from "./types";
 import { FilePicker } from "./FilePicker";
@@ -284,7 +285,9 @@ export function HumanContributionPanel({
         <FilePicker compact files={files} onChange={setFiles} disabled={busy} />
         <button
           className="contribute-button"
-          disabled={busy || (!text.trim() && !files.length)}
+          disabled={
+            busy || !!uploadIssue(files) || (!text.trim() && !files.length)
+          }
           onClick={contribute}
         >
           {busy ? (

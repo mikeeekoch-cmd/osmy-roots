@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import type { ProjectInput } from "./types";
 import { FilePicker } from "./FilePicker";
+import { uploadIssue } from "./upload";
 import { PreparationState } from "./PreparationState";
 export function validateInput(
   input: ProjectInput,
@@ -36,7 +37,7 @@ export function InputScreen({
   const [opening, setOpening] = useState(false);
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const issue = validateInput(input, files.length);
+    const issue = validateInput(input, files.length) || uploadIssue(files);
     setValidation(issue);
     if (!issue) {
       setOpening(false);
@@ -44,6 +45,11 @@ export function InputScreen({
     }
   };
   const reopen = () => {
+    const issue = uploadIssue(savedFiles);
+    if (issue) {
+      setValidation(issue);
+      return;
+    }
     if (!savedFiles.some((file) => /\.json$/i.test(file.name))) {
       setValidation(
         "Select the project.json from your downloaded book, with its original files.",
