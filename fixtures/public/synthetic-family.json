@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "project": "SYNTHETIC TEST FIXTURE - not a real family",
+    "notice": "Every person, date, place and source in this file is invented for automated testing. It must never be presented as a research result, and it cannot demonstrate compatibility with any real export format.",
+    "last_updated": "2026-09-10",
+    "root_person_id": "P001",
+    "total_persons": 9
+  },
+  "persons": [
+    { "id": "P001", "full_name": "Morgan Dana", "surname": "Morgan", "gender": "Ж", "birth_date": "1994-04-02", "birth_date_confidence": "точно", "birth_place": "Riverton", "death_date": null, "death_date_confidence": "жив(а)", "confidence_level": "высокий", "source_refs": ["SYN01"], "notes": "Fixture root person." },
+    { "id": "P002", "full_name": "Morgan Jesse", "surname": "Morgan", "gender": "М", "birth_date": "1966-11-18", "birth_date_confidence": "точно", "birth_place": "Riverton", "death_date": null, "death_date_confidence": "жив(а)", "confidence_level": "высокий", "source_refs": ["SYN01"] },
+    { "id": "P003", "full_name": "Hale Robin", "surname": "Hale", "gender": "Ж", "birth_date": "1968", "birth_date_confidence": "год известен", "birth_place": "Ashford", "death_date": null, "death_date_confidence": "жив(а)", "confidence_level": "высокий", "source_refs": ["SYN01"], "maiden_name": "Hale" },
+    { "id": "P004", "full_name": "Morgan Alex", "surname": "Morgan", "gender": "М", "birth_date": "1938", "birth_date_confidence": "приблизительно", "birth_place": "Riverton", "death_date": "2011", "death_date_confidence": "год известен", "death_place": "Riverton", "occupations": ["watch repairer"], "confidence_level": "высокий", "source_refs": ["SYN01", "SYN02"], "notable_stories": ["Kept a watch repair bench in the back room."], "notes": "Fixture subject for the shared acceptance example." },
+    { "id": "P005", "full_name": "Morgan Ruth", "surname": "Morgan", "gender": "Ж", "birth_date": "1940", "birth_date_confidence": "приблизительно", "death_date": null, "death_date_confidence": "неизвестно", "confidence_level": "средний", "source_refs": ["SYN01"] },
+    { "id": "P006", "full_name": "Morgan Walter", "surname": "Morgan", "gender": "М", "birth_date": "1910", "birth_date_confidence": "приблизительно", "death_date": "1979", "death_date_confidence": "год известен", "confidence_level": "средний", "source_refs": ["SYN02"] },
+    { "id": "P007", "full_name": "Beck Iris", "surname": "Beck", "gender": "Ж", "birth_date": "1912", "birth_date_confidence": "приблизительно", "death_date": null, "death_date_confidence": "неизвестно", "confidence_level": "средний", "source_refs": ["SYN02"], "name_variants": ["Iris Becke"] },
+    { "id": "P008", "full_name": "Morgan Samuel", "surname": "Morgan", "gender": "М", "birth_date": "1884", "birth_date_confidence": "приблизительно", "death_date": "1951", "death_date_confidence": "год известен", "confidence_level": "низкий", "source_refs": ["SYN02"], "notes": "Earliest fixture generation." },
+    { "id": "P009", "full_name": "Morgan Alexander", "surname": "Morgan", "gender": "М", "birth_date": "1936", "birth_date_confidence": "приблизительно", "birth_place": "Ashford", "death_date": null, "death_date_confidence": "неизвестно", "confidence_level": "низкий", "source_refs": ["SYN02"], "notes": "Same-name distractor: similar name and period, different town. Must not be merged with P004 on name alone." }
+  ],
+  "relationships": [
+    { "person_1_id": "P002", "person_2_id": "P001", "type": "parent_child", "subtype": "отец-дочь", "confidence": "подтверждено", "source_refs": ["SYN01"] },
+    { "person_1_id": "P003", "person_2_id": "P001", "type": "parent_child", "subtype": "мать-дочь", "confidence": "подтверждено", "source_refs": ["SYN01"] },
+    { "person_1_id": "P002", "person_2_id": "P003", "type": "spouse", "subtype": "муж-жена", "confidence": "подтверждено", "source_refs": ["SYN01"] },
+    { "person_1_id": "P004", "person_2_id": "P002", "type": "parent_child", "subtype": "отец-сын", "confidence": "подтверждено", "source_refs": ["SYN01"] },
+    { "person_1_id": "P005", "person_2_id": "P002", "type": "parent_child", "subtype": "мать-сын", "confidence": "подтверждено", "source_refs": ["SYN01"] },
+    { "person_1_id": "P004", "person_2_id": "P005", "type": "spouse", "subtype": "муж-жена", "confidence": "подтверждено", "source_refs": ["SYN01"] },
+    { "person_1_id": "P006", "person_2_id": "P004", "type": "parent_child", "subtype": "отец-сын", "confidence": "вероятно", "source_refs": ["SYN02"] },
+    { "person_1_id": "P007", "person_2_id": "P004", "type": "parent_child", "subtype": "мать-сын", "confidence": "вероятно", "source_refs": ["SYN02"] },
+    { "person_1_id": "P008", "person_2_id": "P006", "type": "parent_child", "subtype": "отец-сын", "confidence": "вероятно", "source_refs": ["SYN02"] },
+    { "person_1_id": "P099", "person_2_id": "P004", "type": "parent_child", "subtype": "отец-сын", "confidence": "вероятно", "source_refs": ["SYN02"] }
+  ]
+}
