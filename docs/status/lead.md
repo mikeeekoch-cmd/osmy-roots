@@ -1,5 +1,17 @@
 # Codex Mike status
 
+## Final round 2 handoff, 2026-09-10
+
+- Integrated-demo-ready locally: application a627436, production http://127.0.0.1:3200. Two fresh Chrome rehearsals passed with actual file receipt at 104.174 and 104.747 seconds; the second refreshed/resumed. Both current PDFs passed full visual review. Safe details: docs/READINESS.md and docs/round-2/ACCEPTANCE.json.
+- Original round-2 T0 18:18:15 UTC and deadline 19:48:15 UTC retained. Contracts published T+4:28. Actual API route integrated/exported T+54:31; corrected browser acceptance followed. Application code froze at 19:18:20, before T+70. Later changes are status/documentation only.
+- Exact final input: 20 ordinary files, 35 people, 56 sourced relationships, 14 unchanged original photographs, three reconstructed English chat archives. No visible CSV/technical IDs, enhanced photos or hidden graph injection. Product's latest Desktop upload copy matches the frozen files. Earlier packet versions and original source narrative are preserved.
+- Lead contracts/Astra/state/route changes, Natalia's final UI history and Claude's parser/export history are integrated. Codex helpers added regression checks, fictional fixtures and source/visual QA. The Product task remained sole owner of actual private facts, files and presenter cues. The shared manifest is schema-normalized and hash checked; its contents and outputs stay private.
+- 171 tests, typecheck and production webpack build pass. Both actual downloads preserve all 23 asset hashes, full English evidence and review state; each reopens in an empty store, permits edits and invalidates its previous book on change. Source-matched narrator, exact quote, uncertainty and current Astra passage pass in both outputs.
+- Prepared family records, source derivatives, reconstructed dialogue and release cadence remain distinct from live Astra interpretation and book generation. No live website discovery, hosting, arbitrary archive importer, OCR/restoration or standalone editable HTML map is claimed. Final packet uses original photos; optional older photo pairs remain supported.
+- Private output and presenter instructions are delivered locally. Default-branch publication remains restricted to a separately approved exact commit; routine engineering-branch publication is authorized. One optional internal Product status message was rejected by automatic approval review and was not sent. It did not block the code or local output delivery.
+
+## Historical round-1 and intermediate execution records
+
 - Shared T0: 2026-09-10 16:27:53 UTC / 12:27:53 EDT.
 - Contracts due T+10: 16:37:53 UTC / 12:37:53 EDT.
 - Integrated P0 due T+55: 17:22:53 UTC / 13:22:53 EDT.

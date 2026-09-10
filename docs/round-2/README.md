@@ -1,6 +1,6 @@
 # Round 2: four coordinated assignments
 
-Status: prompts and contracts for execution. The revised journey and private packet are not created merely by publishing this handoff.
+Execution status, 2026-09-10: completed and measured on application commit a627436. Both actual browser rehearsals delivered the current ZIP in 104.174 and 104.747 seconds; both PDFs passed visual inspection. See [../READINESS.md](../READINESS.md) and [ACCEPTANCE.json](ACCEPTANCE.json). The assignment text below is retained as the execution brief. The user's subsequent packet revision uses natural family notes and 14 original photographs, without CSV uploads or enhanced variants.
 
 Latest addition: [PHOTO-COMPARE-ADDENDUM.md](PHOTO-COMPARE-ADDENDUM.md) requires invisible runtime timing and Original/Enhanced comparison inside person cards. Send [prompt 08](../prompts/08_CODEX_NATALIA_PHOTO_COMPARE.md) to the existing Natalia task as a follow-up. Product prepares the pairs; Mike owns shared metadata; Claude preserves both versions in ingestion/export. Continue all four current assignments and their shared deadline.
 

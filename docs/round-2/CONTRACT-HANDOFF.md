@@ -23,3 +23,7 @@ Photo identities and order must match parsed uploaded captions, with valid exact
 The held-out Astra call receives the actual English evidence excerpt and parsed roster, without a prepared person hint, expected recommendation, arbitrary archive metadata or presenter text. Its response uses the exact provided source span, and its interpretation, question, person selection and uncertainty are generated live. Uncertainty remains in the explicit reviewed answer and accepted story/book input.
 
 The runtime fingerprint is SHA-256 of `JSON.stringify(DemoManifestSchema.parse(rawManifest))`; record the manifest file hash separately. Defaults such as empty photo pairs must be normalized before comparing a runtime fingerprint.
+
+Recollection attribution resolves a single per-message speaker only when every selected quote exactly matches message metadata and the uploaded source's speaker/text pair. Missing or conflicting support stays `Family contributor`. Archive-level reconstruction descriptions are retained as provenance and never used as the narrator. The same source-backed speaker is used for the live interpretation and accepted story.
+
+Final application revision: `a627436`. Final content and engineering acceptance: [ACCEPTANCE.json](ACCEPTANCE.json). Application code froze at 19:18:20 UTC; the two final browser runs and both PDF inspections passed without subsequent application changes.
