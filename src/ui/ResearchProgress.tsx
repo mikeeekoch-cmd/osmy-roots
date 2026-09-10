@@ -1,5 +1,17 @@
-import type { ProjectSnapshot } from "./types";
+import type { ProjectSnapshot, ResearchEvent } from "./types";
 import { label, progressCounts, uniqueEvents } from "./model";
+const operationText: Record<ResearchEvent["operation"], string> = {
+  parse_file: "Read a source file",
+  normalize_entity: "Import family records",
+  retrieve_website: "Retrieve a public source",
+  search_local: "Search saved sources",
+  analyze_record: "Analyze source evidence",
+  compare_candidates: "Compare possible people",
+  request_human: "Ask for your knowledge",
+  apply_review: "Save your contribution",
+  generate_book: "Write the family book",
+  export_project: "Package your family book",
+};
 export function ResearchProgress({
   snapshot,
   busy,
@@ -23,7 +35,7 @@ export function ResearchProgress({
       <p className="current-action" aria-live="polite">
         {latest?.finding ||
           (latest
-            ? label(latest.operation)
+            ? operationText[latest.operation]
             : "Ready for your family material.")}
       </p>
       <div className="metrics">
@@ -74,7 +86,7 @@ export function ResearchProgress({
           .map((e) => (
             <li key={e.eventId} className={e.state}>
               <div className="activity-label">
-                <strong>{label(e.operation)}</strong>
+                <strong>{operationText[e.operation]}</strong>
                 <span className={`origin ${e.origin}`}>{e.origin}</span>
               </div>
               <small>{label(e.state)}</small>

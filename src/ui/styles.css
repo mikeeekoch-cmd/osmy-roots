@@ -1453,3 +1453,16 @@
     display: none;
   }
 }
+
+.version-notice {
+  font-size: 11px;
+  background: #fbefd7;
+  border: 1px solid #dfcba0;
+  border-radius: 6px;
+  padding: 10px;
+}
+.version-notice button {
+  display: block;
+  margin-top: 8px;
+  font-size: 10px;
+}

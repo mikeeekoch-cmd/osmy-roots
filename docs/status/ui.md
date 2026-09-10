@@ -12,7 +12,7 @@
 - Tool attribution: UI implementation and validation by Codex (GPT-6 Astra). No prior app/mockup code or family photos reused. App model execution belongs to lead; UI does not invoke OpenAI directly.
 - Lead integration: import RootsApp and pass your client adapter from a client component. CSS is included by src/ui/index.tsx. Additional packages are not required.
 
-## 16:43 UTC validation checkpoint
+## UI validation checkpoint (e3b5967)
 
 - First pushed UI commit: 1c356f2. Added a labeled development harness in tests/ui; it refuses fake PDF/ZIP export and is never imported by production.
 - Browser intake checks passed: missing name, missing geography, explicit unknown, missing material, valid context → workspace. Desktop 1440×960 screenshot visually inspected.
@@ -30,7 +30,7 @@
 - Graph editor status/claim controls temporarily removed because backend 2e6dd71 ignores them. I saw the lead is fixing status preservation; will restore status controls on consuming that change. Graph edits remain real recorded human contributions.
 - P0 still incomplete: data modules and successful live-model/book route required. P1 remains closed.
 
-## 16:58 UTC connected browser checks
+## 16:56 UTC connected browser checks (cab71b8)
 
 - Integrated lead 95c4399 without rewriting backend/contracts. Restored relationship review-state and supporting-claim controls after the lead's status-preservation fix.
 - Actual Next mount (not only harness): browser file selection/removal; schema-valid JSON import; five-generation fit; person/edge evidence; accept; correction of an accepted interpretation; name edit; saved refresh; relationship edit/undo; self-parent validation; backend ancestry-cycle rejection. Original quote remained exact after correction, and no duplicate story appeared.
@@ -42,3 +42,12 @@
 - Added correction/revisit controls for previously reviewed/unknown interpretations, source counts, accessible relationship click targets, side-by-side partners, and New project to allow JSON reopening without deleting a saved project.
 - Checks: pnpm typecheck PASS; 6 UI tests PASS; combined state/service/UI suite 22 tests (the prior combined run was 21 before the added partner-layout case). No test substitutes for a live-model pass.
 - P1 remains CLOSED. Next: test successful actual ZIP response after upstream export handoff, then request lead connected-P0 confirmation. Local OPENAI_API_KEY is absent; credentials requested via local configuration only, never chat.
+
+## 17:02 UTC integration checkpoint
+
+- Consumed lead 7ffe079 (includes the real Astra validation and Claude's export module). The lead's adapter still explicitly reports EXPORT_NOT_INTEGRATED; successful UI ZIP download remains the final connected gate. P1 remains CLOSED pending lead confirmation.
+- Added and browser-verified stale graph edit recovery: opened a person draft, added a concurrent clue, observed saved version advance, confirmed the old-version save was rejected, then used the explicit latest-version control and saved the intact draft. Person count became six only after the actual API save. Corrections get the same draft-preserving recovery control.
+- Actual mounted browser: search Jamie -> correct person evidence; zoom -> fit -> focused five-generation branch; pan; Add person -> saved response and person evidence. Earlier unknown/accept/correction/persistence/photo/edge/undo/cycle and public-fetch checks remain recorded above.
+- Improved activity names and book failure/generation states. Human profile entries expose the original saved data on demand instead of showing raw JSON twice in the main card.
+- Typecheck and 22 state/orchestration/UI tests pass. No backend, shared schema, route, dependency or lock changes.
+- Lead action: merge codex/ui after cab71b8; wire buildFamilyBundle in your boundary; validate Download -> ZIP/PDF -> reopen with the funded API project. This laptop still has no configured model key and does not claim its missing-key route passed live inference.

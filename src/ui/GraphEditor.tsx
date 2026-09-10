@@ -37,7 +37,7 @@ export function GraphEditor({
     [type, setType] = useState(relation?.type || "parent"),
     [status, setStatus] = useState(relation?.status || "unresolved"),
     [claimIds, setClaimIds] = useState<string[]>(relation?.claimIds || []),
-    [editVersion] = useState(snapshot.version),
+    [editVersion, setEditVersion] = useState(snapshot.version),
     [error, setError] = useState("");
   const isPerson = kind === "addPerson" || kind === "editPerson";
   const submit = (e: FormEvent) => {
@@ -218,6 +218,18 @@ export function GraphEditor({
               history.
             </p>
           </>
+        )}
+        {snapshot.version !== editVersion && (
+          <p className="version-notice">
+            The saved project changed while this editor was open. Review the
+            current evidence before saving.
+            <button
+              type="button"
+              onClick={() => setEditVersion(snapshot.version)}
+            >
+              Use latest version, keep my draft
+            </button>
+          </p>
         )}
         {error && (
           <p role="alert" className="error">

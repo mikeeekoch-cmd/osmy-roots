@@ -191,15 +191,10 @@ export function RootsApp({
   return (
     <div className="roots-app">
       <header className="roots-header">
-        <a
-          href="#"
-          className="brand"
-          onClick={(e) => e.preventDefault()}
-          aria-label="Roots home"
-        >
+        <div className="brand" aria-label="Roots">
           <span aria-hidden="true">♧</span> roots
           <span className="brand-period">.</span>
-        </a>
+        </div>
         <div className="project-label">
           {snapshot ? (
             <>
@@ -246,9 +241,13 @@ export function RootsApp({
                 ? "Book needs updating"
                 : snapshot.bookStatus === "current"
                   ? "Book is up to date"
-                  : downloaded
-                    ? "Download saved"
-                    : "Your story, taking shape"}
+                  : snapshot.bookStatus === "failed"
+                    ? "Book generation needs attention"
+                    : snapshot.bookStatus === "generating"
+                      ? "Preparing your book…"
+                      : downloaded
+                        ? "Download saved"
+                        : "Your story, taking shape"}
             </span>
             <button
               className="primary download-button"

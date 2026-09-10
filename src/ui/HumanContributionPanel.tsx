@@ -34,6 +34,20 @@ export function HumanContributionPanel({
   const pending =
     snapshot.proposals.find((p) => p.id === focusedProposalId) ||
     snapshot.proposals.find((p) => p.status === "pending");
+  const savedStory = pending
+    ? snapshot.stories.find(
+        (st) =>
+          st.status === "accepted" &&
+          st.personId === pending.personId &&
+          st.spans.some((span) =>
+            pending.spans.some(
+              (original) =>
+                original.sourceId === span.sourceId &&
+                original.quote === span.quote,
+            ),
+          ),
+      )
+    : undefined;
   const finalized =
     !!pending && ["accepted", "corrected", "rejected"].includes(pending.status);
   const unknown = snapshot.proposals.filter((p) => p.status === "unknown");
@@ -136,6 +150,17 @@ export function HumanContributionPanel({
                   onChange={(e) => setCorrection(e.target.value)}
                 />
               </label>
+              {snapshot.version !== correctionVersion && (
+                <p className="version-notice">
+                  The saved project changed. Review the current evidence before
+                  saving.
+                  <button
+                    onClick={() => setCorrectionVersion(snapshot.version)}
+                  >
+                    Use latest version, keep my draft
+                  </button>
+                </p>
+              )}
               <button
                 disabled={busy || !correction.trim()}
                 className="primary"
@@ -159,7 +184,7 @@ export function HumanContributionPanel({
                 onClick={() => {
                   setCorrecting(true);
                   setCorrectionVersion(snapshot.version);
-                  setCorrection(pending.text);
+                  setCorrection(savedStory?.text || pending.text);
                   setPersonId(pending.personId || "");
                 }}
               >

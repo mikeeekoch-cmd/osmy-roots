@@ -121,14 +121,32 @@ export function EvidenceDrawer({
                 {label(c.evidenceType)} · {c.status}
               </span>
               <p>
-                <strong>{label(c.predicate)}:</strong> {c.value}
+                <strong>
+                  {c.predicate === "human_profile_edit"
+                    ? "Saved person details"
+                    : label(c.predicate)}
+                  :
+                </strong>{" "}
+                {c.predicate === "human_profile_edit"
+                  ? "Name and life dates recorded by a family contributor."
+                  : c.value}
               </p>
-              {c.spans.map((span, i) => (
-                <div key={i}>
-                  <blockquote>{span.quote}</blockquote>
-                  <small>{span.locator}</small>
-                </div>
-              ))}
+              {c.predicate === "human_profile_edit" ? (
+                <details>
+                  <summary>Original saved entry</summary>
+                  <blockquote>{c.value}</blockquote>
+                  {c.spans.map((span, i) => (
+                    <small key={i}>{span.locator}</small>
+                  ))}
+                </details>
+              ) : (
+                c.spans.map((span, i) => (
+                  <div key={i}>
+                    <blockquote>{span.quote}</blockquote>
+                    <small>{span.locator}</small>
+                  </div>
+                ))
+              )}
             </article>
           ))}
         </>
