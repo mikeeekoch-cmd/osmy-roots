@@ -1,3 +1,4 @@
+import { CycleProgress } from "./ResearchCycles";
 import type { ProjectSnapshot, ResearchEvent } from "./types";
 import { label, progressCounts, uniqueEvents } from "./model";
 const operationText: Record<ResearchEvent["operation"], string> = {
@@ -21,6 +22,7 @@ export function ResearchProgress({
   busy: boolean;
   onSource: (id: string) => void;
 }) {
+  if (snapshot.research) return <CycleProgress snapshot={snapshot} busy={busy} onSource={onSource} />;
   const events = uniqueEvents(snapshot.researchEvents),
     counts = progressCounts(snapshot),
     latest = events.at(-1);
@@ -138,7 +140,6 @@ export function ResearchProgress({
       <ol className="activity">
         {events
           .slice(-15)
-          .reverse()
           .map((e) => (
             <li key={e.eventId} className={e.state}>
               <div className="activity-label">

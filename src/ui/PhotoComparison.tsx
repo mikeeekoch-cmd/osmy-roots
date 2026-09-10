@@ -14,6 +14,7 @@ export function PhotoComparison(props: ComparisonProps) {
   return <Comparison key={`${props.originalUrl}|${props.enhancedUrl}|${props.pair?.id || props.aligned}`} {...props} />;
 }
 function Comparison({ pair, originalUrl, enhancedUrl, caption, aligned: suppliedAlignment }: ComparisonProps) {
+  const [attempt, setAttempt] = useState(0);
   const [position, setPosition] = useState(50);
   const [original, setOriginal] = useState<Dimensions | null>(null);
   const [enhanced, setEnhanced] = useState<Dimensions | null>(null);
@@ -25,9 +26,9 @@ function Comparison({ pair, originalUrl, enhancedUrl, caption, aligned: supplied
   const enhancedRatio = enhanced ? enhanced.width * enhancedCrop[2] / (enhanced.height * enhancedCrop[3]) : ratio;
   const aligned = (pair ? pair.alignment.mode === "aligned" : suppliedAlignment) && usableCrop(pair?.alignment.originalCrop) && usableCrop(pair?.alignment.enhancedCrop) && (!original || !enhanced || Math.abs(ratio - enhancedRatio) / ratio < 0.03);
   const load = (setter: (d: Dimensions) => void) => (e: React.SyntheticEvent<HTMLImageElement>) => setter({width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight});
-  const retry = () => { setOriginalFailed(false); setEnhancedFailed(false); setOriginal(null); setEnhanced(null); setPosition(50); };
+  const retry = () => { setOriginalFailed(false); setEnhancedFailed(false); setOriginal(null); setEnhanced(null); setPosition(50); setAttempt(n => n + 1); };
   if (originalFailed) return <div className="photo-comparison-error" role="status"><p>The original photograph is unavailable. This pair cannot be compared.</p><button onClick={retry}>Retry comparison</button></div>;
-  return <section className="photo-comparison" aria-label="Compare original and enhanced photograph">
+  return <section key={attempt} className="photo-comparison" aria-label="Compare original and enhanced photograph">
     {enhancedFailed ? <><img className="comparison-original-fallback" src={originalUrl} alt="Original photograph" onError={() => setOriginalFailed(true)} /><p role="status">Enhanced version unavailable. Showing the original.</p><button onClick={retry}>Retry comparison</button></> : aligned ? <>
       <div className="comparison-viewport" style={{aspectRatio: ratio, maxWidth: `min(100%, ${62 * ratio}vh)`}} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
         <div className="comparison-layer"><img src={enhancedUrl} alt="Enhanced photograph" style={cropStyle(enhancedCrop)} onLoad={load(setEnhanced)} onError={() => setEnhancedFailed(true)} /></div>
