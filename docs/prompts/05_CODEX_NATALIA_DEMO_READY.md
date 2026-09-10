@@ -1,5 +1,7 @@
 # Codex Natalia: intake, seven checks and a growing family
 
+Additive feedback: read docs/round-2/PHOTO-COMPARE-ADDENDUM.md and prompt 08_CODEX_NATALIA_PHOTO_COMPARE.md. You own the person-card Original/Enhanced divider. No visible timer, countdown, elapsed duration or time-derived percentage anywhere in the product. Continue this assignment and its existing clock.
+
 Execute this assignment now in https://github.com/mikeeekoch-cmd/osmy-roots on codex/ui in your own clone/worktree. Fetch and incorporate current origin/codex/engineering without discarding work, including baseline 556953f and the latest round-2 docs. Read AGENTS.md, docs/READINESS.md, docs/round-2/DEMO-READY-SCOPE.md, docs/round-2/NARRATIVE-DATA-CONTRACT.md and prompts 04-07. The shared 120-second contract supersedes the prior 180-second interaction.
 
 You own src/ui, UI tests, animations, docs/status/ui.md and assets/roots-mark.svg. Mike owns contracts/routes/state, metadata/favicon wiring and dependencies; Claude owns parsing/retrieval/export; Product owns actual private artifact facts, manifest and script. You are not alone in the codebase. Preserve everyone else's changes, request shared changes from Mike, never force-push and do not create a competing state/API implementation. Consume the lead's T0+90 engineering clock, T+10 contracts and T+55 integration checkpoint.

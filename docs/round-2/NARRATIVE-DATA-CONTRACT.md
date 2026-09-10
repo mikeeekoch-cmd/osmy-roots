@@ -4,6 +4,8 @@ Status: execution handoff, not an implemented feature. This contract and DEMO-RE
 
 ## One narrative, two clocks
 
+Both clocks are planning/measurement concepts. No countdown, elapsed clock, seconds remaining or timer-derived progress appears anywhere in the product. Timing stays in private logs and rehearsals; users see real activity and results. See PHOTO-COMPARE-ADDENDUM.md for this requirement and the optional person-card comparison segment.
+
 Use the active private 01_demo_script.md, revision 2, titled "Roots: a promise to my dad". Preserve the opening promise, distance from family, family fragments, human confirmation, tree/book reveal and dedication. The private reference handoff identifies the actual script, selected records, book, recollection and photo manifest. Do not use the archived revision or invent a new family narrative.
 
 Stage time and application time are separate. Mike may tell the opening before Submit and finish the dedication after the download. The application clock starts on the intake Submit/Start action and ends on Mike's Download family book click, at most 120 seconds in each normal rehearsal. Aim for a valid ready bundle by second 108 and a click by second 115. Also measure delivery of the real file; target receipt by second 120. Report both click and receipt timings, and any failure separately.
