@@ -1,5 +1,11 @@
 # Codex Mike status
 
+## Round 3 planning handoff, 2026-09-10
+
+The user's next revision is specified in docs/round-3 and prompts 09-11. Exactly three owners: Mike handles contracts/Astra/connections/state/integration, Natalia UI, and Claude private content/media/retrieval/full-book export. The new flow has six initial checks with at least three large photos, one initial research cycle and two explicit deeper cycles, a later question bank, actual metric growth, all selected-old-photo sliders and a current 35-40-page English book. The user replaced the total 120-second ceiling with about 20 seconds of visible actual work per research click before progressive results.
+
+Read-only code/content audits and a live intake inspection informed the plan. Current input is 20 files/35 people, current PDF is four pages, actual Gmail/Drive authorization and general research cycles do not exist yet, and the old-photo pair set needs preparation. These are next-round implementation requirements. No application code, private packet, provider state or live project changed. No new engineering clock or implementation run started. Safe prompts, ownership and acceptance are published for launch; the private source handoff remains ignored/local. Earlier readiness below applies only to round 2.
+
 ## Final round 2 handoff, 2026-09-10
 
 - Integrated-demo-ready locally: application a627436, production http://127.0.0.1:3200. Two fresh Chrome rehearsals passed with actual file receipt at 104.174 and 104.747 seconds; the second refreshed/resumed. Both current PDFs passed full visual review. Safe details: docs/READINESS.md and docs/round-2/ACCEPTANCE.json.

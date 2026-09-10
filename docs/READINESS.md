@@ -1,5 +1,7 @@
 # Readiness, September 10, 2026
 
+Scope update: Mike has requested the changes specified in [round-3/README.md](round-3/README.md). That revision is planned, not implemented or accepted. The measured readiness below applies to round 2 only; it does not establish live Gmail/Drive connections, repeated deeper research, all-old-photo comparisons or a 35-40-page book.
+
 Round 2 is demo-ready locally on application commit `a627436`, on `codex/engineering`. Two fresh browser journeys delivered current ZIPs within 120 seconds, and both actual PDFs passed visual review. The production app runs at http://127.0.0.1:3200. Earlier evidence is preserved in [archive/READINESS-round1.md](archive/READINESS-round1.md).
 
 | Acceptance check | Verified result |

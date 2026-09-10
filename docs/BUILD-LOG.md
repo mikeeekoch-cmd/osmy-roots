@@ -1,5 +1,13 @@
 # Build and preparation log
 
+## 2026-09-10, round 3 feedback and three-owner plan
+
+Prepared docs/round-3 and executable prompts 09-11 after reading the current UI, contracts, state, retrieval and export modules. Read-only owner audits confirmed the four-page renderer, existing-person-only Astra proposals, lack of real provider authorization/search cycles/question bank, small question images and missing aligned photo derivatives. The reported full-photo problem remains to be reproduced; layout/CSS issues are identified as implementation targets, not a confirmed complete diagnosis.
+
+Mike replaced the total 120-second timing requirement with about 20 seconds of visible actual work after each Start/Research deeper click, followed by progressive results and two explicit deeper rounds. The plan assigns contracts/Astra/state/connections/integration to Mike, UI to Natalia, and content/media/retrieval/full-book preparation to Claude. It requires six initial checks with at least three large photographs, real connection status, authoritative metrics, all selected-old-photo sliders and a current 35-40-page English edition based on verified family-book sources.
+
+Verified bounded source metadata: the current input still has 20 uploaded files and 35 people; an existing Russian reference book has 112 pages. No completed English long edition was established. Exact private paths and photo/book references are in an ignored handoff. No application code, input packet, live project, model request or provider connection changed in this planning turn. No new engineering clock started, and no old browser test was reused as acceptance of the new scope. The next execution needs new integration tests and two complete browser rehearsals.
+
 ## 2026-09-10, round 2 accepted local demo
 
 - Shared clock: T0 18:18:15 UTC, deadline 19:48:15 UTC. Contracts published at 18:22:43 (T+4:28); actual API integration/export at 19:12:46.071 (T+54:31); application code frozen at 19:18:20, before T+70. Corrected browser acceptance completed after the API checkpoint.
