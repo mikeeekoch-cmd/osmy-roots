@@ -1,6 +1,6 @@
 # Codex Natalia: UI and animations
 
-## Current round-3 handoff — 2026-09-10 20:38 UTC
+## Current round-3 handoff — 2026-09-10
 
 Implemented and pushed on `codex/ui`, incorporating engineering through `5f3136f` by merge. All existing owner history is retained; only owned UI/tests/status files were authored. No fourth owner or private family content was introduced.
 
