@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile, rename, rm } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { randomUUID } from "node:crypto";
 import type { ProjectSnapshot } from "../../packages/contracts";
+import {authoritativeMetrics} from "./research";
 import { AppError, validateSnapshot } from "./validation";
 const safeId = (id: string) => {
   if (!/^[a-zA-Z0-9_-]{1,160}$/.test(id))
@@ -94,11 +95,13 @@ export async function updateProject(
     if (changed === false) return s;
     s.version++;
     if (options.invalidateBook) {
+      if(s.research?.bookEdition) s.research.bookEdition.status="stale";
       s.bookStatus = s.bookPassages.length ? "stale" : "empty";
       if (s.run) { s.run.book = {status: "empty"}; if (s.run.phase === "ready") s.run.phase = "review"; }
     } else if (s.bookStatus === "current") {
       s.bookPassages.forEach((p) => (p.acceptedStateVersion = s.version));
     }
+    if(s.research) s.research.metrics=authoritativeMetrics(s);
     if (options.writeSeal) {
       const seal = join(projectDir(id), "sealed.json");
       await writeFile(seal, JSON.stringify(s, null, 2), {mode:0o600, flag:"wx"});

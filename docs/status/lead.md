@@ -1,3 +1,9 @@
+## Active implementation checkpoint
+
+Contracts 0eea05b pushed at approximately T+3 minutes. Core round-3 runtime and routes now implemented locally: explicit cycle state/actions, persisted Astra plans/jobs, intake analysis, later bank answers, atomic graph review, authoritative metrics, provider OAuth/read boundary, autofill drafts and immutable current-book wrapper. Typecheck passes. Tests and integrated candidate are next; no runtime acceptance claimed yet.
+
+User update: mock Google Drive/Gmail connections using prepared copies are now explicitly selected for this demo. mode=demo is published in ConnectionStatus. Real Astra work remains required; actual OAuth credentials/read acceptance is superseded for this presentation. Natalia should render Demo beside the connected state and use prepared-copy details. Claude retains single private packet ownership.
+
 # Round 3 execution checkpoint
 
 Started 2026-09-10T20:08:05Z on codex/engineering at a7d50ab. Origin fetched. Round-2 production on 3200 remains untouched; round-3 candidate will use 3300 and an isolated build directory. Actual versioned contracts and API examples published in packages/contracts/round3.ts and docs/round-3/API.md. Natalia and Claude retain their ownership; no replacement agents.

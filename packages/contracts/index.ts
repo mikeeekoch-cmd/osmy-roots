@@ -66,6 +66,11 @@ export const SourceAssetSchema = z.object({
   storageKey: z.string(),
   contentHash: z.string().optional(),
   caption: z.string().optional(),
+  role: z.enum(["original","derivative","extracted"]).optional(),
+  parentAssetId: Id.optional(),
+  parentHash: z.string().optional(),
+  evidenceRootId: Id.optional(),
+  indexedAt: z.string().optional(),
 });
 export type SourceAsset = z.infer<typeof SourceAssetSchema>;
 export const SourceSpanSchema = z.object({
