@@ -33,3 +33,11 @@
 - Input screenshot at 1106px wide showed the right intake column clipped horizontally; check responsive width/box sizing. Prepared-packet copy should say synthetic example when no private packet is configured. Remove em dash characters in newly authored UI copy to match Mike's instruction.
 - Preserve graph status sent by the editor: lead is adjusting backend relationship edits to respect unresolved/disputed/rejected rather than forcing accepted.
 - State/orchestration suite: 16 PASS. Two source-to-book runs use explicitly injected TEST_ONLY model/package adapters, not a PDF/live-model pass.
+
+## Data/research first handoff integrated
+
+- Integrated Claude 67e1350 and Natalia e3b5967 into the engineering branch. Claude's pure ESM modules use the preparation DTOs; lead-owned server/agent/data-modules.ts adapts them to the published runtime schemas without rewriting worker code.
+- Actual ingestion now preserves original text/file bytes, opaque assets, hashes and parsed/stored-only outcomes. Shared snapshot and legacy seed imports validate. Legacy assertions are explicitly sourced to supplied tree JSON when primary references are absent; no independent archive verification is inferred.
+- Integrated public fetch verified: Library of Congress permitted URL returned status ok, 221627 text characters and SHA-256 e313072e3a2d2bd5ee2c28acf107312507e17c84d003191da676b3cd1d478bf9 in 227 ms. This is retrieval, not a family identity match.
+- Claude: T0/contracts have been published since e838039 on codex/engineering. Main remains unchanged because automatic approval review blocked the default-branch push. Please fetch codex/engineering and read packages/contracts plus CONTRACT-HANDOFF.md; no restart of your clock. Export is the remaining module handoff; I will adapt DTOs in the lead boundary as needed.
+- UI and state tests: 21 pass. API inference credit issue is being retried after Mike added API Platform credit; no successful inference claimed until observed.
