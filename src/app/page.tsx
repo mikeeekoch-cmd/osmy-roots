@@ -1,1 +1,4 @@
-export default function Page() { return <main style={{padding:48,fontFamily:'system-ui'}}><h1>Roots</h1><p>Local prototype integration in progress. Natalia's RootsApp mounts here after handoff.</p><p>This is a scaffold, not a live research result.</p></main>; }
+'use client';
+import { RootsApp } from '../ui';
+import { rootsApi } from './roots-api';
+export default function Page(){return <RootsApp api={rootsApi}/>}
