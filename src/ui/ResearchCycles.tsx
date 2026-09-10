@@ -10,10 +10,11 @@ export function ResearchCycles({snapshot, busy, available, onAction}: {snapshot:
   const research = snapshot.research!;
   const active = research.cycles.find(c => ["queued", "running", "paused", "failed"].includes(c.status));
   const next = nextCycleAction(snapshot);
+  const activeError = active?.error || research.jobs.find(job => job.cycleId === active?.id && job.status === "failed")?.error;
   const request = (action: CycleAction["action"]) => onAction({action, cycleId: active?.id, baseVersion: snapshot.version, requestId: crypto.randomUUID()});
   return <section className="research-cycle-controls" aria-label="Research rounds">
     <div><span className="eyebrow">{active ? `Research round ${active.ordinal}` : research.cycles.length ? `Round ${research.cycles.at(-1)!.ordinal} ${label(research.cycles.at(-1)!.status)}` : "Your sources are ready"}</span>
-    <p>{active?.error || (active ? active.plan?.objectives[0] || (active.status === "paused" ? "Research is paused. Resume this round when ready." : "Preparing the next source checks and research plan.") : next === "initial" ? "Start with the records you selected and the answers you saved." : next === "deeper" ? "Follow the remaining clues in another research round." : "Review the saved findings, questions and current family book.")}</p></div>
+    <p>{activeError || (active ? active.status === "failed" ? "This round could not finish. Retry to continue from its saved state." : active.status === "paused" ? "Research is paused. Resume this round when ready." : active.plan?.objectives[0] || "Preparing the next source checks and research plan." : next === "initial" ? "Start with the records you selected and the answers you saved." : next === "deeper" ? "Follow the remaining clues in another research round." : "Review the saved findings, questions and current family book.")}</p></div>
     <div className="cycle-actions">
       {next && <button className="primary" disabled={busy || !available} onClick={event => { if (event.detail < 2) request(next); }}>{busy ? "Starting…" : next === "initial" ? "Start research" : "Research deeper"}</button>}
       {next === "deeper" && <small>{research.cycles.length === 1 ? "First" : "Second"} deeper round</small>}

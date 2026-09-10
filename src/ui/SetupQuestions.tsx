@@ -33,8 +33,8 @@ export function SetupQuestions({ snapshot, api, busy, onAnswer, onSource, onClos
   if (allAnswered && !reviewing && !onClose) return <section className="setup-questions setup-complete" aria-live="polite">
     <span className="setup-complete-mark" aria-hidden="true">✓</span>
     <span className="eyebrow">Your {run.questions.length} checks are saved</span>
-    <h2>Your first family branch is taking shape</h2>
-    <p>{run.error || "We are adding the supported records and keeping your unknowns open."}</p>
+    <h2>{snapshot.research ? "Your initial checks are saved" : "Your first family branch is taking shape"}</h2>
+    <p>{run.error || (snapshot.research ? "Finishing the source checks. You can start research when preparation is complete." : "We are adding the supported records and keeping your unknowns open.")}</p>
     <button onClick={() => { setIndex(0); setReviewing(true); }}>Review your answers</button>
     {run.modelStatus === "running" && <p className="preparation-note"><span className="spinner" />Astra is still analyzing the supplied recollection.</p>}
   </section>;

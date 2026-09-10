@@ -33,7 +33,7 @@ export function InputScreen({ onStart, busy, error, api }: {
       const draft = await api.autofillFamilyDetails(profileInput(input, profileRef.current), files);
       const result = applyAutofill(profileRef.current, draft, touched.current);
       setProfile(result.profile); setAutofill(draft);
-      setFillNotice(result.applied.length ? `${result.applied.length} supported fields filled. You can edit them below.` : "No empty fields could be filled without a conflict. Your edits are preserved.");
+      setFillNotice(result.applied.length ? `${result.applied.length} supported fields filled. You can edit them in the form.` : "No empty fields could be filled without a conflict. Your edits are preserved.");
     } catch (error) { setFillNotice(error instanceof Error ? error.message : "Family details could not be read. Try again."); }
     finally { fillLock.current = false; setFilling(false); }
   };
@@ -91,7 +91,7 @@ export function InputScreen({ onStart, busy, error, api }: {
               <button type="button" className="fill-family-button" disabled={filling || busy || !api?.autofillFamilyDetails} onClick={() => void fill()}>{filling ? "Reading family details…" : "Fill my family details"}</button>
               {!api?.autofillFamilyDetails && <small>Source autofill is unavailable in this connection.</small>}
               {fillNotice && <p className="autofill-notice" role="status">{fillNotice}</p>}
-              {autofill && <details className="autofill-sources"><summary>Review autofill sources ({autofill.fields.length})</summary>{autofill.fields.map((f, i) => <article key={`${f.path}-${i}`}><strong>{f.path.replace(/^profile\./, "").replaceAll(".", " / ")}</strong><p>{f.value}</p>{f.conflicts.length > 0 && <p className="error">Conflicting values: {f.conflicts.join("; ")}. Kept for your review.</p>}{fieldValue(profile, f.path) !== f.value && <p>Your current value is preserved: {fieldValue(profile, f.path) || "blank"}.</p>}{f.support.map((span, j) => <blockquote key={j}>{span.quote}<small>{span.sourceId} · {span.locator}</small></blockquote>)}<button type="button" onClick={() => edit(f.path.replace(/^profile\./, ""), f.value)}>Use this value</button></article>)}</details>}
+              {autofill && <details className="autofill-sources"><summary>Review autofill sources ({autofill.fields.length})</summary>{autofill.fields.map((f, i) => <article key={`${f.path}-${i}`}><strong>{f.path.replace(/^profile\./, "").replace(/^self\./, "Your ").replaceAll(".", " · ").replace("fullName", "full name").replace("birthPlace", "birthplace").replace("birthYear", "birth year").replace("birthDate", "birth date")}</strong><p>{f.value}</p>{f.conflicts.length > 0 && <p className="error">Conflicting values: {f.conflicts.join("; ")}. Kept for your review.</p>}{fieldValue(profile, f.path) !== f.value && <p>Your current value is preserved: {fieldValue(profile, f.path) || "blank"}.</p>}{f.support.map((span, j) => <blockquote key={j}>{span.quote}<small>{span.sourceId} · {span.locator}</small></blockquote>)}<button type="button" onClick={() => edit(f.path.replace(/^profile\./, ""), f.value)}>Use this value</button></article>)}</details>}
 
             </>}
             {(validation || error) && <p role="alert" className="error">{validation || error}</p>}

@@ -27,7 +27,7 @@ export function applyAutofill(profile: IntakeProfile, draft: AutofillDraft, touc
   const applied: string[] = [];
   for (const field of draft.fields) {
     const path = field.path.replace(/^profile\./, "");
-    if (touched.has(path) || fieldValue(next, path) || field.conflicts.length || !field.support.length || !field.value.trim()) continue;
+    if (touched.has(path) || (fieldValue(next, path) && !(path.endsWith(".side") && fieldValue(next, path) === "unknown")) || field.conflicts.length || !field.support.length || !field.value.trim()) continue;
     const updated = updateProfile(next, path, field.value);
     if (updated !== next) applied.push(path);
     next = updated;
