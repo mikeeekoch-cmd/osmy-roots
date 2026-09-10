@@ -184,7 +184,7 @@ test('project.json round-trips ids, edge direction, status and history', async (
 
 test('Unicode survives into the exported book and sources', async () => {
   const base = await makeSnapshot();
-  const contribution = await ingestContribution({ text: 'Кочнев Иван Герасимович — «шорник», 1889.' });
+  const contribution = await ingestContribution({ text: 'Петров Василий — «шорник», 1889.' });
   const snapshot = {
     ...base,
     sources: [...base.sources, contribution.sources[0]],

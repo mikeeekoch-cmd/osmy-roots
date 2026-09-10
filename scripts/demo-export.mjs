@@ -10,7 +10,6 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
 import { importPreparedFamily, ingestContribution } from '../server/ingestion/index.mjs';
 import { searchLocalSources } from '../server/research/index.mjs';
 import { buildFamilyBundle } from '../server/export/index.mjs';
@@ -19,7 +18,17 @@ const argOf = (flag, fallback) => {
   const i = process.argv.indexOf(flag);
   return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : fallback;
 };
-const ROOT = argOf('--family-tree', path.join(os.homedir(), 'Desktop/claude_projects/family_tree'));
+// Private inputs are supplied at run time. No private path is hard-coded in this
+// public repository; set ROOTS_PRIVATE_SEED or pass --family-tree.
+const ROOT = argOf('--family-tree', process.env.ROOTS_PRIVATE_SEED || '');
+if (!ROOT) {
+  console.error('Supply the private packet: node scripts/demo-export.mjs --family-tree <path>');
+  console.error('(or set ROOTS_PRIVATE_SEED). This script never bundles private data into git.');
+  process.exit(2);
+}
+const chapterPersonId = argOf('--person', 'P005');
+const branchRootId = argOf('--branch-root', 'P001');
+const projectName = argOf('--project-name', 'family');
 const OUT = path.join(process.cwd(), 'exports');
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -74,7 +83,7 @@ const snapshot = {
   schemaVersion: imported.schemaVersion,
   projectId: 'demo-local',
   version: 1,
-  input: { seedName: 'Kochnev', geography: 'Miass, Chelyabinsk region', language: 'en' },
+  input: { seedName: argOf('--seed-name', 'Family'), geography: argOf('--geography', 'unknown'), language: 'en' },
   people: imported.people,
   relationships: imported.relationships,
   claims: imported.claims,
@@ -95,7 +104,7 @@ const resolveAsset = (assetId) => {
 };
 
 // ---------------------------------------------------------------- local search
-const q = 'Иван Герасимович упряжь';
+const q = argOf('--query', 'harness leather horses');
 const hit = await searchLocalSources({ query: q, sources: snapshot.sources, limit: 3 });
 log(`\nSEARCH  "${q}" -> ${hit.status}, ${hit.hits.length} hit(s) over ${hit.searchedSources} source(s)`);
 for (const h of hit.hits) log(`        ${h.sourceId} ${h.locator} score=${h.score}\n          ${h.snippet.slice(0, 110).replace(/\n/g, ' ')}`);
@@ -105,15 +114,15 @@ log(`        control no-match query -> ${miss.status}`);
 // ---------------------------------------------------------------- export BEFORE
 const before = await buildFamilyBundle({
   snapshot, passages: [], resolveAsset,
-  options: { focusPersonId: 'P005', branchRootId: 'P001', projectName: 'kochnev-family', title: 'Roots: The Family Book', dedication: 'Dad, this is for you.' },
+  options: { focusPersonId: chapterPersonId, branchRootId: branchRootId, projectName, title: 'Roots: The Family Book', dedication: 'Dad, this is for you.' },
 });
 fs.writeFileSync(path.join(OUT, 'before-' + before.filename), before.bytes);
 log(`\nEXPORT BEFORE  ${before.filename}  ${(before.bytes.length / 1024 / 1024).toFixed(2)} MB  pdfPages=${before.manifest.pdfPages} printedPassages=${before.manifest.printedPassages} branchPeople=${before.manifest.branchPeople}/${before.manifest.totalPeople}`);
 
 // ---------------------------------------------------------------- contribution + acceptance
 const contribution = await ingestContribution({
-  text: 'Дядя Ваня делал кожаную конскую упряжь на продажу. Тётя Наташа помнит, что этим он кормил семью.',
-  targetPersonId: 'P005',
+  text: argOf('--contribution', 'He made leather horse harnesses to sell, and that work supported the family.'),
+  targetPersonId: chapterPersonId,
 });
 log(`\nCONTRIBUTION  ${contribution.sources.length} source(s), locator ${contribution.sources[0].originalLocator}`);
 
@@ -123,14 +132,14 @@ after.assets = snapshot.assets;           // keep bytes references
 after.version = 2;
 after.sources = [...snapshot.sources, newSource];
 after.stories = [...snapshot.stories, {
-  id: 'ST_NEW_001', subjectId: 'P005',
+  id: 'ST_NEW_001', subjectId: chapterPersonId,
   text: 'He made leather horse harnesses to sell, and supported the family with that work.',
   sourceIds: [newSource.id], evidenceType: 'family_recollection',
-  attributedTo: 'Aunt Natasha', status: 'accepted',
+  attributedTo: 'a relative', status: 'accepted',
 }];
 // An UNKNOWN decision must not become a book fact.
 after.stories.push({
-  id: 'ST_UNKNOWN_001', subjectId: 'P005', text: 'A rumoured second workshop in the next village.',
+  id: 'ST_UNKNOWN_001', subjectId: chapterPersonId, text: 'A rumoured second workshop in the next village.',
   sourceIds: [newSource.id], evidenceType: 'family_recollection', attributedTo: null, status: 'unresolved',
 });
 after.history = [...snapshot.history, {
@@ -139,8 +148,8 @@ after.history = [...snapshot.history, {
 }];
 
 const currentPassage = {
-  id: 'BP_001', personId: 'P005',
-  text: 'Ivan Gerasimovich Kochnev made leather horse harnesses to sell. His niece Natalya remembered that this work supported the family.',
+  id: 'BP_001', personId: chapterPersonId,
+  text: 'He made leather horse harnesses to sell, and a relative remembered that this work supported the family.',
   claimIds: [], sourceLocators: [newSource.originalLocator], acceptedStateVersion: 2,
 };
 const stalePassage = {
@@ -150,7 +159,7 @@ const stalePassage = {
 
 const afterBundle = await buildFamilyBundle({
   snapshot: after, passages: [currentPassage, stalePassage], resolveAsset,
-  options: { focusPersonId: 'P005', branchRootId: 'P001', projectName: 'kochnev-family', title: 'Roots: The Family Book', dedication: 'Dad, this is for you.' },
+  options: { focusPersonId: chapterPersonId, branchRootId: branchRootId, projectName, title: 'Roots: The Family Book', dedication: 'Dad, this is for you.' },
 });
 fs.writeFileSync(path.join(OUT, 'after-' + afterBundle.filename), afterBundle.bytes);
 log(`EXPORT AFTER   ${afterBundle.filename}  ${(afterBundle.bytes.length / 1024 / 1024).toFixed(2)} MB  pdfPages=${afterBundle.manifest.pdfPages} printedPassages=${afterBundle.manifest.printedPassages} stalePassages=${afterBundle.manifest.stalePassages}`);

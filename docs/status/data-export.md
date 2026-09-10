@@ -2,45 +2,102 @@
 
 Owner: Claude Code Mike. Branch: `codex/data-export`. Modules: `server/ingestion`, `server/research`, `server/export`.
 
-## Current state
+- T0 / shared deadline: **still not published by the lead** in `docs/status/lead.md`. I am working to the lead's clock, not a separate one.
+- Base commit: `4d1c86a` (main). Latest code commit: this branch head.
+- P0 status: **complete and verified**, except the notes under "Gaps" below.
 
-- T0 / shared deadline: **not yet published by the lead** in `docs/status/lead.md`. I am working to the lead's clock, not a separate one. Please publish T0.
-- Base commit: `4d1c86a` (main).
-- Latest code commit: see branch head.
+## Run it
 
-## Implemented and callable now
+```
+node --test "tests/**/*.test.mjs"     # 47 tests, all passing, no install step
+```
 
-`server/ingestion/index.mjs`
-- `importPreparedFamily({seedJson, mediaFiles, sourceDocuments, sourceLabel})` -> ImportResult
-- `ingestContribution({text, files, targetPersonId, knownHashes})` -> IngestionResult
+Zero runtime dependencies. Plain ESM, stock Node. Nothing to add to the lockfile.
 
-`server/research/index.mjs`
-- `searchLocalSources({query, sources, limit})` -> `{status: 'hit'|'no_match'|'invalid_query', hits[]}`
-- `fetchPublicRecord({url, timeoutMs, maxBytes, allowHosts})` -> `{status, source?, finalUrl?, retrievedAt?, error?}`
-- `websiteCountDelta(fetchResult)` -> 0 or 1, so counters only move on a real retrieval.
+## Exported functions
+
+```js
+import { importPreparedFamily, ingestContribution } from './server/ingestion/index.mjs';
+import { searchLocalSources, fetchPublicRecord, websiteCountDelta } from './server/research/index.mjs';
+import { buildFamilyBundle } from './server/export/index.mjs';
+
+await importPreparedFamily({ seedJson, mediaFiles, sourceDocuments, sourceLabel });
+await ingestContribution({ text, files, targetPersonId, knownHashes });
+await searchLocalSources({ query, sources, limit });          // limit defaults to 5
+await fetchPublicRecord({ url, timeoutMs, maxBytes, allowHosts });
+await buildFamilyBundle({ snapshot, passages, resolveAsset, options });
+```
+
+`options` for `buildFamilyBundle`: `{ focusPersonId, branchRootId, generations, title, dedication, projectName, includeAssets }`.
+`focusPersonId` is the chapter subject; `branchRootId` is the person the printed branch is drawn from (usually the youngest). `includeAssets` is `'branch'` (default), `'all'` or `'none'`.
+
+### Sample return: `ingestContribution`
+
+```jsonc
+{
+  "schemaVersion": "roots-export-1",
+  "sources": [{
+    "id": "SRC_44b3456a74_001",
+    "kind": "family_memory",
+    "originalLocator": "pasted-text-44b3456a.txt#L1",
+    "contentHash": "44b3456a746fdbea650d3a72e51ba5d557f79dbe2beee7b1eb1b8f8fc16968dc",
+    "origin": "live",
+    "author": null,                 // unknown stays null
+    "messageTimestamp": null,       // a wall-clock time is NOT a message time
+    "originalText": "He repaired watches at a bench in the back room.",
+    "mediaType": "text/plain",
+    "targetPersonId": "P004",
+    "segments": [{ "index": 1, "startLine": 1, "endLine": 1, "locator": "pasted-text-44b3456a.txt#L1", "text": "…" }],
+    "bytes": "<Buffer>"             // persist these; storageKey is opaque
+  }],
+  "assets": [{ "id": "A_c740f0ec5a_002", "originalName": "chat.zip", "mediaType": "application/zip",
+               "contentHash": "c740f0ec5a…", "storageKey": "assets/A_c740f0ec5a_002.zip", "bytes": "<Buffer>" }],
+  "duplicateHashes": [],
+  "files": [{ "uploadId": "U002", "originalName": "chat.zip", "status": "stored_only",
+              "sourceIds": [], "assetIds": ["A_c740f0ec5a_002"],
+              "reason": "Archive stored without extraction. Native chat-export parsing is not implemented; no compatibility is claimed." }]
+}
+```
+
+`searchLocalSources` returns `{status: 'hit'|'no_match'|'invalid_query', hits: [{sourceId, locator, snippet, score, origin}], searchedSources, totalMatches}`.
+`fetchPublicRecord` returns `{status: 'ok'|'timeout'|'blocked'|'not_allowed'|'unavailable', source?, finalUrl, retrievedAt, elapsedMs, truncated, error?}`.
+`buildFamilyBundle` returns `{bytes, filename, mimeType: 'application/zip', manifest}`.
 
 ## Checks actually run
 
-- Normalized the real 93-person private seed: 93 people, 142 relationships, 383 claims, 44 stories.
-- Import discrepancies detected and reported, not swallowed: seed `meta.total_persons` says 91 while the array holds 93; one duplicate `parent_child` edge collapsed. Missing-endpoint relationships are excluded **and** returned as warnings + issues.
-- Chronology validation implemented: death-before-birth, implausible parent age, child born after parent death, ancestry cycles.
-- Ingestion outcomes verified: `.txt` -> `parsed` with `file#L3` locators; `.zip` -> `stored_only` ("no compatibility claimed"); `.jpg` -> `stored_only` (display only, no OCR or face identification); `.m4a` -> `stored_only`.
-- Local search verified for hit, no-match and invalid-query.
-- SSRF guards verified as blocked: `127.0.0.1`, `10/8`, `192.168/16`, `169.254.169.254`, `::1`, CGNAT, `file://`, and any host off the allowlist. Redirects are re-validated per hop.
-- **Live fetch check PASSED.** Real request to `https://www.loc.gov/search/?q=Chelyabinsk&fo=json` returned HTTP 200, 221,627 bytes, in 6.2 s, with content hash and exact locator. Timeout path verified separately (`status: timeout`).
+Real private packet (93 people, 3 source documents, 183 photographs):
+
+- Import: 93 people, 142 relationships, 383 claims, 44 stories. Two real discrepancies surfaced rather than swallowed: the seed's `meta.total_persons` says 91 while the array holds 93, and one duplicate `parent_child` edge was collapsed. Chronology and ancestry-cycle checks found no violations.
+- A relationship with a missing endpoint is excluded from the graph **and** returned as a warning plus a structured issue.
+- Source confidence is mapped, never upgraded: `подтверждено` -> `accepted`, `вероятно` -> `proposed`. 23 of the 143 edges legitimately stay candidates.
+- Ingestion outcomes: `.txt`/`.json`/`.md`/`.csv` -> `parsed` with `file#L3` locators; `.zip`, `.jpg`, `.m4a` -> `stored_only` with an explicit reason. A PNG renamed `.txt` is still detected as an image. Non-UTF-8 bytes are stored, not decoded.
+- Local search verified for hit, no-match, invalid query, Cyrillic, and that different queries return different segments (it is not a prerecorded list).
+- **Live fetch check PASSED.** Real request to `https://www.loc.gov/search/?q=Chelyabinsk&fo=json`: HTTP 200, 221,627 bytes, 6.2 s, content hash and exact locator recorded. Timeout, byte cap, HTTP 403, sign-in/CAPTCHA walls and redirect-to-off-allowlist all verified as distinct, honest failures.
+- SSRF refused for `127.0.0.1`, `10/8`, `172.16/12`, `192.168/16`, `169.254.169.254`, CGNAT, `::1`, `fe80::`, `::ffff:127.0.0.1`, `file://` and any host off the allowlist. Every redirect hop is re-validated. No network call is made for a refused target.
+- Export: four-page PDF, rendered and **visually inspected page by page**. Cyrillic originals print beside English text; photo aspect ratios are preserved; the branch chart follows real `parent_child` edges; source markers resolve to the numbered source list.
+- Before/after acceptance: project version 1 -> 2, the new attributed story and the lead's cited passage appear, the bundle bytes differ. A passage stamped with an older `acceptedStateVersion` is excluded and reported as stale. An `unresolved` story does not reach the biography. A passage with no claim or source locator is rejected.
+- ZIP verified with system `unzip -t` and by an independent reader in tests that checks every CRC and size. Bundled originals are byte-identical to the inputs and re-hashed; a mismatch or unresolved attachment is flagged in the manifest.
+- No absolute host path, and no real family name, appears in any tracked file.
 
 ## Decisions the lead should know about
 
-1. **Zero runtime dependencies, plain ESM `.mjs`.** `pnpm` is not installed on this laptop and `package.json` pins `node >=24 <25` while local Node is 25.8.1. Rather than block on the lockfile I do not own, every module is dependency-free and runs on stock Node. PDF and ZIP writers are implemented in-module over `node:zlib`. If you want TypeScript under `packages/contracts`, say so and I will convert; JSDoc typedefs are already in `server/contracts/types.mjs`.
-2. `server/contracts/types.mjs` mirrors `docs/CONTRACT-V3.json` field names verbatim. It is a placeholder until you publish the real contract; I have not invented competing names.
-3. Ingestion returns asset/source `bytes` in-memory for you to persist. `storageKey` is opaque (`assets/<id>.<ext>`); no absolute host path reaches an export.
+1. **Zero runtime dependencies, plain ESM `.mjs`.** `pnpm` is not installed on this laptop and `package.json` pins `node >=24 <25` while local Node is 25.8.1. Rather than block on files I do not own, PDF, ZIP, TrueType embedding and image handling are implemented in-module over `node:zlib`. Say the word if you want TypeScript under `packages/contracts`; JSDoc typedefs are already in `server/contracts/types.mjs` and conversion is mechanical.
+2. `server/contracts/types.mjs` mirrors `docs/CONTRACT-V3.json` field names verbatim. It is a placeholder until you publish the real contract. I have not invented competing names.
+3. Ingestion returns `bytes` in memory for you to persist. `storageKey` is opaque (`assets/<id>.<ext>`). `buildFamilyBundle` reaches originals **only** through the `resolveAsset(assetId)` you supply, and throws if it is missing.
+4. Bundled originals default to the printed branch (`includeAssets: 'branch'`), which took a real export from 175 MB to 104 MB. `project.json` still lists every asset, and omitted ones are named in `research-notes.json`. Pass `'all'` for the complete archive.
+5. **Please add a test script.** You own `package.json`; I did not touch it. Suggested: `"test": "node --test \"tests/**/*.test.mjs\""`.
 
 ## Gaps and blockers
 
-- No native Telegram/WhatsApp export has been supplied, so **no chat-export compatibility is claimed or tested**. The private packet contains fictional format fixtures only. P1 parser is skipped unless a real sample arrives.
-- Export (`buildFamilyBundle`, PDF/ZIP) is in progress, next commit.
-- Waiting on: lead's T0, and the published runtime contract commit.
+- **No native Telegram or WhatsApp export has been supplied.** The private packet contains fictional format fixtures only. No chat-export compatibility is claimed or tested, and the P1 parser is skipped until a real sample exists. This is the one input format most likely to be assumed working; it is not.
+- The public-fetch allowlist covers Library of Congress, NARA, Pamyat Naroda, Yandex Archive, Szukaj w Archiwach, Chelyabinsk archive, FamilySearch and Wikipedia. **A specific record URL for the demo has not been chosen.** If you want a live retrieval on stage, give me the exact URL and I will verify it end to end; otherwise local search carries the route and the website counter honestly shows zero.
+- PDF/DOCX text extraction and OCR are not implemented (explicitly next-scope).
+- Waiting on: your T0, and the published runtime contract commit.
+
+## Tool contribution, recorded honestly
+
+Every line in `server/ingestion`, `server/research`, `server/export`, `tests/` and `fixtures/public/` was written by Claude Code (Opus 5) in this session. No Astra call is made from any of my modules by design: the lead owns model orchestration. The four-page PDF was rendered and visually checked against the real packet, and three rendering defects found that way were fixed (parenthetical maiden names ordered as an English suffix, relationship claims rendered as prose instead of raw JSON, and open questions naming their subject). Worth reflecting in `docs/BUILD-LOG.md`, which you own.
 
 ## Next step
 
-Finish `server/export`: four-page English PDF, book.html, project.json, sources.json, research-notes.json, starting-context.json, originals, README; then before/after acceptance verification and reimport test with the lead.
+Available now to connect these functions into your routes. On your signal I will take the next-scope items in order: a real chat parser if a sample arrives, otherwise `searchWeb({query, limit: 3})` against an already configured provider, then `crawlSource({startUrl, maxPages: 3})` restricted to permitted same-site links.
