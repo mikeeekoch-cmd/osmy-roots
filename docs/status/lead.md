@@ -25,3 +25,11 @@
 - Private Scope Review and Engineering handoff refreshed at version 16:24:37 UTC. Current scope agrees with repo. Private material remains excluded.
 - Both external workers confirmed running. UI branch is now visible; first data/export branch not yet pushed.
 - Next: integrate worker modules, test source-to-review/book transitions and model failures, resolve credited model access. P1 remains closed.
+
+## Early UI integration
+
+- Integrated Natalia's 1c356f2 into codex/engineering; src/app/page.tsx mounts RootsApp with the real adapter. Browser input validation and initial rendering observed. Full route awaits data modules and credits.
+- Natalia next-pass requests: polling currently skips while active.current, hiding actual in-flight model events; allow snapshot polling during contributions. The global busy gate also blocks a second contribution while one runs; support adding clues during analysis without stale UI overwrite. The backend already serializes short writes and preserves accepted state during model calls.
+- Input screenshot at 1106px wide showed the right intake column clipped horizontally; check responsive width/box sizing. Prepared-packet copy should say synthetic example when no private packet is configured. Remove em dash characters in newly authored UI copy to match Mike's instruction.
+- Preserve graph status sent by the editor: lead is adjusting backend relationship edits to respect unresolved/disputed/rejected rather than forcing accepted.
+- State/orchestration suite: 16 PASS. Two source-to-book runs use explicitly injected TEST_ONLY model/package adapters, not a PDF/live-model pass.

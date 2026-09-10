@@ -61,7 +61,7 @@ export async function mutateGraph(projectId:string,raw:unknown){const input=Grap
  if(old)Object.assign(old,person);else s.people.push(person);
  }else{
  const old=s.relationships.find(r=>r.id===input.entityId);if(input.operation==='editRelationship'&&!old)throw new AppError('Relationship not found.',404);
- const relation=RelationshipSchema.parse({...old,...values,id:old?.id||`relationship-${randomUUID()}`,claimIds:old?.claimIds||[],status:'accepted'});
+ const relation=RelationshipSchema.parse({...old,...values,id:old?.id||`relationship-${randomUUID()}`,claimIds:Array.isArray(values.claimIds)?values.claimIds:old?.claimIds||[],status:values.status||old?.status||'accepted'});
  const evidence=addManualEvidence(s,relation.fromPersonId,'relationship',{fromPersonId:relation.fromPersonId,toPersonId:relation.toPersonId,type:relation.type});relation.claimIds.push(evidence.claimId);sources.push(evidence.sourceId);claims.push(evidence.claimId);
  if(old)Object.assign(old,relation);else s.relationships.push(relation);
  }
