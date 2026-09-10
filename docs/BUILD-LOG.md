@@ -31,3 +31,7 @@ Record UTC/EDT time, branch/commit, concrete behavior, substantive Astra-assiste
 ## 90-minute execution handoff
 
 Mike authorized a 90-minute local prototype built by Codex Mike, Codex Natalia and Claude Code Mike. Updated ownership, repository ground truth, scope cuts, launch prompts and worker status templates. Existing product and architecture were reconciled with the local persistence fallback. This entry records planning/doc changes only; no application feature, model call, worker dispatch or deployment was performed by this update.
+
+## Detailed worker acceptance specifications
+
+Expanded all three launch prompts into concrete file/module outputs, input/output contracts, on-screen behavior and per-owner acceptance. Added one shared synthetic source-to-story-to-book scenario and PROTOTYPE-CONTRACT.md. This is a documentation clarification; it does not start or reset the lead clock or implement app functionality.

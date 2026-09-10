@@ -56,6 +56,10 @@ The user brings a few clues, sees a focused branch, contributes a message, revie
 
 At T+90 the app runs locally from documented commands; the two screens work; one reviewed source changes saved family state and the book; person/relationship evidence and a discrepancy can be inspected; PDF/ZIP opens and JSON reimports with edits intact; real operation counters are honest, including zero external websites when none were fetched. Run the journey twice. Separate implemented, prepared, cut and blocked in the final status. Video, publishing family assets and event submission remain separate steps.
 
+## Concrete build specifications
+
+Read [PROTOTYPE-CONTRACT.md](PROTOTYPE-CONTRACT.md) for shared state, Natalia module signatures, the UI adapter and the same acceptance scenario for all three owners. Each prompt below is now an executable task specification with exact deliverables and verification, not only a role assignment.
+
 ## Launch prompts
 
 Run docs/prompts/01_CODEX_MIKE.md first, then start docs/prompts/02_CODEX_NATALIA.md and docs/prompts/03_CLAUDE_MIKE.md immediately. They can work on independent modules during the first ten minutes and integrate against the lead's frozen contract. No agent is dispatched by storing these files.

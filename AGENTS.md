@@ -1,6 +1,6 @@
 # Osmy Roots engineering instructions
 
-Read README.md, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/EXECUTION.md, docs/READINESS.md and docs/BUILD-LOG.md before work. The user has started the 90-minute engineering execution phase. The bootstrap is not yet a working app. Build now using docs/EXECUTION.md and record actual work/checks.
+Read README.md, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/EXECUTION.md, docs/PROTOTYPE-CONTRACT.md, your detailed docs/prompts assignment, docs/READINESS.md and docs/BUILD-LOG.md before work. The user has started the 90-minute engineering execution phase. The bootstrap is not yet a working app. Build now using docs/EXECUTION.md and record actual work/checks.
 
 GitHub is the engineering source of truth for code, scope, contracts, decisions and per-owner status. Fetch latest docs and status before editing. At sprint start, read the latest private scope and selected needed inputs from the configured private context; refresh only relevant changed files. Do not spend the sprint recursively recrawling the entire family archive. If private access fails, report unread sources and continue from safe repository requirements and available local inputs.
 
