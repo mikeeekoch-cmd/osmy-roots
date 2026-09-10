@@ -476,6 +476,7 @@ export function RootsApp({
                 <>
                   {arrivals && (
                     <SavedArrivals
+                      onSource={(id) => setSelection({ kind: "source", id })}
                       delta={arrivals}
                       snapshot={snapshot}
                       api={api}

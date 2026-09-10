@@ -1853,8 +1853,21 @@
   gap: 12px;
   animation: saved-arrival 0.35s ease-out;
 }
-.saved-arrivals > span {
+.saved-arrivals {
   font-size: 12px;
+}
+.saved-arrivals > div:first-child {
+  min-width: 0;
+  flex-direction: column;
+}
+.saved-update-sources {
+  display: flex;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+}
+.saved-update-sources button {
+  overflow-wrap: anywhere;
+  text-align: left;
 }
 .saved-arrivals > div {
   display: flex;

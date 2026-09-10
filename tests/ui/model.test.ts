@@ -203,9 +203,19 @@ test("saved arrivals follow versioned entity changes, not polling or event-only 
   assert.equal(savedDelta(before, after), null);
   after.people[0].displayNameEn = "Corrected name";
   after.people[0].photoIds = ["new-original"];
+  after.assets.push({
+    id: "new-original",
+    sourceId: after.sources[0].id,
+    mediaType: "image/png",
+    originalName: "Fictional.png",
+    byteLength: 10,
+    storageKey: "fixture",
+  });
+  after.sources.push({ ...after.sources[0], id: "unrelated-source" });
   const result = savedDelta(before, after)!;
   assert.deepEqual(result.personIds, [after.people[0].id]);
   assert.deepEqual(result.photoIds, ["new-original"]);
+  assert.deepEqual(result.sourceIds, [after.sources[0].id]);
   assert.equal(savedDelta(after, before), null);
   after.projectId = "another-project";
   assert.equal(savedDelta(before, after), null);
@@ -215,16 +225,14 @@ test("progressive family layout preserves every existing node and separates arri
   const { stableFamilyLayout } = await import("../../src/ui/model");
   const s = snapshot();
   const first = stableFamilyLayout(s.people.slice(0, 2), []);
-  const edges: typeof s.relationships = s.people
-    .slice(0, -1)
-    .map((p, i) => ({
-      id: `saved-${i}`,
-      fromPersonId: p.id,
-      toPersonId: s.people[i + 1].id,
-      type: "parent",
-      claimIds: [],
-      status: "accepted",
-    }));
+  const edges: typeof s.relationships = s.people.slice(0, -1).map((p, i) => ({
+    id: `saved-${i}`,
+    fromPersonId: p.id,
+    toPersonId: s.people[i + 1].id,
+    type: "parent",
+    claimIds: [],
+    status: "accepted",
+  }));
   const next = stableFamilyLayout(s.people, edges, first.positions);
   for (const p of s.people.slice(0, 2))
     assert.deepEqual(next.positions[p.id], first.positions[p.id]);

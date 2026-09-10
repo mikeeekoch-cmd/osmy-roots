@@ -257,7 +257,7 @@ export function EvidenceDrawer({
             <article key={h.eventId}>
               <strong>{label(h.action)}</strong>
               <small>
-                {h.actor} · {new Date(h.at).toLocaleString()} · v
+                {h.actor} · {new Date(h.at).toLocaleString("en-US")} · v
                 {h.projectVersion}
               </small>
               <details>
