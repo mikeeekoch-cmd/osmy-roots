@@ -1,0 +1,33 @@
+{
+ "people": [
+  "Rowan Vale",
+  "Martin Vale",
+  "Clara Vale",
+  "Jonah Vale",
+  "Ellis Vale",
+  "Marta Vale"
+ ],
+ "photos": [
+  "Ellis Vale.jpg",
+  "Marta Vale.jpg",
+  "Ellis and Marta.jpg",
+  "The move to Harbourfield.jpg",
+  "Jonah Vale.jpg",
+  "Martin Vale.jpg",
+  "Clara Vale.jpg",
+  "Rowan and Martin.jpg"
+ ],
+ "chapters": {
+  "ch-dedication": "This book is for Martin Vale, who asked for it first.\n\nHe asked when I was seventeen, and again at twenty. I said yes both times and did nothing about it. This is late, and it is here.",
+  "ch-alder-vale": "The Vale family comes from Alder Vale, a settlement on the western bank of the Willow river. The parish there kept registers from the 1790s, and the name Vale appears in them from the beginning.\n\nBy the 1890s Alder Vale had a mill, a school and about sixty households. The 2010 count recorded ninety-one residents.\n\nThe surname and the place name are the same word. The settlement was named for the family, and the family carries the name of its ground.",
+  "ch-ellis": "Ellis Vale was born about 1899 in Alder Vale. He worked as a harness-maker, and the trade is what the family remembers first.\n\nHe married Marta Vale, born about 1902. Their son Jonah was born about 1930.\n\nEllis died about 1971. Both of his years are approximate and come from family notes rather than a certificate.",
+  "ch-jonah": "Jonah Vale was born about 1930 in Alder Vale and moved with his parents to Harbourfield as a boy.\n\nHe worked at the harbour for forty years. His son Martin was born in 1962.\n\nJonah died in 1998.",
+  "ch-martin": "Martin Vale was born on 2 February 1962 in Willowford. He trained as a joiner and worked in Harbourfield.\n\nWith Clara Vale, born 1965 in Harbourfield, he brought up one son, Rowan.\n\nMartin died on 9 June 2019.",
+  "ch-rowan": "Rowan Vale was born on 4 May 1994 in Willowford. Rowan collected the notes, photographs and messages that this book is made from.",
+  "ch-move": "The move from Alder Vale to Harbourfield happened around 1946. Clara remembered the year from a story, not from a document, and it is printed as a story.\n\nThe photograph labelled as the family who left Alder Vale shows Ellis, Marta and Jonah. The old caption names Jonah on the left. It does not give a full order, so the rest is left open.",
+  "ch-harness": "Of everything recorded about Ellis Vale, the part the family tells most often is the harness.\n\nHe worked with leather all his life. People came from the whole valley for his work. His funeral is remembered in the same terms.",
+  "ch-open": "These are the questions this edition has not answered.\n\nMarta Vale's birth year. One note says 1902 and another says 1904. There is no certificate, so both are kept and neither is marked correct.\n\nThe order of people in the two group photographs. Names came with them; positions did not.\n\nEllis Vale's own years. About 1899 to 1971, both approximate.",
+  "ch-sources": "This book stands on family sources first: Clara Vale's notes, the photographs kept in the family, and three saved message threads.\n\nWhere a statement rests on an uploaded file, the source register at the back gives that file and the passage gives its number. Where nobody could remember and no document was found, the entry says so."
+ },
+ "generatedAt": "2026-09-10T20:00:00Z"
+}

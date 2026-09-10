@@ -34,10 +34,19 @@ export function renderBookHtml({ snapshot, passages = [], branch, assetPaths = n
     const rel = assetPaths.get(id);
     return rel ? `<figure><img src="${esc(rel)}" alt="Family photograph"></figure>` : '';
   };
+  const pairByOriginal = new Map((options.photoPairs || []).map((pair) => [pair.originalAssetId, pair]));
   const galleryPhoto = (asset) => {
     const annotation = snapshot.photoAnnotations?.find(a => a.assetId === asset.id);
     const caption = annotation?.caption || asset.caption || asset.originalName || 'Supplied family photograph';
-    return `<figure><img src="${esc(assetPaths.get(asset.id))}" alt="${esc(asset.originalName || 'Supplied family photograph')}"><figcaption>${esc(caption)}<p class="subtitle">${esc(photoReviewLabel(snapshot, asset.id))} ${cite((annotation?.support || []).map(span => span.sourceId))}</p>${(annotation?.support || []).length ? `<div class="locator">${[...new Set(annotation.support.map(span => span.locator))].map(esc).join('; ')}</div>` : ''}</figcaption></figure>`;
+    const pair = pairByOriginal.get(asset.id);
+    const enhancedPath = pair ? assetPaths.get(pair.enhancedAssetId) : null;
+    // Both versions are shown side by side and labelled. An enhanced picture is a
+    // readability aid; it never says who is in the frame.
+    const images = enhancedPath
+      ? `<div class="pair"><div><img src="${esc(assetPaths.get(asset.id))}" alt="${esc(asset.originalName || 'Supplied family photograph')}, original"><span class="pair-label">${esc(pair.originalLabel || 'Original')}</span></div><div><img src="${esc(enhancedPath)}" alt="${esc(asset.originalName || 'Supplied family photograph')}, enhanced"><span class="pair-label">${esc(pair.enhancedLabel || 'Enhanced')}</span></div></div>`
+      : `<img src="${esc(assetPaths.get(asset.id))}" alt="${esc(asset.originalName || 'Supplied family photograph')}">`;
+    const pairNote = pair ? `<div class="locator">Enhanced from the original ${esc(String(pair.originalHash).slice(0, 16))} by ${esc(pair.method)}. Alignment ${esc(pair.alignment?.mode || 'unknown')}, visual QA ${esc(pair.qa?.status || 'pending')}.</div>` : '';
+    return `<figure>${images}<figcaption>${esc(caption)}<p class="subtitle">${esc(photoReviewLabel(snapshot, asset.id))} ${cite((annotation?.support || []).map(span => span.sourceId))}</p>${(annotation?.support || []).length ? `<div class="locator">${[...new Set(annotation.support.map(span => span.locator))].map(esc).join('; ')}</div>` : ''}${pairNote}</figcaption></figure>`;
   };
 
   const levels = branch?.levels || new Map();
@@ -93,6 +102,12 @@ export function renderBookHtml({ snapshot, passages = [], branch, assetPaths = n
   .card-orig{font-size:12px;color:var(--muted)}
   .card-years{font-size:12px;color:var(--muted);margin-top:2px}
   .cite{color:var(--accent);font-size:11px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+  .pair img{width:100%;display:block}
+  .pair-label{display:block;font:11px/1.6 system-ui,sans-serif;color:var(--accent);
+    letter-spacing:.04em;text-transform:uppercase;margin-top:4px}
+  .chapter{margin:26px 0}
+  .chapter h3{margin:0 0 4px}
   ul{padding-left:20px}
   li{margin:5px 0}
   .passage{border-left:3px solid var(--accent);padding:2px 0 2px 16px;margin:16px 0}
@@ -125,6 +140,10 @@ ${facts.length ? `<table>${facts.map((c) => `<tr><td>${esc(String(c.predicate ||
 ${current.length ? `${current.filter((p) => !p.personId || p.personId === focusId).map((p) => `<div class="passage">${esc(p.text)}${(p.sourceLocators || []).length ? `<div class="locator">Source: ${esc((p.sourceLocators || []).join('; '))}</div>` : ''}</div>`).join('')}` : ''}
 ${stories.length ? `<h2>Family recollections</h2><ul>${stories.map((s) => `<li>${s.attributedTo ? `<em>Remembered by ${esc(s.attributedTo)}.</em> ` : '<em>Family recollection.</em> '}${esc(displayText(s.text))} ${cite(s.sourceIds)}</li>`).join('')}</ul>` : ''}
 ` : ''}
+
+${(options.bookPlan?.chapters || []).length ? `<h2>The family book</h2>
+<p class="note">These chapters are supplied material, shortened into English from the family book. Current reviewed values, accepted passages and open questions appear in their own sections below.</p>
+${options.bookPlan.chapters.map((c) => `<section class="chapter" id="chapter-${esc(c.id)}"><h3>${esc(c.title)}</h3><div class="locator">${esc((c.sourceLocators || []).join('; '))} ${cite((c.support || []).map((sp) => sp.sourceId))}</div>${c.text.split(/\n\n+/).map((par) => `<p>${esc(par)}</p>`).join('')}</section>`).join('')}` : ''}
 
 <h2>Family photographs</h2>
 <div class="photos">${(snapshot.assets || []).filter((a) => String(a.mediaType).startsWith('image/') && assetPaths.has(a.id)).map(galleryPhoto).join('')}</div>

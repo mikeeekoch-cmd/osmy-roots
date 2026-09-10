@@ -16,7 +16,7 @@ import { normalizeSeed } from './normalize-seed.mjs';
 import { detectMediaType, extensionOf, isImage, isAudioOrVideo } from './media-type.mjs';
 import { decodeUtf8, segmentText, lineLocator, parseJsonSafely } from './parse-text.mjs';
 import { ORIGIN, FILE_STATUS, PARSEABLE_TEXT_TYPES, SCHEMA_VERSION } from '../contracts/types.mjs';
-import { extractPdfText } from './pdf.mjs';
+import { extractPdfTextWithPages, MAX_PDF_PAGES } from './pdf.mjs';
 import { readUploadZip, parseChatText } from './zip.mjs';
 
 export { normalizeSeed, parseDate } from './normalize-seed.mjs';
@@ -302,8 +302,11 @@ export async function ingestContribution({ text, files = [], targetPersonId, kno
       assets.push(originalAsset); assetIds.push(archiveAssetId);
       try {
         if (mediaType === 'application/pdf') {
-          const originalText = await extractPdfText(bytes), id = sourceIdFor(contentHash, seq);
-          sources.push({ id, kind: 'family_document', originalLocator: `${originalName}#extracted-pages-1-10`, contentHash, originalText, origin: ORIGIN.LIVE, author: null, messageTimestamp: null, parentAttachmentId: archiveAssetId, title: originalName, language: 'en', extractionMethod: 'Poppler pdftotext: actual text extraction, up to 10 pages; no OCR', segments: segmentText(originalText), mediaType });
+          // The locator states the pages actually read, so a citation into page 14 of an
+          // excerpt is checkable and a truncated read is visible rather than implied.
+          const extracted = await extractPdfTextWithPages(bytes), originalText = extracted.text, id = sourceIdFor(contentHash, seq);
+          if (extracted.truncated) warnings.push(`${originalName} was read to the ${MAX_PDF_PAGES}-page limit; later pages are not searchable or citable.`);
+          sources.push({ id, kind: 'family_document', originalLocator: `${originalName}#extracted-pages-1-${extracted.pages}`, contentHash, originalText, origin: ORIGIN.LIVE, author: null, messageTimestamp: null, parentAttachmentId: archiveAssetId, title: originalName, language: 'en', extractionMethod: `Poppler pdftotext: actual text extraction, up to ${MAX_PDF_PAGES} pages; no OCR`, segments: segmentText(originalText), mediaType });
           originalAsset.sourceId = id; sourceIds.push(id);
         } else {
           const entries = readUploadZip(bytes, zipBudget), chats = entries.filter((e) => /(?:^|\/)_chat\.txt$/i.test(e.name));
