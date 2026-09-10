@@ -162,6 +162,8 @@ export async function startRound2(raw: unknown, files: InputFile[], options: Rou
     s.research=Round3StateSchema.parse({schemaVersion:'roots-research-v3',packetVersion:manifest.packetVersion,packetHash,intake:{id:`intake-${id}`,status:'questions',startedAt:at(started),inputFingerprint:packetHash,questionIds:manifest.questions.map(q=>q.id),jobIds:[]},oldPhotoAssetIds:manifest.oldPhotoAssetIds,portraits:manifest.portraits,photoPairQA:manifest.photoPairs,bookPlan:manifest.bookPlan});
     s.photoPairs=manifest.photoPairs;
     s.photoAnnotations=manifest.photos;
+    for(const file of s.files){const jobId=`intake-parse-${hash(file.uploadId).slice(0,24)}`;s.research.jobs.push({id:jobId,stage:'intake',kind:'parse',tool:'packet-ingestion',objective:`Read ${file.originalName}`,sourceIds:file.sourceIds,urls:[],status:file.status==='parsed'?'completed':file.status==='failed'?'failed':'blocked',attempt:1,completedAt:at(),inputFingerprint:packetHash,resultIds:file.sourceIds,summary:`${file.originalName}: ${file.status}`,origin:'live'});s.research.intake.jobIds.push(jobId);}
+
     for(const asset of s.assets){asset.role=manifest.photoPairs.some(p=>p.enhancedAssetId===asset.id)?'derivative':'original'; if(asset.mediaType.startsWith('image/')) asset.indexedAt=at(started); const pair=manifest.photoPairs.find(p=>p.enhancedAssetId===asset.id);if(pair){asset.parentAssetId=pair.originalAssetId;asset.parentHash=pair.originalHash;asset.evidenceRootId=pair.evidenceRootId;}}
   }
   for (const file of s.files) event(s,{eventId:`parse-${file.uploadId}`,runId:id,operation:'parse_file',origin:'live',state:file.status==='parsed'?'completed':'blocked',sourceId:file.sourceIds[0],assetId:file.assetIds[0],finding:`${file.originalName}: ${file.status}`});
@@ -235,6 +237,11 @@ export function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: s
     for (const a of stage.manifest.photos) {
       if(q.effect.photoAssetId && a.assetId!==q.effect.photoAssetId) continue;
       const saved=structuredClone(a);
+      if(s.research)for(const portrait of s.research.portraits.filter(p=>p.assetId===a.assetId)){
+        if(answer.action!=='confirm')portrait.reviewed=false;
+        else if(stage.manifest.schemaVersion==='roots-demo-v3')portrait.reviewed=stage.manifest.portraits.some(p=>p.assetId===portrait.assetId&&p.personId===portrait.personId&&p.reviewed);
+      }
+
       for(const pos of saved.positions) {
         if ((answer.action==='unknown'||answer.action==='skip') || answer.action==='correct') {pos.status='unresolved'; if(answer.action==='correct') pos.label=answer.savedText;}
         else if(pos.personId) pos.status='confirmed';
