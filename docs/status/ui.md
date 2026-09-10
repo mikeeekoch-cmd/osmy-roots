@@ -51,3 +51,10 @@
 - Improved activity names and book failure/generation states. Human profile entries expose the original saved data on demand instead of showing raw JSON twice in the main card.
 - Typecheck and 22 state/orchestration/UI tests pass. No backend, shared schema, route, dependency or lock changes.
 - Lead action: merge codex/ui after cab71b8; wire buildFamilyBundle in your boundary; validate Download -> ZIP/PDF -> reopen with the funded API project. This laptop still has no configured model key and does not claim its missing-key route passed live inference.
+
+## 17:04 UTC P0 handoff received
+
+- Lead a5de7c4 reports the integrated live source-to-ZIP/PDF/reopen route passed twice, real browser download passed, 71 tests and production build passed. His P1 gate is now open on that integrated base.
+- Independent UI stress validation: imported 35 clearly fictional people through the actual API; default five-generation line, all-35 fit and search to a distant person passed. Added reproducible synthetic layout fixture and screenshot. This is not validation of the supplied private family seed.
+- Stored-only original photos now show an explicit saved-original status while retaining the no-OCR warning. Actual parser failures remain errors.
+- Next: consume the validated lead base, verify real download delivery locally without claiming local inference, then bounded P1 source-to-person motion and gallery navigation before the shared freeze.

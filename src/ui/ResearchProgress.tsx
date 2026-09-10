@@ -24,16 +24,35 @@ export function ResearchProgress({
   const events = uniqueEvents(snapshot.researchEvents),
     counts = progressCounts(snapshot),
     latest = events.at(-1);
+  const storedOriginal = (event: ResearchEvent | undefined) =>
+    !!event &&
+    event.operation === "parse_file" &&
+    event.state === "blocked" &&
+    snapshot.files.some(
+      (file) =>
+        file.status === "stored_only" &&
+        event.finding?.includes(file.originalName),
+    );
+  const findingText = (event: ResearchEvent) =>
+    storedOriginal(event)
+      ? event.finding?.replace(": stored_only", ": original saved")
+      : event.finding;
   return (
     <aside className="research-progress">
       <span className="eyebrow">Roots is working with you</span>
       <h2>Following the clues</h2>
       <div className={`run-status ${busy ? "working" : ""}`}>
         {busy && <span className="spinner" />}
-        <strong>{busy ? "Working…" : label(latest?.state || "Ready")}</strong>
+        <strong>
+          {busy
+            ? "Working…"
+            : storedOriginal(latest)
+              ? "Original saved"
+              : label(latest?.state || "Ready")}
+        </strong>
       </div>
       <p className="current-action" aria-live="polite">
-        {latest?.finding ||
+        {(latest && findingText(latest)) ||
           (latest
             ? operationText[latest.operation]
             : "Ready for your family material.")}
@@ -89,9 +108,15 @@ export function ResearchProgress({
                 <strong>{operationText[e.operation]}</strong>
                 <span className={`origin ${e.origin}`}>{e.origin}</span>
               </div>
-              <small>{label(e.state)}</small>
-              {e.finding && <p>{e.finding}</p>}
-              {e.error && <p className="error">{e.error}</p>}
+              <small>
+                {storedOriginal(e) ? "Original saved" : label(e.state)}
+              </small>
+              {e.finding && <p>{findingText(e)}</p>}
+              {e.error && (
+                <p className={storedOriginal(e) ? "muted" : "error"}>
+                  {e.error}
+                </p>
+              )}
               {e.sourceId && (
                 <button
                   className="text-button"

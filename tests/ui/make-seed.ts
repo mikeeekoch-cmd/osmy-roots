@@ -128,3 +128,67 @@ await writeFile(
   ".ui-preview/fictional-family-with-photo.json",
   JSON.stringify(validateSnapshot(withPhoto), null, 2),
 );
+
+// Layout stress fixture only: 35 fictional people across five generations.
+// It is separate from the supplied private family and makes no archive claim.
+const thirtyFive = structuredClone(withPhoto);
+for (let generation = 0; generation < 5; generation++) {
+  for (let index = 0; index < 6; index++) {
+    const id = `layout-person-${generation}-${index}`;
+    thirtyFive.people.push({
+      ...structuredClone(s.people[generation]),
+      id,
+      displayNameEn: `Fictional Relative ${generation + 1}.${index + 1}`,
+      originalName: "",
+      photoIds: [],
+      claimIds: [],
+      storyIds: [],
+    });
+    if (generation === 0) continue;
+    const fromPersonId =
+      index === 0
+        ? s.people[generation - 1].id
+        : `layout-person-${generation - 1}-${index}`;
+    const relationId = `layout-edge-${generation}-${index}`;
+    const sourceId = `layout-source-${generation}-${index}`;
+    const quote = `Synthetic layout fixture only: ${fromPersonId} is recorded as the parent of ${id}.`;
+    thirtyFive.sources.push({
+      id: sourceId,
+      kind: "fixture",
+      author: null,
+      messageTimestamp: null,
+      parentAttachmentId: null,
+      originalLocator: `layout-fixture.txt#${relationId}`,
+      contentHash: createHash("sha256").update(quote).digest("hex"),
+      originalText: quote,
+      origin: "prepared",
+    });
+    const claimId = `claim-${relationId}`;
+    thirtyFive.claims.push({
+      id: claimId,
+      subjectId: fromPersonId,
+      predicate: "parent",
+      value: quote,
+      sourceIds: [sourceId],
+      spans: [{ sourceId, locator: `layout-fixture.txt#${relationId}`, quote }],
+      status: "unresolved",
+      evidenceType: "family_document",
+      version: 1,
+    });
+    thirtyFive.relationships.push({
+      id: relationId,
+      fromPersonId,
+      toPersonId: id,
+      type: "parent",
+      status: "unresolved",
+      claimIds: [claimId],
+    });
+  }
+}
+thirtyFive.issues.push(
+  "35-person synthetic layout stress test, not the supplied family seed.",
+);
+await writeFile(
+  ".ui-preview/fictional-35-person-layout.json",
+  JSON.stringify(validateSnapshot(thirtyFive), null, 2),
+);
