@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { RunStateSchema, PhotoAnnotationSchema, PhotoPairSchema, TranslationLineageSchema, type SetupAnswer } from "./round2";
 export * from "./round2";
+export * from "./round3";
+import { IntakeProfileSchema, Round3StateSchema, type IntakeProfile, type AutofillDraft, type ConnectionStatus, type CycleAction, type BankAnswerInput, type GraphProposalReview } from "./round3";
 
 export const SCHEMA_VERSION = "roots-v1" as const;
 export const Id = z.string().min(1).max(160);
@@ -14,6 +16,8 @@ export const EvidenceTypeSchema = z.enum([
 export const ProjectInputSchema = z
   .object({
     seedName: z.string().trim().min(1).max(200),
+    profile: IntakeProfileSchema.optional(),
+    researchMode: z.literal("round3").optional(),
     geography: z.string().trim().max(300).default(""),
     geographyUnknown: z.boolean().default(false),
     context: z.string().max(100000).default(""),
@@ -26,7 +30,7 @@ export const ProjectInputSchema = z
     publicRecordUrl: z.string().url().optional(),
   })
   .refine(
-    (x) => x.geographyUnknown || !!x.geography,
+    (x) => x.researchMode === "round3" || x.geographyUnknown || !!x.geography,
     "Supply geography or explicitly choose unknown",
   );
 export type ProjectInput = z.infer<typeof ProjectInputSchema>;
@@ -245,6 +249,7 @@ export const ProjectSnapshotSchema = z.object({
   files: z.array(FileOutcomeSchema).default([]),
   issues: z.array(z.string()).default([]),
   run: RunStateSchema.optional(),
+  research: Round3StateSchema.optional(),
   previousRuns: z.array(RunStateSchema).optional(),
   photoAnnotations: z.array(PhotoAnnotationSchema).optional(),
   photoPairs: z.array(PhotoPairSchema).optional(),
@@ -286,6 +291,15 @@ export interface Contribution {
   publicRecordUrl?: string;
 }
 export interface RootsApi {
+  autofillFamilyDetails?(input: ProjectInput, files: File[]): Promise<AutofillDraft>;
+  getConnections?(): Promise<ConnectionStatus[]>;
+  connectProvider?(provider: "drive" | "gmail"): Promise<{url: string}>;
+  verifyConnection?(provider: "drive" | "gmail", selectedScope?: string[]): Promise<ConnectionStatus>;
+  disconnectProvider?(provider: "drive" | "gmail"): Promise<ConnectionStatus>;
+  importConnectedSources?(projectId: string, provider: "drive" | "gmail", selectedIds: string[], baseVersion: number): Promise<ProjectSnapshot>;
+  researchCycle?(projectId: string, input: CycleAction): Promise<ProjectSnapshot>;
+  answerBankQuestion?(projectId: string, input: BankAnswerInput): Promise<ProjectSnapshot>;
+  reviewGraphChange?(projectId: string, input: GraphProposalReview): Promise<ProjectSnapshot>;
   answerSetupQuestion?(projectId: string, input: SetupAnswer): Promise<ProjectSnapshot>;
   prepareFamilyBook?(projectId: string): Promise<ProjectSnapshot>;
   cancelRun?(projectId: string): Promise<ProjectSnapshot>;

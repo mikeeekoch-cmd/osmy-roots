@@ -1,3 +1,9 @@
+# Round 3 execution checkpoint
+
+Started 2026-09-10T20:08:05Z on codex/engineering at a7d50ab. Origin fetched. Round-2 production on 3200 remains untouched; round-3 candidate will use 3300 and an isolated build directory. Actual versioned contracts and API examples published in packages/contracts/round3.ts and docs/round-3/API.md. Natalia and Claude retain their ownership; no replacement agents.
+
+Access: Astra key configured; no Google OAuth client in the application environment. User requested to configure GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET with callback http://127.0.0.1:3300/api/connections/callback. Real successful read remains required. Estimate after contracts: 60-90 minutes for runtime and integration, then media/book readiness and two full rehearsals; provider authorization and Claude packet determine the final acceptance time. No new deadline or readiness claim.
+
 # Codex Mike status
 
 ## Round 3 planning handoff, 2026-09-10
