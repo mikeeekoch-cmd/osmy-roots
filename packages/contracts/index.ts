@@ -245,6 +245,7 @@ export const ProjectSnapshotSchema = z.object({
   files: z.array(FileOutcomeSchema).default([]),
   issues: z.array(z.string()).default([]),
   run: RunStateSchema.optional(),
+  previousRuns: z.array(RunStateSchema).optional(),
   photoAnnotations: z.array(PhotoAnnotationSchema).optional(),
   photoPairs: z.array(PhotoPairSchema).optional(),
 });
@@ -289,6 +290,7 @@ export interface RootsApi {
   prepareFamilyBook?(projectId: string): Promise<ProjectSnapshot>;
   cancelRun?(projectId: string): Promise<ProjectSnapshot>;
   bookPreviewUrl?(projectId: string): string;
+  retryAnalysis?(projectId: string): Promise<ProjectSnapshot>;
   createProject(input: ProjectInput, files?: File[]): Promise<ProjectSnapshot>;
   getSnapshot(
     projectId: string,

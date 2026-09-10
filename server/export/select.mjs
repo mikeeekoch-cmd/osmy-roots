@@ -30,6 +30,7 @@ export function displayText(text) {
 export function isAccepted(record) { return record && record.status === ACCEPTED; }
 
 const REL_WORD = {
+  partner: 'partner of',
   parent_child: 'parent of',
   spouse: 'married to',
   sibling: 'sibling of',

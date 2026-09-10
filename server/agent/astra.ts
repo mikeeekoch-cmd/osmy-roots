@@ -7,6 +7,7 @@ import type {
   Proposal,
   Source,
   BookPassage,
+  SourceSpan,
 } from "../../packages/contracts";
 import { EvidenceTypeSchema } from "../../packages/contracts";
 import { AppError, validateSpans } from "../state/validation";
@@ -55,10 +56,20 @@ export async function analyzeSource(
   source: Source,
   retrieved: Source[] = [],
   targetPersonId?: string,
+  allowedSpans?: SourceSpan[],
 ): Promise<Proposal> {
   const started = Date.now();
   const model = "gpt-6-astra";
   try {
+    if (allowedSpans?.length) {
+      validateSpans(allowedSpans, snapshot);
+      if (allowedSpans.some(span=>span.sourceId!==source.id || span.locator!==source.originalLocator || !source.originalText.includes(span.quote)))
+        throw new AppError('The selected analysis excerpt does not match its source.');
+    }
+    const outputSchema = allowedSpans?.length ? Analysis.extend({spans:z.array(Span.extend({
+      sourceId:z.literal(source.id), locator:z.literal(source.originalLocator),
+      quote:z.enum(allowedSpans.map(span=>span.quote) as [string,...string[]]),
+    })).min(1).max(4)}) : Analysis;
     const response = await client().responses.parse({
       model,
       store: false,
@@ -78,11 +89,23 @@ export async function analyzeSource(
         acceptedClaims: snapshot.claims
           .filter((c) => c.status === "accepted")
           .slice(-25),
-        source,
+        source: {
+          id: source.id,
+          kind: source.kind,
+          title: source.title,
+          originalLocator: source.originalLocator,
+          originalText: source.originalText,
+          contentHash: source.contentHash,
+          origin: source.origin,
+          author: source.author,
+          language: source.language,
+          reconstructed: source.reconstructed,
+          evidenceRootIds: source.evidenceRootIds,
+        },
         retrieved: retrieved.slice(0, 4),
         targetPersonId: targetPersonId || null,
       }),
-      text: { format: zodTextFormat(Analysis, "family_proposal") },
+      text: { format: zodTextFormat(outputSchema, "family_proposal") },
     });
     const out = response.output_parsed;
     if (!out)
@@ -174,7 +197,11 @@ export async function analyzeSource(
   }
 }
 export function selectBookClaims(snapshot: ProjectSnapshot) {
-  const stories = snapshot.stories.filter((st) => st.status === "accepted");
+  const stories = snapshot.stories.filter(
+    (st) => st.status === "accepted" && st.claimIds.some(
+      (id) => snapshot.claims.some((claim) => claim.id === id && claim.status === "accepted"),
+    ),
+  );
   const changed = [...snapshot.history]
     .reverse()
     .flatMap((h) => h.claimIds)
@@ -185,7 +212,7 @@ export function selectBookClaims(snapshot: ProjectSnapshot) {
       p.displayNameEn.toLowerCase() === snapshot.input.seedName.toLowerCase(),
   );
   const subjectId =
-    changed?.personId || seedPerson?.id || stories.at(-1)?.personId;
+    changed?.personId || stories.find((story) => story.personId === seedPerson?.id)?.personId || stories.at(-1)?.personId;
   return snapshot.claims
     .filter(
       (c) =>

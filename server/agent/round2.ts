@@ -5,7 +5,7 @@ import {
   DemoManifestSchema, ProjectInputSchema, ProjectSnapshotSchema, SetupAnswerSchema, PhotoPairSchema, SourceSchema,
   type DemoManifest, type InputFile, type ProjectSnapshot, type Proposal, type DataModules,
 } from '../../packages/contracts';
-import {parseFamilyPacket} from '../ingestion/index.mjs';
+import {parseFamilyPacket, parseFamilyNotesPacket} from '../ingestion/index.mjs';
 import {AppError, validateSnapshot, validateSpans} from '../state/validation';
 import {createSavedProject, loadProject, updateProject, saveAsset, readAsset, readSealedProject, dataRoot} from '../state/store';
 import {event} from '../events';
@@ -45,7 +45,7 @@ function contentKey(s: ProjectSnapshot) {
     assets:s.assets.map(a => ({id:a.id,hash:a.contentHash})), photos:s.photoAnnotations, pairs:s.photoPairs}));
 }
 export function isRound2Input(files: InputFile[]) {
-  return files.some(f => f.originalName.toLowerCase() === 'family_register.csv');
+  return !files.some(f=>f.originalName==='project.json') && files.some(f => ['family_register.csv','family notes.txt'].includes(f.originalName.toLowerCase()));
 }
 async function manifestFor(files: InputFile[], supplied?: DemoManifest) {
   let manifest = supplied;
@@ -82,9 +82,10 @@ export async function startRound2(raw: unknown, files: InputFile[], options: Rou
   const input = ProjectInputSchema.parse(raw);
   const manifest = await manifestFor(files, options.manifest);
   const manifestPath=process.env.ROOTS_DEMO_MANIFEST || join(dataRoot(),'demo-artefacts','DEMO_MANIFEST.json');
-  const packetHash=options.manifest?hash(JSON.stringify(manifest)):hash(await readFile(manifestPath));
+  const packetHash=hash(JSON.stringify(manifest));
   const packetRoot=options.manifest?undefined:dirname(manifestPath);
-  const parsed: any = await (options.parse || parseFamilyPacket)({files} as any);
+  const parse = options.parse || (manifest.inputFormat === 'family_notes' ? parseFamilyNotesPacket : parseFamilyPacket);
+  const parsed: any = await parse({files,identityKeys:manifest.identityKeys} as any);
   if (parsed.files.some((f: any) => f.status === 'failed')) throw new AppError('One or more packet files failed parsing. Inspect the selected file format and retry.');
   const id = randomUUID();
   const full = ProjectSnapshotSchema.parse({schemaVersion:'roots-v1',projectId:id,version:1,input,
@@ -98,6 +99,18 @@ export async function startRound2(raw: unknown, files: InputFile[], options: Rou
   }
   assertEnglish(full);
   validateSnapshot(full);
+  for (const annotation of manifest.photos) {
+    validateSpans(annotation.support, full);
+    const asset = full.assets.find(asset => asset.id === annotation.assetId);
+    const fromUpload = parsed.photoAnnotations?.find((photo: any) => photo.assetId === annotation.assetId);
+    const positions = (photo: any) => [...(photo.positions || [])].map(({position,personId,label,status}: any) => ({position,personId,label,status})).sort((a,b) => a.position-b.position);
+    const identities = (photo: any) => [...(photo.depictedPersonIds || [])].sort();
+    if (!asset || !asset.mediaType.startsWith('image/') || asset.originalName !== basename(annotation.file) || !fromUpload ||
+        JSON.stringify(positions(annotation)) !== JSON.stringify(positions(fromUpload)) || JSON.stringify(identities(annotation)) !== JSON.stringify(identities(fromUpload)))
+      throw new AppError('A photo annotation differs from its uploaded caption. Keep identities and order grounded in the selected photo notes.',400,'PHOTO_ANNOTATION_MISMATCH');
+    if ([...annotation.positions.map(position=>position.personId),...(annotation.depictedPersonIds||[])].some(id=>id&&!full.people.some(person=>person.id===id)))
+      throw new AppError('A photo annotation names a person absent from the uploaded notes.');
+  }
   validatePairs(full);
   if (full.people.length !== manifest.selectedPersonIds.length || full.people.some(p => !manifest.selectedPersonIds.includes(p.id)) || full.relationships.length !== manifest.expectedRelationshipCount)
     throw new AppError('Parsed roster or relationship coverage differs from the frozen manifest.', 409, 'COVERAGE_MISMATCH');
@@ -139,10 +152,12 @@ async function analyzeHeldOut(id: string, options: RoundOptions) {
   if (!started) return current;
   const q = stage.manifest.questions.find(q=>q.requiresAstra)!;
   const source = stage.graph.sources.find(s=>s.id===q.support[0].sourceId)!;
+  const excerpt = [...new Set(q.support.filter(span=>span.sourceId===source.id).map(span=>span.quote))].join('\n\n');
+  const analysisSource = {...source,originalText:excerpt,contentHash:hash(excerpt)};
   try {
     // Only actual uploaded evidence and parsed roster enter Astra. Manifest answers,
     // presenter notes and overview text are excluded from this held-out request.
-    const proposal = await (options.analyze || analyzeSource)({...stage.graph,claims:[],stories:[]},source,[],q.effect.personId||q.personIds[0]);
+    const proposal = await (options.analyze || analyzeSource)({...stage.graph,claims:[],stories:[]},analysisSource,[],undefined,q.support.filter(span=>span.sourceId===source.id));
     proposal.evidenceType = 'family_recollection';
     validateSpans(proposal.spans,stage.graph);
     assertEnglish(proposal);
@@ -153,7 +168,7 @@ async function analyzeHeldOut(id: string, options: RoundOptions) {
       s.run.analysis={...proposal,origin:'live'};
       s.run.modelStatus='completed';
       currentQuestion.prompt=proposal.question;
-      currentQuestion.recommendation=proposal.text;
+      currentQuestion.recommendation=[proposal.text,proposal.uncertainty ? `Uncertainty: ${proposal.uncertainty}` : ''].filter(Boolean).join('\n\n');
       currentQuestion.support=proposal.spans;
       currentQuestion.personIds=proposal.personId?[proposal.personId]:proposal.candidatePersonIds;
       currentQuestion.proposalId=proposal.id;
@@ -225,7 +240,8 @@ function applySavedAnswer(s: ProjectSnapshot, stage: Stage, questionId: string) 
     if(!s.sources.some(x=>x.id===sourceId)) s.sources.push({id:sourceId,kind:'human_edit',originalLocator:`Human correction ${sourceId}`,contentHash:hash(text),originalText:text,origin:'live',author:'Local user',messageTimestamp:answer.savedAt,parentAttachmentId:null,language:'en'});
     sourceIds.push(sourceId);spans.push({sourceId,locator:`Human correction ${sourceId}`,quote:text});
   }
-  const evidenceType=q.effect.kind==='story'?'family_recollection' as const:'family_document' as const;
+  const isMemory=q.effect.kind==='story'||q.support.some(span=>{const source=s.sources.find(x=>x.id===span.sourceId);return source?.kind.includes('chat')||/recollections/i.test(source?.title||'');});
+  const evidenceType=isMemory?'family_recollection' as const:'family_document' as const;
   s.claims.push({id:claimId,subjectId:personId,predicate:q.effect.predicate||q.category,value:answer.savedText,sourceIds,spans,status:'accepted',evidenceType,version:1});
   s.people.find(p=>p.id===personId)!.claimIds.push(claimId);
   if(q.effect.kind==='story') {
@@ -357,6 +373,11 @@ async function prepareBook(id:string,options:RoundOptions={}) {
   const key=contentKey(s);
   if(s.run.book.status==='ready'&&s.run.book.key===key)return s;
   if(!s.people.length)throw new AppError('Answer the source checks before preparing a book.',409);
+  if(s.run.batches.every(b=>b.status==='saved')) {
+    const stage=await readStage(id);
+    if(stage.manifest.selectedPersonIds.some(id=>!s.people.some(p=>p.id===id))||stage.graph.relationships.some(r=>!s.relationships.some(saved=>saved.id===r.id)))
+      throw new AppError('A saved family batch is missing from the current project. Restore the missing records before preparing the complete book.',409,'COVERAGE_MISMATCH');
+  }
   const modules=options.modules||dataModules;
   await updateProject(id,p=>{p.run!.book={status:'preparing',key};p.run!.phase='preparing_book';p.bookStatus='generating';event(p,{runId:id,operation:'generate_book',origin:'live',state:'running',finding:'Preparing the current cited English family book.'});});
   try {
@@ -401,6 +422,7 @@ async function sealDownload(id:string,options:RoundOptions={}) {
     s=await updateProject(id,p=>{
       if(p.run!.book.status!=='ready'||p.run!.book.key!==contentKey(p))throw new AppError('The book changed. Prepare it again.',409,'STALE_EXPORT');
       p.run!.sealedAt=at();p.run!.sealedVersion=p.version+1;p.run!.phase='sealing';
+      if(p.people.length<p.run!.targetPeople)p.issues.push(`This early download includes ${p.people.length} of ${p.run!.targetPeople} supplied people. Pending records were left open and are not claimed complete.`);
       for(const b of p.run!.batches)if(b.status==='pending')b.status='cancelled';
     },{writeSeal:true,isReplay:p=>!!p.run?.sealedAt});
   }
@@ -422,6 +444,14 @@ export async function downloadRound2(id:string,options:RoundOptions={}) {
 export async function cancelRound2(id:string) {
   const s=await loadProject(id);if(!s.run||s.run.sealedAt||s.run.phase==='cancelled')return s;
   return updateProject(id,p=>{p.run!.phase='cancelled';for(const b of p.run!.batches)if(b.status==='pending')b.status='cancelled';},{isReplay:p=>p.run?.phase==='cancelled'});
+}
+export async function retryRound2Analysis(id:string) {
+  return updateProject(id,s=>{
+    if(!s.run||s.run.modelStatus!=='failed')return false;
+    const q=s.run.questions.find(q=>q.requiresAstra)!;
+    if(s.run.answers.some(a=>a.questionId===q.id))throw new AppError('This recollection already has a saved answer. Add a new clue to request another interpretation.',409);
+    s.run.modelStatus='pending';q.status='waiting';delete s.run.error;
+  });
 }
 export async function previewRound2Book(id:string,kind:'pdf'|'html'='pdf') {
   const s=await loadProject(id);if(!s.run||s.run.book.status!=='ready'||s.run.book.key!==contentKey(s))throw new AppError('The current book preview is not ready.',409);

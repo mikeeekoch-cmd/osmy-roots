@@ -99,10 +99,29 @@
 - Contracts due: 18:28:15 UTC / 14:28:15 EDT. P0 integration: 19:13:15 UTC / 15:13:15 EDT.
 - Feature freeze: 19:28:15 UTC / 15:28:15 EDT. Shared engineering deadline: 19:48:15 UTC / 15:48:15 EDT.
 - Baseline: fetched d10eb59, descendant of validated 556953f, in a separate engineering worktree; preserved the data/export checkout.
-- Lead owns contracts, Astra, state, API and integration. Three Codex subagents cover UI, data/export and product/content ownership for this execution. Existing Claude-authored modules remain preserved; this round does not claim new Claude execution.
+- Lead owns contracts, Astra, state, API and integration. Three Codex helpers support integration and QA. External Natalia and Claude owner branches are also active and are integrated without replacing their history. The existing Product task is the sole owner of the frozen private packet; the Product helper supplies its fictional twin and independent QA.
 - Published schema: packages/contracts/round2.ts. API/module instructions: docs/round-2/CONTRACT-HANDOFF.md. Fictional structural example: docs/round-2/DEMO_MANIFEST.example.json; zero hashes are explicit example placeholders, not a frozen packet.
 - Product is auditing the selected private inputs and building the single private manifest. No content-ready or integrated-demo-ready claim yet.
 - Final gate: exact frozen packet, seven explicit answers, six saved arrivals across at least 45 seconds, current source-reviewed English book, and two actual <=120-second browser rehearsals. Timing and failures must be recorded.
+
+## Round 2 integration checkpoint, 18:46 UTC
+
+- Contracts were pushed at 18:22:43 UTC, T+4:28, in ea320f8. The original engineering clock remains unchanged.
+- Private content is frozen by Product. Read-only runtime parsing validates 16 uploaded files, 35 people, 56 normalized relationships, exact source quotations and original/derivative hashes. The supplied 57-row audit retains its documented duplicate reconciliation. Public test files are a separate fictional twin.
+- Implemented: bounded ordinary intake, seven versioned explicit decisions, actual Astra recollection interpretation, zero visible people before review, dependency-safe saved batches, saved-source provenance, current English book preparation, immutable export sealing, retry, cancellation, portable reopen and photo-pair preservation.
+- Runtime edge-case checks caught and fixed unknown-photo reattachment, relationship-correction semantics, cancelled-book resurrection and undo replacing later batches. Independent tests also verified early export, failed sealed export retry and editable cross-store reopen.
+- Baseline plus integration tests passed at the implementation checkpoint. Combined external-owner merges, production build and full browser acceptance remain in progress. Isolated checks are not demo readiness.
+- A live fictional source-to-Astra-to-reviewed-passage-to-ZIP/reopen smoke test passed in 8.638 seconds. Private live dispatch is pending explicit payload approval after automatic approval review rejected sending the private roster/recollection to OpenAI without that review. No indirect private dispatch is permitted while approval is pending.
+- P0 integration and two fresh browser rehearsals remain open. No integrated-demo-ready claim has been made.
+
+## Round 2 ordinary-document candidate, 18:59 UTC
+
+- The user revised the visible input: a personal one-page PDF, natural family notes, photo notes, three reconstructed chat ZIPs and 14 unchanged original photographs. Product froze a new private packet separately; earlier frozen inputs are preserved. The new packet has 20 files, 35 people and 56 sourced relationships. No enhanced photographs or saved background arrivals are supplied in this packet.
+- Added the bounded prose parser and stable identity-key contract. It derives parent/partner/sibling connections from actual uploaded sentences, retains tentative links and unknown dates, validates all manifest photo associations against parsed captions, and never imports a hidden register.
+- Combined regression suite: 159 tests passed. Production build passed. Exact final packet intake, source spans, photo identities, and roster/link coverage passed with zero people visible before review. The one different date encoding expresses the same two unresolved birth-date alternatives as the reviewed roster.
+- The first browser attempt exposed a harness fingerprint mismatch caused by an omitted default field; schema normalization fixes the measurement. The second stopped honestly on an invalid live model citation. The held-out response now constrains citations to the exact uploaded span while leaving person selection, interpretation, question and uncertainty live. No failed attempt counts as acceptance.
+- Direct user approval for the scoped private OpenAI requests is now present in this task. Earlier automatic-review rejections of cross-task approval evidence remain recorded; the scope excludes photographs, presenter notes and the full archive.
+- Final UI-owner commits are being incorporated before the two fresh private-packet rehearsals. P0 acceptance remains open until those integrated checks succeed.
 ## Additive photo comparison and invisible timing
 
 - Mike is launching the four assignments. Continue them and their existing deadline. The 120-second budget is internal only: no countdown, elapsed session clock, seconds remaining or time-derived progress in any product screen/details. Actual activity and question/count progress remain visible.

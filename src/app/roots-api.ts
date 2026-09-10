@@ -32,6 +32,7 @@ export const rootsApi: RootsApi = {
   prepareFamilyBook: async (id) => result(await fetch(`${path(id)}/book`, {method: "POST"})),
   cancelRun: async (id) => result(await fetch(`${path(id)}/cancel`, {method: "POST"})),
   bookPreviewUrl: (id) => `${path(id)}/book/preview`,
+  retryAnalysis: async (id) => result(await fetch(`${path(id)}/retry`, {method: "POST"})),
   createProject: async (input, files = []) =>
     result(
       await fetch("/api/projects", {

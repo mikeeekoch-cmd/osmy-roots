@@ -199,6 +199,29 @@ test("book selection follows the latest reviewed person after correcting an earl
   );
   assert.equal(s.stories.length, 2);
 });
+test("book selection keeps an accepted ancestor story when the exact presenter seed has no story", async () => {
+  let s = await seed();
+  s = await reviewProposal(s.projectId, {
+    proposalId: syntheticProposal.id,
+    action: "accept",
+    baseVersion: s.version,
+  });
+  s = await updateProject(s.projectId, (draft) => {
+    const presenter = draft.people.find(
+      (person) => person.id !== syntheticProposal.personId,
+    )!;
+    draft.input.seedName = presenter.displayNameEn;
+    // Setup answers are recorded before staged story claims are materialized.
+    for (const entry of draft.history) entry.claimIds = [];
+  });
+  const selected = selectBookClaims(s);
+  assert.ok(selected.length > 0);
+  assert.deepEqual(
+    [...new Set(selected.map((claim) => claim.subjectId))],
+    [syntheticProposal.personId],
+  );
+  assert.deepEqual(selected.map((claim) => claim.id), s.stories[0].claimIds);
+});
 test("same-name candidates remain separate until explicit correction chooses a person", async () => {
   let s = await seed();
   s = await updateProject(s.projectId, (s) => {

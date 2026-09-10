@@ -120,7 +120,7 @@ export async function createProject(
   if (!input.context.trim() && !input.preparedPacket && !files.length)
     throw new AppError("Add family context, files, or a prepared packet.");
   let seed: unknown;
-  const json = files.find((f) => /\.json$/i.test(f.originalName));
+  const json = files.find((f) => f.originalName === "project.json") || files.find((f) => /\.json$/i.test(f.originalName));
   if (json) {
     try {
       const obj = JSON.parse(new TextDecoder().decode(json.bytes));
@@ -149,6 +149,10 @@ export async function createProject(
         acceptedStateVersion: s.version + 1,
       })),
     };
+    if (s.run) {
+      s.previousRuns = [...(s.previousRuns || []), structuredClone(s.run)];
+      delete s.run;
+    }
     s.issues.push(
       "Reopened editable project. Supply original assets with matching filenames if they are not in this local store.",
     );

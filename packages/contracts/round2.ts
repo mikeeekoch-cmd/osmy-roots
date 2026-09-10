@@ -20,6 +20,8 @@ export const GraphBatchSchema = z.object({id: Id, personIds: z.array(Id), relati
 export const SourceJobSchema = z.object({id: Id, kind: z.enum(["saved_folder", "saved_correspondence"]), filePaths: z.array(RelativePath), evidenceRootIds: z.array(Id), releaseOffsetSeconds: z.number().nonnegative()});
 export const DemoManifestSchema = z.object({
   schemaVersion: z.literal("roots-demo-v2"), packetVersion: z.string().min(1),
+  inputFormat: z.enum(["register", "family_notes"]).optional(),
+  identityKeys: z.object({people: z.record(z.string(), Id), relationships: z.record(z.string(), Id), assets: z.record(z.string(), Id)}).optional(),
   script: z.object({title: z.string(), version: z.string(), sha256: Hash}),
   selectedPersonIds: z.array(Id).min(1), expectedRelationshipCount: z.number().int().nonnegative(),
   files: z.array(z.object({path: RelativePath, sha256: Hash, bytes: z.number().int().nonnegative(), sourceIds: z.array(Id), evidenceRootIds: z.array(Id), lineage: z.array(TranslationLineageSchema).default([])})).max(40),
@@ -30,6 +32,15 @@ export const DemoManifestSchema = z.object({
 }).superRefine((m, ctx) => {
   const fail = (message: string) => ctx.addIssue({code: "custom", message});
   if (new Set(m.selectedPersonIds).size !== m.selectedPersonIds.length) fail("Roster IDs must be unique");
+  if (m.inputFormat === "family_notes") {
+    if (!m.identityKeys) fail("Family notes require stable identity keys for their uploaded headings");
+    else {
+      const keyedPeople = Object.values(m.identityKeys.people);
+      if (new Set(keyedPeople).size !== keyedPeople.length || keyedPeople.length !== m.selectedPersonIds.length || keyedPeople.some(id => !m.selectedPersonIds.includes(id))) fail("Identity keys must cover the selected roster exactly once");
+      const keyedRelationships = Object.values(m.identityKeys.relationships);
+      if (new Set(keyedRelationships).size !== keyedRelationships.length || keyedRelationships.length !== m.expectedRelationshipCount) fail("Relationship identity keys must cover the normalized links exactly once");
+    }
+  }
   if (new Set(m.questions.map(q => q.id)).size !== 7 || new Set(m.questions.map(q => q.category)).size !== 7) fail("Seven distinct questions and categories are required");
   const ids = [...m.initialBranchIds, ...m.batches.flatMap(b => b.personIds)];
   if (new Set(ids).size !== ids.length || ids.length !== m.selectedPersonIds.length || ids.some(id => !m.selectedPersonIds.includes(id))) fail("Batch coverage must equal the complete roster exactly once");

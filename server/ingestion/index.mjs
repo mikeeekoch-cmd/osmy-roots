@@ -22,6 +22,7 @@ import { readUploadZip, parseChatText } from './zip.mjs';
 export { normalizeSeed, parseDate } from './normalize-seed.mjs';
 export { searchableTextOf } from './searchable.mjs';
 export { parseFamilyPacket } from './packet.mjs';
+export { parseFamilyNotesPacket } from './family-notes.mjs';
 export { parseCsvWithSpans as parseCsv } from './csv.mjs';
 export { readUploadZip, parseChatText } from './zip.mjs';
 

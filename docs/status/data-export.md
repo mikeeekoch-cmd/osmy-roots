@@ -4,7 +4,7 @@ Execution owner: Codex data/export subagent covering the Claude assignment. No c
 
 Engineering T0: 18:18:15 UTC. Contracts: 18:28:15. P0: 19:13:15. Freeze: 19:28:15. Final deadline: 19:48:15.
 
-Working at 18:30 UTC:
+Implemented and verified during the engineering window:
 
 - Ordinary PDF/CSV/TXT/photo/three-chat-ZIP packet parsing reconstructs the actual selected 35 people and 56 normalized relationships from the supplied files. No internal JSON seed is used.
 - Actual PDF extraction uses local Poppler pdftotext (10 seconds, 2 MB extracted-text cap, at most 10 pages), with original PDF bytes retained. Images remain stored assets without OCR or face recognition.
@@ -17,9 +17,11 @@ Working at 18:30 UTC:
 - Merge checkpoint: 118 focused ingestion/export/research tests passed across both owners. The runtime parseFamilyPacket is retained; optional ingestDemoPacket is preserved in raw-packet.mjs with its own raw-format tests. The canonical checker validates actual manifest hashes, seven exact supports and the supplied batch schedule; it does not invent a plan. The PDF retains the already visually checked full-register layout, plus source guard reporting and the external ToUnicode text-extraction fix.
 - Earlier 54 focused ingestion/export/research tests passed. Mocked retrieval unit tests now inject DNS as well as HTTP and retain an explicit private-DNS rejection case; production DNS checks are unchanged.
 
-Interfaces: parseFamilyPacket({files}) from server/ingestion/index.mjs returns roots-v1 graph/sources/assets plus assetBytes, files, photoAnnotations, relationshipReconciliation and counts. prepareManifestBatches and readSavedSourceJob in server/research validate supplied staging without timers or new facts. Lead currently owns active batch execution.
+V2 prose checkpoint: parseFamilyNotesPacket({files,identityKeys}) now reads ordinary person headings, human-readable dates, relative/partner sentences and photo notes. Actual private v2 passes parser, ProjectSnapshotSchema, validateSnapshot, every photo span, exact app startRound2 photo comparison, manifest hashes, all seven question supports and full staged coverage: 20 uploads, 35 people, 56 relationships (42 accepted, 14 proposed), 14 original photo annotations and all 12 reconstructed chat messages. Identity mappings cannot add hidden facts. Unsupported graph grammar fails. Date conflicts retain both values with unknown precision; missing dates remain unknown. Only explicit left-to-right lines create photo positions. Four fictional-prose tests cover graph reconstruction, extra identity rejection, unpositioned group photos, unknown labels, relative direction, scoped identities, partner meaning and date qualifiers. All 122 focused data/export/research tests and TypeScript checks pass after this change. V1 is preserved.
 
-Pending integration gates: canonical frozen packet hash and full current-book export after actual review, two real-browser Submit-to-Download rehearsals, portable reopen, actual download timing and final shared regression gate. Do not interpret this parser/export status as integrated demo readiness.
+Interfaces: parseFamilyPacket({files}) and parseFamilyNotesPacket({files,identityKeys}) from server/ingestion/index.mjs return roots-v1 graph/sources/assets plus assetBytes, files, photoAnnotations, relationshipReconciliation and counts. prepareManifestBatches and readSavedSourceJob in server/research validate supplied staging without timers or new facts. Lead currently owns active batch execution.
+
+Pending integration gates: full current-book export after actual review, two real-browser Submit-to-Download rehearsals, portable reopen, actual download timing and final shared regression gate. Do not interpret this parser/export status as integrated demo readiness.
 
 ---
 
