@@ -139,5 +139,17 @@ export function validateSnapshot(raw: unknown): ProjectSnapshot {
     if (s.bookStatus === "current" && p.acceptedStateVersion !== s.version)
       throw new AppError("Book passage is stale.");
   }
+  if(s.research){
+    const r=s.research;
+    if(new Set(r.cycles.map(c=>c.id)).size!==r.cycles.length || r.cycles.some((c,i)=>c.ordinal!==i+1||c.kind!==(i===0?'initial':'deeper')))throw new AppError('Research cycles require unique sequential identities.');
+    if(r.cycles.filter(c=>['queued','running','paused'].includes(c.status)).length>1)throw new AppError('Only one research cycle may be active.');
+    if(new Set(r.jobs.map(j=>j.id)).size!==r.jobs.length)throw new AppError('Duplicate research jobs.');
+    for(const j of r.jobs){if(j.cycleId&&!r.cycles.some(c=>c.id===j.cycleId&&c.jobIds.includes(j.id)))throw new AppError('A research job is not owned by its cycle.');if(j.sourceIds.some(id=>!sourceIds.has(id)))throw new AppError('Research job source is unavailable.');}
+    for(const q of r.questionBank){validateSpans(q.support,s);if(!r.cycles.some(c=>c.id===q.cycleId))throw new AppError('Question has no originating cycle.');}
+    for(const p of r.graphProposals){validateSpans(p.support,s);for(const person of p.people)validateSpans(person.support,s);for(const rel of p.relationships)validateSpans(rel.support,s);}
+    for(const pair of r.photoPairQA){const original=s.assets.find(a=>a.id===pair.originalAssetId),enhanced=s.assets.find(a=>a.id===pair.enhancedAssetId);if(!original||!enhanced||original.id===enhanced.id||original.contentHash!==pair.originalHash||enhanced.contentHash!==pair.enhancedHash||!original.mediaType.startsWith('image/')||!enhanced.mediaType.startsWith('image/'))throw new AppError('Photo pair bytes do not match their evidence assets.');if(enhanced.parentAssetId&&enhanced.parentAssetId!==original.id)throw new AppError('Photo derivative has a different original parent.');if(enhanced.parentHash&&enhanced.parentHash!==original.contentHash)throw new AppError('Photo derivative parent hash differs from its original.');if(enhanced.evidenceRootId&&enhanced.evidenceRootId!==pair.evidenceRootId)throw new AppError('Photo derivative has a different evidence root.');for(const crop of [pair.alignment.originalCrop,pair.alignment.enhancedCrop])if(crop&&(crop.some(v=>v<0||v>1)||crop[2]<=0||crop[3]<=0||crop[0]+crop[2]>1||crop[1]+crop[3]>1))throw new AppError('Photo comparison crop is outside the original image.');}
+    for(const portrait of r.portraits){if(!assetIds.has(portrait.assetId))throw new AppError('Portrait asset is unavailable.');validateSpans(portrait.support,s);if(portrait.kind==='reviewed_crop'&&portrait.reviewed&&!portrait.crop)throw new AppError('A person crop needs explicit review.');}
+    if(r.bookPlan)for(const chapter of r.bookPlan.chapters){if(chapter.sourceBookHash!==r.bookPlan.sourceBook.sha256)throw new AppError('Chapter belongs to a different source book.');validateSpans(chapter.support,s);}
+  }
   return s;
 }

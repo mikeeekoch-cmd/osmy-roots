@@ -1,3 +1,4 @@
+import {downloadEdition} from "../../../../../../server/agent/editions";
 import { downloadFamilyBook } from "../../../../../../server/agent/service";
 import { safeRoute } from "../../../../../../server/agent/http";
 import { loadProject } from "../../../../../../server/state/store";
@@ -10,7 +11,7 @@ export async function POST(
   return safeRoute(request, async () => {
     const id = (await params).id;
     const current = await loadProject(id);
-    const bundle = await (current.run ? downloadRound2(id) : downloadFamilyBook(id));
+    const bundle = await (current.research ? downloadEdition(id) : current.run ? downloadRound2(id) : downloadFamilyBook(id));
     return new Response(new Uint8Array(bundle.bytes), {
       headers: {
         "Content-Type": "application/zip",

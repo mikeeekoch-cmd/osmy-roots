@@ -265,4 +265,59 @@ test("caption-associated originals are inspectable without confirming identity o
   assert.deepEqual(s, before);
   assert.deepEqual(person.photoIds, []);
   assert.deepEqual(s.photoAnnotations[0].positions, []);
+  person.importedSourceRefs = ["photo-record"];
+  s.assets.push({id: "source-only", sourceId: "photo-record", mediaType: "image/jpeg", originalName: "Source_original.jpg", byteLength: 10, storageKey: "fixture"});
+  assert.deepEqual(photoIdsForPerson(s, person.id), ["caption-only", "source-only"]);
+});
+
+test("round-3 optional family fields can stay blank", () => {
+  assert.equal(validateInput({...snapshot().input, seedName: "Fictional Alex", geography: "", geographyUnknown: false, researchMode: "round3"}, 1), null);
+});
+test("autofill preserves manual edits, explicit clears, conflicts and unknown family side", async () => {
+  const {applyAutofill, emptyProfile, updateProfile, fieldValue} = await import("../../src/ui/intake");
+  const p = updateProfile(emptyProfile(), "self.fullName", "Manual Alex");
+  const support = [{sourceId: "source", locator: "line 1", quote: "Fictional record"}];
+  const draft = {id: "draft", createdAt: new Date().toISOString(), inputFingerprint: "a".repeat(64), appliedPaths: [], fields: [
+    {path: "self.fullName", value: "Other Alex", support, conflicts: []},
+    {path: "self.birthPlace", value: "Fictional Harbor", support, conflicts: []},
+    {path: "father.fullName", value: "Fictional Morgan", support, conflicts: []},
+    {path: "mother.birthYear", value: "1940", support, conflicts: ["1941"]},
+    {path: "grandfather.fullName", value: "Fictional Lee", support, conflicts: []},
+    {path: "__proto__.polluted", value: "bad", support, conflicts: []},
+  ]};
+  const result = applyAutofill(p, draft, new Set(["father.fullName"]));
+  assert.equal(result.profile.self.fullName, "Manual Alex");
+  assert.equal(result.profile.self.birthPlace, "Fictional Harbor");
+  assert.equal(fieldValue(result.profile, "father.fullName"), "");
+  assert.equal(fieldValue(result.profile, "mother.birthYear"), "");
+  assert.equal(result.profile.grandfather?.side, "unknown");
+  assert.deepEqual(result.applied, ["self.birthPlace", "grandfather.fullName"]);
+  assert.equal(p.self.birthPlace, "");
+});
+test("research controls resume saved state without inventing a fourth round", async () => {
+  const {nextCycleAction} = await import("../../src/ui/ResearchCycles");
+  const {Round3StateSchema, ResearchCycleSchema} = await import("../../packages/contracts");
+  const s = snapshot();
+  const at = new Date().toISOString(), hash = "a".repeat(64);
+  s.research = Round3StateSchema.parse({schemaVersion: "roots-research-v3", packetVersion: "fictional", packetHash: hash, intake: {id: "intake", status: "ready", startedAt: at, inputFingerprint: hash, questionIds: ["1","2","3","4","5","6"], jobIds: []}});
+  assert.equal(nextCycleAction(s), "initial");
+  for (let ordinal = 1; ordinal <= 3; ordinal++) {
+    s.research.cycles.push(ResearchCycleSchema.parse({id: `cycle-${ordinal}`, ordinal, kind: ordinal === 1 ? "initial" : "deeper", requestId: `request-${ordinal}`, inputFingerprint: hash, status: "running", createdAt: at}));
+    assert.equal(nextCycleAction(s), null);
+    s.research.cycles.at(-1)!.status = "failed";
+    assert.equal(nextCycleAction(s), null);
+    s.research.cycles.at(-1)!.status = "cancelled";
+    assert.equal(nextCycleAction(s), null);
+    s.research.cycles.at(-1)!.status = "completed";
+    assert.equal(nextCycleAction(s), ordinal < 3 ? "deeper" : null);
+  }
+});
+test("shared group photos cannot masquerade as independent solo portraits", async () => {
+  const {portraitForPerson} = await import("../../src/ui/PersonPortrait");
+  const s = snapshot();
+  s.assets.push({id: "group-fixture", sourceId: s.sources[0].id, mediaType: "image/png", originalName: "Fictional group.png", byteLength: 10, storageKey: "fixture"});
+  s.people[0].photoIds = [s.assets[0].id];
+  s.people[1].photoIds = [s.assets[0].id];
+  assert.equal(portraitForPerson(s, s.people[0].id), undefined);
+  assert.equal(portraitForPerson(s, s.people[1].id), undefined);
 });

@@ -85,6 +85,8 @@ export function EvidenceDrawer({
     : [];
   const galleryPhotoIds = person ? photoIdsForPerson(snapshot, person.id) : [];
   const sourceIds = new Set([
+    ...(person?.importedSourceRefs || []),
+    ...(snapshot.photoAnnotations || []).filter(a => galleryPhotoIds.includes(a.assetId)).flatMap(a => a.support.map(s => s.sourceId)),
     ...claims.flatMap((c) => c.sourceIds),
     ...stories.flatMap((s) => s.sourceIds),
     ...snapshot.assets
@@ -234,6 +236,8 @@ export function EvidenceDrawer({
           api={api}
         />
       )}
+      {snapshot.assets.some(a => sourceIds.has(a.sourceId) && !a.mediaType.startsWith("image/")) && <section className="person-documents"><h3>Original documents</h3>{snapshot.assets.filter(a => (sourceIds.has(a.sourceId) || a.sourceId === directSource?.id) && !a.mediaType.startsWith("image/")).map(a => <a key={a.id} href={api.assetUrl(snapshot.projectId, a.id)} target="_blank" rel="noreferrer">{a.originalName} ↗</a>)}</section>}
+      {directSource && <section className="person-documents">{snapshot.assets.filter(a => a.sourceId === directSource.id && !a.mediaType.startsWith("image/")).map(a => <a key={a.id} href={api.assetUrl(snapshot.projectId, a.id)} target="_blank" rel="noreferrer">Open original: {a.originalName} ↗</a>)}</section>}
       {sources.length ? (
         sources.map((s) => <SourceEvidence key={s.id} source={s} />)
       ) : (

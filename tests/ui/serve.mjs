@@ -7,9 +7,10 @@ import { resolve } from "node:path";
 const require = createRequire(import.meta.url);
 const { build } = createRequire(require.resolve("tsx/package.json"))("esbuild");
 const connected = process.env.ROOTS_UI_CONNECTED === "1";
+const round3 = process.env.ROOTS_UI_ROUND3 === "1";
 const round2 = process.env.ROOTS_UI_ROUND2 === "1";
-const port = round2 ? 3103 : connected ? 3102 : 3101;
-const entry = round2 ? "round2-preview" : connected ? "connected" : "preview";
+const port = Number(process.env.ROOTS_UI_PORT) || (round3 ? 3104 : round2 ? 3103 : connected ? 3102 : 3101);
+const entry = round3 ? "round3-preview" : round2 ? "round2-preview" : connected ? "connected" : "preview";
 const output = resolve(".ui-preview", entry);
 await mkdir(output, { recursive: true });
 await build({
@@ -20,13 +21,13 @@ await build({
   platform: "browser",
   sourcemap: true,
 });
-createServer(async (req, res) => {
+if (process.env.ROOTS_UI_BUILD_ONLY !== "1") createServer(async (req, res) => {
   try {
     if (connected && req.url?.startsWith("/api/")) {
       const upstream = request(
         {
           hostname: "127.0.0.1",
-          port: 3100,
+          port: Number(process.env.ROOTS_UI_API_PORT) || 3100,
           path: req.url,
           method: req.method,
           headers: req.headers,
@@ -42,7 +43,12 @@ createServer(async (req, res) => {
       req.pipe(upstream);
       return;
     }
-    if (req.url === "/") {
+    if (req.url === "/mobile") {
+      res.setHeader("content-type", "text/html");
+      res.end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mobile UI fixture</title></head><body style="margin:0;background:#ddd"><p>Fictional UI at 390 × 844 CSS pixels. Touch hardware is not emulated.</p><iframe title="Mobile UI" src="/" style="display:block;width:390px;height:844px;border:0"></iframe></body></html>');
+      return;
+    }
+    if (req.url?.split("?")[0] === "/") {
       res.setHeader("content-type", "text/html");
       res.end(
         `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Osmy Roots · ${connected ? "connected UI" : "development replay"}</title><link rel="stylesheet" href="/${entry}.css"></head><body style="margin:0"><div id="root"></div><script src="/${entry}.js"></script></body></html>`,

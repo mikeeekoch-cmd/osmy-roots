@@ -20,3 +20,7 @@ exports/
 .claude/settings.local.json
 .roots-data/
 *.tsbuildinfo
+
+.next-round3/
+
+.next-round3-build/

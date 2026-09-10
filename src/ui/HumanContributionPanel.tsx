@@ -1,9 +1,10 @@
 import { uploadIssue } from "./upload";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { ProjectSnapshot, ReviewDecision, RootsApi } from "./types";
 import { FilePicker } from "./FilePicker";
 import { label } from "./model";
 export function HumanContributionPanel({
+  children,
   snapshot,
   selectedId,
   busy,
@@ -12,6 +13,7 @@ export function HumanContributionPanel({
   focusedProposalId,
   onFocusProposal,
 }: {
+  children?: ReactNode;
   snapshot: ProjectSnapshot;
   selectedId: string | null;
   busy: boolean;
@@ -96,6 +98,7 @@ export function HumanContributionPanel({
   };
   return (
     <aside className="human-panel">
+      {children}
       <span className="eyebrow">Your turn</span>
       <h2>
         You know the people.

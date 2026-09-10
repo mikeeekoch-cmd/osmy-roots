@@ -1,0 +1,142 @@
+/** Fictional local API QA seed; injected intake interpretation only, never live-model evidence. */
+import { readFile, readdir, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import {
+  DemoManifestSchema,
+  DemoManifestV3Schema,
+} from "../../packages/contracts";
+import { startRound2 } from "../../server/agent/round2";
+import { executeResearch } from "../../server/agent/research";
+const fixture = resolve("tests/fixtures/round2/packet");
+const at = () => new Date().toISOString();
+const intake: any = async (s: any, source: any): Promise<any> => ({
+  id: "intake-analysis",
+  personId: "F005",
+  candidatePersonIds: ["F005"],
+  text: "A family recollection about Alder.",
+  predicate: "craft",
+  evidenceType: "family_recollection",
+  sourceIds: [source.id],
+  spans: [
+    {
+      sourceId: source.id,
+      locator: source.originalLocator,
+      quote: source.originalText,
+    },
+  ],
+  question: "Does this recollection belong to Alder?",
+  uncertainty: "Family memory.",
+  status: "pending",
+  model: "test-stub",
+  origin: "live",
+  createdAt: at(),
+});
+async function setup() {
+  const root = "/private/tmp/osmy-natalia-round3-ui";
+  process.env.ROOTS_DATA_DIR = root;
+  const m = DemoManifestSchema.parse(
+    JSON.parse(await readFile(join(fixture, "DEMO_MANIFEST.json"), "utf8")),
+  );
+  const photo = m.questions.find((q) => q.category === "photo")!;
+  const questions = [
+    ...m.photos
+      .slice(0, 3)
+      .map((p, i) => ({
+        ...photo,
+        id: `photo-check-${i}`,
+        support: p.support,
+        personIds: [
+          ...new Set(p.positions.map((x) => x.personId).filter(Boolean)),
+        ],
+        photoAssetId: p.assetId,
+        photoEra: i === 0 ? "modern" : "old",
+        effect: { kind: "annotation", photoAssetId: p.assetId },
+      })),
+    m.questions.find((q) => q.category === "origin"),
+    m.questions.find((q) => q.requiresAstra),
+    m.questions.find((q) => q.category === "conflict"),
+  ];
+  const support = m.questions.find((q) => q.requiresAstra)!.support;
+  const manifest = DemoManifestV3Schema.parse({
+    ...m,
+    schemaVersion: "roots-demo-v3",
+    inputFormat: "register",
+    identityKeys: { people: {}, relationships: {}, assets: {} },
+    questions,
+    oldPhotoAssetIds: m.photos.slice(1, 3).map((p) => p.assetId),
+    photoPairs: [],
+    autofill: {
+      id: "fictional-autofill",
+      inputFingerprint: "c".repeat(64),
+      createdAt: at(),
+      fields: [
+        { path: "self.fullName", value: "Alder Vale", support, conflicts: [] },
+      ],
+    },
+    researchSources: [1, 2, 3].map((n) => ({
+      id: `scope-${n}`,
+      kind: "local",
+      sourceIds: [support[0].sourceId],
+      cycleOrdinal: n,
+      query: "Alder",
+    })),
+    bookPlan: {
+      id: "fictional-book-plan",
+      sourceBook: {
+        title: "Fictional reference",
+        sha256: "a".repeat(64),
+        edition: "test",
+      },
+      language: "en",
+      pageRange: [35, 40],
+      chapters: [
+        {
+          id: "chapter-1",
+          title: "Supplied recollection",
+          text: "Fictional fixture for runtime tests.",
+          sourceBookHash: "a".repeat(64),
+          sourceLocators: ["paragraph 1"],
+          support,
+          personIds: m.selectedPersonIds,
+          assetIds: [],
+          origin: "prepared",
+          language: "en",
+          fingerprint: "b".repeat(64),
+        },
+      ],
+      selectedPersonIds: m.selectedPersonIds,
+      selectedOriginalAssetIds: m.photos.map((p) => p.assetId),
+      coverage: [],
+    },
+  });
+  const files = await Promise.all(
+    (await readdir(join(fixture, "01-upload"))).map(async (originalName) => ({
+      uploadId: originalName,
+      originalName,
+      mediaType: "application/octet-stream",
+      bytes: new Uint8Array(
+        await readFile(join(fixture, "01-upload", originalName)),
+      ),
+    })),
+  );
+  let s = await startRound2(
+    { seedName: "Fictional API browser QA", researchMode: "round3" },
+    files,
+    { manifest: manifest as any },
+  );
+  return { root, s, manifest, files };
+}
+const f = await setup();
+await writeFile(
+  join(f.root, "FICTIONAL_UI_MANIFEST.json"),
+  JSON.stringify(f.manifest, null, 2),
+);
+await executeResearch(f.s.projectId, { intakeAnalyze: { analyze: intake } });
+console.log(
+  JSON.stringify({
+    projectId: f.s.projectId,
+    root: f.root,
+    scope:
+      "Fictional prepared intake; actual persisted HTTP UI QA. No live model pass.",
+  }),
+);

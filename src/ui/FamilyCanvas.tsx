@@ -1,3 +1,4 @@
+import { portraitForPerson, PersonPortrait } from "./PersonPortrait";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectSnapshot, RootsApi } from "./types";
 import { branchIds, familyLayout, stableFamilyLayout, isParent, years } from "./model";
@@ -342,20 +343,7 @@ export function FamilyCanvas({
                   onClick={() => onSelect(p.id)}
                 >
                   <div className="person-portrait">
-                    {p.photoIds[0] ? (
-                      <OriginalPhoto
-                        src={api.assetUrl(snapshot.projectId, p.photoIds[0])}
-                        alt={`${p.displayNameEn}, original family photo`}
-                      />
-                    ) : (
-                      <span>
-                        {p.displayNameEn
-                          .split(" ")
-                          .map((n) => n[0])
-                          .slice(0, 2)
-                          .join("")}
-                      </span>
-                    )}
+                    <PersonPortrait person={p} portrait={portraitForPerson(snapshot, p.id)} api={api} projectId={snapshot.projectId} />
                   </div>
                   <strong>{p.displayNameEn}</strong>
                   <small>{years(p)}</small>

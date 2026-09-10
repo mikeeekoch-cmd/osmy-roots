@@ -1,3 +1,9 @@
+## Active implementation checkpoint
+
+Contracts 0eea05b pushed at approximately T+3 minutes. Core round-3 runtime and routes now implemented locally: explicit cycle state/actions, persisted Astra plans/jobs, intake analysis, later bank answers, atomic graph review, authoritative metrics, provider OAuth/read boundary, autofill drafts and immutable current-book wrapper. Typecheck passes. Tests and integrated candidate are next; no runtime acceptance claimed yet.
+
+User update: mock Google Drive/Gmail connections using prepared copies are now explicitly selected for this demo. mode=demo is published in ConnectionStatus. Real Astra work remains required; actual OAuth credentials/read acceptance is superseded for this presentation. Natalia should render Demo beside the connected state and use prepared-copy details. Claude retains single private packet ownership.
+
 # Round 3 execution checkpoint
 
 Started 2026-09-10T20:08:05Z on codex/engineering at a7d50ab. Origin fetched. Round-2 production on 3200 remains untouched; round-3 candidate will use 3300 and an isolated build directory. Actual versioned contracts and API examples published in packages/contracts/round3.ts and docs/round-3/API.md. Natalia and Claude retain their ownership; no replacement agents.
@@ -153,3 +159,57 @@ Read-only code/content audits and a live intake inspection informed the plan. Cu
 - Read-only inspection located two existing private original/enhanced candidate pairs. Their filenames, hashes and alignment/provenance caveats are in an ignored local handoff. No new restoration was run and no private images entered Git. Different crop/geometry must be checked before a usable comparison is claimed.
 - Important integration detail: the existing photo lightbox captures left/right arrows globally and traps focus on buttons. Natalia must make the range control keyboard-accessible without triggering gallery paging or escaping the focus trap.
 - This is an additive instruction pass, not a feature implementation claim. Core P0 integration continues while content pairs are prepared; local restoration belongs before the timed demo. Final rehearsal includes a brief comparison within the existing map-review segment.
+
+## Integration requests after 32191ee
+
+Natalia UI 1523329 is merged into engineering. Five additional cycle/graph/provider tests pass (fixture model, not live acceptance). Preserve the UI owner changes. Current UI ProviderConnections still requires verifiedAt/connectionId for Connected; please consume the user's new mode=demo contract and display Demo connection state without a fabricated verified read. For demo connect, the server returns a same-origin URL and persists the mock connection; refresh the status in place instead of opening a second app tab. Hide OAuth ID/verify/import controls in this mode; selected prepared copies remain normal source files. User chose this explicitly after the original assignment.
+
+Claude: the edition wrapper now passes options.bookPlan and options.bookEdition to buildFamilyBundle and disables compactChapter for research snapshots. The resulting book.pdf must contain 35-40 real pages or preparation stays error. Please publish callable renderer/packet handoff as soon as available. Need actual public search adapter signature and private v3 manifest when frozen. Runtime continues on source-grounded local searches meanwhile.
+
+## 20:27 UTC verified checkpoint
+
+The integrated intake is running at 3300 with webpack; Turbopack rejected the pre-existing cross-worktree dependency symlink, so the running 3200 baseline and installed dependencies were retained. Actual isolated Chrome verified both Drive/Gmail demo connect actions and persisted Demo/Connected display with no page errors. No OAuth read is claimed.
+
+All 180 baseline/UI/cycle tests passed before one further cancellation test, which also passes. The actual fictional gpt-6-astra plan plus analysis returned two new people and one relationship in 15.057 seconds. Private content acceptance awaits Claude's frozen v3 manifest and callable long-book renderer. Book preview/download now use identical PDF bytes; sealed downloads preserve immutable delivered ZIP bytes and record stopped jobs. Later confirmed/corrected bank answers update their dependent saved claim, while explicit graph review remains separate.
+
+## Small UI recovery request
+
+Natalia: cancelled cycles currently fall through nextCycleAction to Research deeper, but the server correctly requires retry of the same cancelled cycle ID before any deeper cycle. Include cancelled in the active/recoverable cycle selector and show Retry this round (action retry) for failed/cancelled. Keep cancellation truth visible; do not silently start a new ordinal. This is a narrow recovery fix; preserve the current flow.
+
+Runtime update: default intake metrics now include actual parsed file jobs and deterministic source-span checks before the first model result. Unknown/corrected/skipped photo answers revoke the corresponding reviewed portrait while retaining the original gallery and all pair bytes. Existing-person research answers update their dependent claim; family recollection provenance survives reviewed new-person/relationship application.
+
+Content integration note for Claude: the per-section page budgets in the first private handoff sum to 46, although its target says 38-40. Please reconcile actual pagination with the binding 35-40 range while preserving supported coverage. The edition gate checks actual PDF pages, so the earlier budget is not treated as completed pagination. Prepared derivative assets are now supported explicitly through manifest.preparedAssets; the originals-only files count stays 33.
+
+## Continuing integration after Natalia browser handoff
+
+Natalia de351f9 is integrated, including cancelled-cycle recovery and her explicitly fictional browser matrix. The final private acceptance remains separate. The lead rehearsal now checks every original through its actual card/full viewer, all pair bytes, mouse/touch/keyboard controls, focus return, three real analysis rounds, and preview/download equality. The runtime plan receives selected source titles, bounded text excerpts and source queries instead of opaque IDs alone. Empty analyses save no-match outcomes without fabricated findings. Search result URLs do not count as retrieved pages.
+
+Edition files now have unique edition IDs as well as content fingerprints, so a later rebuild cannot overwrite an earlier delivered artifact. The first edit preserves sealed edition metadata in history, and job bookkeeping alone does not mark an unchanged book stale. Interrupted seal receipts can recover from the saved PDF/portable metadata. The test cleanup now waits for remaining cycle workers before removing its store, addressing the asynchronous cleanup race reported by Natalia.
+
+## Renderer/retrieval handoff received
+
+Claude 588cf1f is merged. The private prepared PDF reports 40 actual pages at this first rendering checkpoint; integrated current-state book acceptance is still pending. Two precise remaining adapter needs: (1) buildFamilyBundle must route options.bookPlan to renderBookEdition and include those same prepared chapters/current decisions in book.html plus actual page coverage; its current index still selects the four-page renderer. (2) crawlLinkedPages currently discards result.source text and returns metadata only. Please include the retrieved Source on successful page rows (and mark cached copies origin=cached) so the lead can persist exact evidence and analyze it without fetching every page a second time. The lead is wiring public-search jobs now.
+
+## First v3 manifest validation result
+
+The first private v3 manifest is readable but does not yet pass the published schema. File lineage entries at indexes 3, 7 and 8 use kind/of/ofLocator/note; TranslationLineage requires originalHash, originalLocator, derivativeHash and language=en (method/reviewer optional). The corresponding file hash is the derivativeHash, and the existing of/ofLocator fields provide the original provenance. Also preparedAssets is absent/empty while twelve pairs reference external derivatives. Please emit those twelve explicit path/hash/bytes/mediaType/assetId rows; they were added to the contract in be235c0. No runtime guard has been relaxed. Research sources are present across all three ordinals.
+
+The lead visually inspected all 40 pages of the first prepared English PDF and checked text bounds. No clipped text or broken images observed. The contents leader rules cross the longest titles slightly; please size/omit the rule after long titles if practical. This is preliminary content QA, not a current research edition or final acceptance.
+
+A second manifest integration check found the initial branch plus all researchSources.personIds cover only 18 of the 35 selected people. Seventeen supplied people have no release scope. Please complete the source-supported import groups across the three ordinals, preserving source IDs and provenance. The runtime imports only requested people whose actual claim spans belong to retrieved sources; it does not fill this gap by forcing Astra outputs. The final browser harness now asserts all selected IDs are present after round 3.
+
+Public-search integration is implemented with explicit selected queries, actual provider outcomes and at most two allowed returned leads per job. Unconfigured adapters record zero network attempts and no page credit. Completed no-match model calls count as analyses without adding findings. Latest complete combined suite passed 206 tests before the final source-count/response-summary refinement; focused verification follows.
+
+The raw parser pass succeeds independently: 33 files, 35 people, 56 relationships, zero file failures. Six question and all photo/portrait support spans resolve. All 30 book-chapter support spans still fail runtime validation: their locator is a per-page editorial locator, while the saved source locator is the extracted-pages locator; most quotes also collapse whitespace that the actual PDF text preserves. Please generate BookPlan.support from exact parsed source.originalText slices and source.originalLocator (with optional exact offsets); retain the meaningful Russian page/paragraph mapping separately in chapter.sourceLocators. Do not discard chapter support or weaken the literal-span gate. All 33 original hashes, 24 image decodes and 12 derivative hashes/dimensions independently passed.
+
+## Saved-project restore follow-up for Natalia
+
+The complete v3 portable selection contains 33 original files plus 12 derivatives, 3 extracted chat files and two JSON metadata files. These are 50 restored parts, not 50 new sources. The server keeps the 40-new-source / 100 MB total / 25 MB per-file policy, but allows up to PORTABLE_RESTORE_MAX_PARTS=202 only on project restore after validating the saved snapshot, <=40 originals, and every extra asset hash. Arbitrary new files cannot use this path. research-stage.json now preserves the original six-check definitions and supplied graph without machine paths, allowing revisits and unfinished rounds after portable reopen.
+
+Please have savedProject FilePicker and the reopen submit call use the restored-parts bound while retaining all byte limits; ordinary intake stays 40. Mention project.json, research-stage.json and all photos/uploads in the reopen helper. The current unconditional 40-file UI gate would block the complete portable packet. Keep this a narrow integration change.
+
+## Mechanical packet integration applied by the lead
+
+The merged candidate passed 227 tests. The private manifest still used an earlier contract after the renderer handoff, so the lead applied bounded compatibility corrections to the canonical ignored manifest: translation-lineage names, twelve hash-verified prepared asset paths, actual parsed source locators while retaining exact quotes, and source-supported release coverage for the already selected people. Original uploads, chapter text, photo QA and portrait decisions were preserved. The prior manifest and a machine-readable change receipt are retained under its existing ignored 99-build directory. Claude: preserve these integration corrections when rerunning the private builder; the current source parser now exposes up to forty PDF pages, so derive the locator from its actual source rather than a previous extraction cap. No additional family assertion was authored.
+
+The current-passage cache now depends on the reviewed claims, their people and stories. Photo-only or job-status changes reuse that passage; changed reviewed evidence regenerates it. Prepared English chapter text is reused while pagination and current decisions are rebuilt from saved state. The focused cache/restore/cycle suite passed eleven tests.
