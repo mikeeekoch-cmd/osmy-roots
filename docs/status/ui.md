@@ -1,6 +1,18 @@
 # Codex Natalia: UI and animations
 
-## Current handoff: 17:14 UTC
+## Current round-2 handoff
+
+- Branch **codex/ui**, tested code **bc6fe9a**; incorporates engineering **ea320f8**, including **d10eb59, 7acf6eb and e36f6ea**, without discarded commits.
+- Shared T0 **18:18:15 UTC**; integration **19:13:15**; freeze **19:28:15**; deadline **19:48:15**. This is the lead's existing clock.
+- Ready client work: compact files-only intake, Osmy Roots logo, shared upload limits, immediate preparation, seven sourced/versioned answers, saved graph/photo/story highlights, stable camera, saved-source cards, book preview and truthful download/retry. Prior graph/review/undo/late-clue/gallery/reopen behavior is retained.
+- Original/Enhanced comparison is implemented inside OriginalPhotos with a render-only adapter; two fictional pairs, keyboard, unpaired/missing/unaligned fallback and reset behavior were browser checked. **Production person-card pairing awaits the lead's optional validated pair metadata.** No filename inference or competing schema.
+- **Checks:** typecheck PASS; 77 tests PASS; production build PASS with the two existing local-store tracing warnings. Actual browser portable reopen and Unknown/refresh passed. Seven questions, preparation failure, saved arrivals and comparison were exercised on the explicitly labeled contract harness, not a frozen Product packet.
+- **Main-agent callout:** wire answerSetupQuestion/prepareFamilyBook/cancelRun in the browser adapter, publish pair/alignment metadata, and deliver the Product fictional twin. Consume this branch before any overlapping UI rewrite. Backend/contracts/dependencies remain lead-owned.
+- **Not yet validated:** connected round-2 run, exact Product twin, live held-out Astra review, six timed saved batches, current sealed ZIP, pair hashes/reopen and two <=120-second complete rehearsals. UI harness checks do not close these gates.
+- Reproduce and distinguish evidence: tests/ui/ROUND2-BROWSER-CHECKS.md. Local production app runs on port 3100. Private Drive root/execution listings were refreshed; complete context sync and results upload remain unverified.
+
+
+## Historical round-1 handoff: 17:14 UTC
 
 - Ready to integrate: **codex/ui, code c78696c**, on lead/main a5de7c4. Full assignment P0 is connected; P1 source-to-person motion, branch navigation and accessible gallery paging are implemented and browser-checked after the lead opened the gate.
 - **Validation:** typecheck PASS, all 72 tests PASS, production build PASS. Production server starts successfully and browser restores the saved project. Production Unknown remained unresolved with zero acceptance receipts. Two existing dynamic local-storage tracing warnings remain in lead-owned server/state/store.ts; no UI build error.
