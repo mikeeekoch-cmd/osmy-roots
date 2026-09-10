@@ -1,31 +1,275 @@
-import { test, before, after } from 'node:test';
-import assert from 'node:assert/strict';
-import { createHash, randomUUID } from 'node:crypto';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
-import { syntheticSnapshot, syntheticProposal, syntheticQuote } from '../packages/contracts/fixtures';
-import type { DataModules, Source, BookPassage } from '../packages/contracts';
-import { addContribution, downloadFamilyBook, type AgentModules } from '../server/agent/service';
-import { createSavedProject, loadProject } from '../server/state/store';
-import { reviewProposal, mutateGraph } from '../server/state/decisions';
-import { AppError } from '../server/state/validation';
-import { localRequest } from '../server/agent/http';
-let dir:string;
-before(async()=>{dir=await mkdtemp(join(tmpdir(),'roots-flow-test-'));process.env.ROOTS_DATA_DIR=dir});
-after(async()=>{await rm(dir,{recursive:true,force:true})});
-const modules:DataModules={
- async importPreparedFamily(){throw new Error('Unused test path')},
- async ingestContribution({text}){const hash=createHash('sha256').update(text||'').digest('hex');return {sources:[{id:`source-${hash}`,kind:'text',originalLocator:'pasted-memory.txt',contentHash:hash,originalText:text||'',origin:'live',author:null,messageTimestamp:null,parentAttachmentId:null}],assets:[],assetBytes:[],duplicateHashes:[],files:[]}},
- async searchLocalSources({query,sources}){const hits=sources.filter(s=>s.originalText.includes(query)).map(s=>({sourceId:s.id,snippet:s.originalText,locator:s.originalLocator,score:1}));return {hits,status:hits.length?'ok':'no_match'}},
- async fetchPublicRecord(){return {status:'blocked',error:'Explicit test block; not a live fetch'}},
- async buildFamilyBundle({snapshot,passages}){return {bytes:new TextEncoder().encode(JSON.stringify({snapshot,passages})),filename:'test-only.json',mimeType:'application/json',manifest:{testOnly:true}}}
+import { test, before, after } from "node:test";
+import assert from "node:assert/strict";
+import { createHash, randomUUID } from "node:crypto";
+import { mkdtemp, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import {
+  syntheticSnapshot,
+  syntheticProposal,
+  syntheticQuote,
+} from "../packages/contracts/fixtures";
+import type { DataModules, Source, BookPassage } from "../packages/contracts";
+import {
+  addContribution,
+  downloadFamilyBook,
+  type AgentModules,
+} from "../server/agent/service";
+import { createSavedProject, loadProject } from "../server/state/store";
+import { reviewProposal, mutateGraph } from "../server/state/decisions";
+import { AppError } from "../server/state/validation";
+import { localRequest } from "../server/agent/http";
+let dir: string;
+before(async () => {
+  dir = await mkdtemp(join(tmpdir(), "roots-flow-test-"));
+  process.env.ROOTS_DATA_DIR = dir;
+});
+after(async () => {
+  await rm(dir, { recursive: true, force: true });
+});
+const modules: DataModules = {
+  async importPreparedFamily() {
+    throw new Error("Unused test path");
+  },
+  async ingestContribution({ text }) {
+    const hash = createHash("sha256")
+      .update(text || "")
+      .digest("hex");
+    return {
+      sources: [
+        {
+          id: `source-${hash}`,
+          kind: "text",
+          originalLocator: "pasted-memory.txt",
+          contentHash: hash,
+          originalText: text || "",
+          origin: "live",
+          author: null,
+          messageTimestamp: null,
+          parentAttachmentId: null,
+        },
+      ],
+      assets: [],
+      assetBytes: [],
+      duplicateHashes: [],
+      files: [],
+    };
+  },
+  async searchLocalSources({ query, sources }) {
+    const hits = sources
+      .filter((s) => s.originalText.includes(query))
+      .map((s) => ({
+        sourceId: s.id,
+        snippet: s.originalText,
+        locator: s.originalLocator,
+        score: 1,
+      }));
+    return { hits, status: hits.length ? "ok" : "no_match" };
+  },
+  async fetchPublicRecord() {
+    return {
+      status: "blocked",
+      error: "Explicit test block; not a live fetch",
+    };
+  },
+  async buildFamilyBundle({ snapshot, passages }) {
+    return {
+      bytes: new TextEncoder().encode(JSON.stringify({ snapshot, passages })),
+      filename: "test-only.json",
+      mimeType: "application/json",
+      manifest: { testOnly: true },
+    };
+  },
 };
-const fake:AgentModules={async analyze(snapshot,source){return {...structuredClone(syntheticProposal),id:`proposal-${randomUUID()}`,model:'TEST_ONLY',origin:'prepared',sourceIds:[source.id],spans:[{sourceId:source.id,locator:source.originalLocator,quote:source.originalText}]}},async passage(s){const claim=s.claims.find(c=>c.status==='accepted')!;return {id:'test-passage',text:'TEST ONLY: '+claim.value,claimIds:[claim.id],sourceIds:claim.sourceIds,sourceLocators:claim.spans,acceptedStateVersion:s.version,origin:'prepared',model:'TEST_ONLY'}}};
-async function seed(){const s=structuredClone(syntheticSnapshot);s.projectId=randomUUID();s.sources=[];s.researchEvents=[];return createSavedProject(s)}
-test('source > proposal > human acceptance > current passage export, twice (injected TEST_ONLY model/package)',async()=>{for(let i=0;i<2;i++){let s=await seed();s=await addContribution(s.projectId,{text:syntheticQuote},modules,fake);assert.equal(s.proposals.length,1);assert.equal(s.stories.length,0);assert.equal(s.researchEvents.filter(e=>e.operation==='search_local').length,1);s=await reviewProposal(s.projectId,{proposalId:s.proposals[0].id,action:'accept',baseVersion:s.version});const result=await downloadFamilyBook(s.projectId,modules,fake);const decoded=JSON.parse(new TextDecoder().decode(result.bytes));assert.equal(decoded.snapshot.stories.length,1);assert.equal(decoded.passages[0].sourceLocators[0].quote,syntheticQuote);assert.equal(decoded.passages[0].acceptedStateVersion,decoded.snapshot.version);assert.equal((await loadProject(s.projectId)).bookStatus,'current')}});
-test('duplicate concurrent source invokes analysis once and deduplicates records',async()=>{const s=await seed();let calls=0;const agent={...fake,async analyze(...args:Parameters<AgentModules['analyze']>){calls++;await new Promise(r=>setTimeout(r,70));return fake.analyze(...args)}};await Promise.all([addContribution(s.projectId,{text:syntheticQuote},modules,agent),addContribution(s.projectId,{text:syntheticQuote},modules,agent)]);await addContribution(s.projectId,{text:syntheticQuote},modules,agent);const saved=await loadProject(s.projectId);assert.equal(calls,1);assert.equal(saved.sources.length,1);assert.equal(saved.proposals.length,1)});
-test('failed model leaves saved source and explicit failed event; subsequent retry can succeed',async()=>{const s=await seed();const fail={...fake,async analyze():Promise<never>{throw new AppError('Model access unavailable.',503,'MODEL_NOT_CONFIGURED')}};let saved=await addContribution(s.projectId,{text:syntheticQuote},modules,fail);assert.equal(saved.proposals.length,0);assert.equal(saved.sources.length,1);assert.ok(saved.researchEvents.some(e=>e.operation==='analyze_record'&&e.state==='failed'));saved=await addContribution(s.projectId,{text:syntheticQuote},modules,fake);assert.equal(saved.proposals.length,1);assert.equal(saved.sources.length,1)});
-test('human changes during generation prevent stale output',async()=>{let s=await seed();s=await addContribution(s.projectId,{text:syntheticQuote},modules,fake);s=await reviewProposal(s.projectId,{proposalId:s.proposals[0].id,action:'accept',baseVersion:s.version});const agent={...fake,async passage(old:Parameters<AgentModules['passage']>[0]){const live=await loadProject(old.projectId);await mutateGraph(old.projectId,{operation:'editPerson',entityId:'person-2',values:{displayNameEn:'Changed during generation'},baseVersion:live.version});return fake.passage(old)}};await assert.rejects(()=>downloadFamilyBook(s.projectId,modules,agent),{code:'STALE_GENERATION'});assert.equal((await loadProject(s.projectId)).bookStatus,'failed')});
-test('unknown never produces book facts',async()=>{let s=await seed();s=await addContribution(s.projectId,{text:syntheticQuote},modules,fake);s=await reviewProposal(s.projectId,{proposalId:s.proposals[0].id,action:'unknown',baseVersion:s.version});assert.equal(s.claims.length,0);assert.equal(s.stories.length,0)});
-test('localhost origin guard rejects hostile websites and Host header rebinding',()=>{localRequest(new Request('http://127.0.0.1:3000/api/projects',{headers:{host:'127.0.0.1:3000',origin:'http://127.0.0.1:3000'}}));assert.throws(()=>localRequest(new Request('http://127.0.0.1:3000/api/projects',{headers:{host:'127.0.0.1:3000',origin:'https://hostile.invalid'}})));assert.throws(()=>localRequest(new Request('http://hostile.invalid:3000/api/projects',{headers:{host:'hostile.invalid:3000'}})))});
+const fake: AgentModules = {
+  async analyze(snapshot, source) {
+    return {
+      ...structuredClone(syntheticProposal),
+      id: `proposal-${randomUUID()}`,
+      model: "TEST_ONLY",
+      origin: "prepared",
+      sourceIds: [source.id],
+      spans: [
+        {
+          sourceId: source.id,
+          locator: source.originalLocator,
+          quote: source.originalText,
+        },
+      ],
+    };
+  },
+  async passage(s) {
+    const claim = s.claims.find((c) => c.status === "accepted")!;
+    return {
+      id: "test-passage",
+      text: "TEST ONLY: " + claim.value,
+      claimIds: [claim.id],
+      sourceIds: claim.sourceIds,
+      sourceLocators: claim.spans,
+      acceptedStateVersion: s.version,
+      origin: "prepared",
+      model: "TEST_ONLY",
+    };
+  },
+};
+async function seed() {
+  const s = structuredClone(syntheticSnapshot);
+  s.projectId = randomUUID();
+  s.sources = [];
+  s.researchEvents = [];
+  return createSavedProject(s);
+}
+test("source > proposal > human acceptance > current passage export, twice (injected TEST_ONLY model/package)", async () => {
+  for (let i = 0; i < 2; i++) {
+    let s = await seed();
+    s = await addContribution(
+      s.projectId,
+      { text: syntheticQuote },
+      modules,
+      fake,
+    );
+    assert.equal(s.proposals.length, 1);
+    assert.equal(s.stories.length, 0);
+    assert.equal(
+      s.researchEvents.filter((e) => e.operation === "search_local").length,
+      1,
+    );
+    s = await reviewProposal(s.projectId, {
+      proposalId: s.proposals[0].id,
+      action: "accept",
+      baseVersion: s.version,
+    });
+    const result = await downloadFamilyBook(s.projectId, modules, fake);
+    const decoded = JSON.parse(new TextDecoder().decode(result.bytes));
+    assert.equal(decoded.snapshot.stories.length, 1);
+    assert.equal(decoded.passages[0].sourceLocators[0].quote, syntheticQuote);
+    assert.equal(
+      decoded.passages[0].acceptedStateVersion,
+      decoded.snapshot.version,
+    );
+    assert.equal((await loadProject(s.projectId)).bookStatus, "current");
+  }
+});
+test("duplicate concurrent source invokes analysis once and deduplicates records", async () => {
+  const s = await seed();
+  let calls = 0;
+  const agent = {
+    ...fake,
+    async analyze(...args: Parameters<AgentModules["analyze"]>) {
+      calls++;
+      await new Promise((r) => setTimeout(r, 70));
+      return fake.analyze(...args);
+    },
+  };
+  await Promise.all([
+    addContribution(s.projectId, { text: syntheticQuote }, modules, agent),
+    addContribution(s.projectId, { text: syntheticQuote }, modules, agent),
+  ]);
+  await addContribution(s.projectId, { text: syntheticQuote }, modules, agent);
+  const saved = await loadProject(s.projectId);
+  assert.equal(calls, 1);
+  assert.equal(saved.sources.length, 1);
+  assert.equal(saved.proposals.length, 1);
+});
+test("failed model leaves saved source and explicit failed event; subsequent retry can succeed", async () => {
+  const s = await seed();
+  const fail = {
+    ...fake,
+    async analyze(): Promise<never> {
+      throw new AppError(
+        "Model access unavailable.",
+        503,
+        "MODEL_NOT_CONFIGURED",
+      );
+    },
+  };
+  let saved = await addContribution(
+    s.projectId,
+    { text: syntheticQuote },
+    modules,
+    fail,
+  );
+  assert.equal(saved.proposals.length, 0);
+  assert.equal(saved.sources.length, 1);
+  assert.ok(
+    saved.researchEvents.some(
+      (e) => e.operation === "analyze_record" && e.state === "failed",
+    ),
+  );
+  saved = await addContribution(
+    s.projectId,
+    { text: syntheticQuote },
+    modules,
+    fake,
+  );
+  assert.equal(saved.proposals.length, 1);
+  assert.equal(saved.sources.length, 1);
+});
+test("human changes during generation prevent stale output", async () => {
+  let s = await seed();
+  s = await addContribution(
+    s.projectId,
+    { text: syntheticQuote },
+    modules,
+    fake,
+  );
+  s = await reviewProposal(s.projectId, {
+    proposalId: s.proposals[0].id,
+    action: "accept",
+    baseVersion: s.version,
+  });
+  const agent = {
+    ...fake,
+    async passage(old: Parameters<AgentModules["passage"]>[0]) {
+      const live = await loadProject(old.projectId);
+      await mutateGraph(old.projectId, {
+        operation: "editPerson",
+        entityId: "person-2",
+        values: { displayNameEn: "Changed during generation" },
+        baseVersion: live.version,
+      });
+      return fake.passage(old);
+    },
+  };
+  await assert.rejects(() => downloadFamilyBook(s.projectId, modules, agent), {
+    code: "STALE_GENERATION",
+  });
+  assert.equal((await loadProject(s.projectId)).bookStatus, "failed");
+});
+test("unknown never produces book facts", async () => {
+  let s = await seed();
+  s = await addContribution(
+    s.projectId,
+    { text: syntheticQuote },
+    modules,
+    fake,
+  );
+  s = await reviewProposal(s.projectId, {
+    proposalId: s.proposals[0].id,
+    action: "unknown",
+    baseVersion: s.version,
+  });
+  assert.equal(s.claims.length, 0);
+  assert.equal(s.stories.length, 0);
+});
+test("localhost origin guard rejects hostile websites and Host header rebinding", () => {
+  localRequest(
+    new Request("http://127.0.0.1:3000/api/projects", {
+      headers: { host: "127.0.0.1:3000", origin: "http://127.0.0.1:3000" },
+    }),
+  );
+  assert.throws(() =>
+    localRequest(
+      new Request("http://127.0.0.1:3000/api/projects", {
+        headers: { host: "127.0.0.1:3000", origin: "https://hostile.invalid" },
+      }),
+    ),
+  );
+  assert.throws(() =>
+    localRequest(
+      new Request("http://hostile.invalid:3000/api/projects", {
+        headers: { host: "hostile.invalid:3000" },
+      }),
+    ),
+  );
+});

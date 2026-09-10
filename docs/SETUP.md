@@ -1,43 +1,31 @@
-# Setup and access
+# Local prototype setup
 
-## This repository now
-
-Node.js 24, pnpm 11, Git and GitHub CLI are needed for development. The initial package has no application dependencies or web server. `pnpm run doctor` is ready to run without installing dependencies; a nonzero exit means prerequisites are missing.
+Use Node.js 24 or 25, pnpm 11 and Git. Each contributor has a separate checkout. The shared handoff branch is codex/engineering; see docs/status/lead.md for the exact tested checkpoint.
 
 ```sh
-gh auth status
 git clone https://github.com/mikeeekoch-cmd/osmy-roots.git
 cd osmy-roots
+git switch codex/engineering
+pnpm install --frozen-lockfile
 cp .env.example .env.local
-pnpm run doctor
+# Set OPENAI_API_KEY locally. Never paste it into chat or commit the file.
+pnpm dev
 ```
 
-Populate `.env.local` locally. Never place keys in chat, issues, README or shared Drive packages.
+Open http://127.0.0.1:3000. The process binds to loopback. Stop it with Ctrl+C. Start the same checkout again to reopen saved projects.
 
-| Variable | Purpose |
-| --- | --- |
-| OPENAI_API_KEY | Project API access and billing; server only |
-| OPENAI_MODEL | `gpt-6-astra` |
-| NEXT_PUBLIC_SUPABASE_URL | Chosen Supabase project URL |
-| NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | Browser/user-scoped client with RLS; not a privileged key |
-| SUPABASE_SECRET_KEY | Only if privileged server operations require it; bypasses user protections unless carefully scoped |
-| APP_URL | Actual local or deployed origin |
-| OSMY_CONTEXT_FOLDER_URL | Private developer context location |
+The server uses OPENAI_MODEL=gpt-6-astra and the official Responses SDK. API Platform credit is required; Codex/ChatGPT balance is separate. An absent key, exhausted API credit or model failure produces a visible failed operation while original sources remain saved. No canned proposal substitutes for a failed live request.
 
-The OpenAI account used by a coding tool does not automatically provide an application API key. `pnpm run doctor:api` checks model metadata only. The first build must separately exercise a tiny Responses request and record its actual outcome. Verify event credits in the correct API project.
+ROOTS_DATA_DIR defaults to the ignored .roots-data directory. Project JSON uses atomic writes and serialized transactions; assets are private files resolved by project/asset ID. Do not put private family inputs or output books anywhere tracked by Git. This prototype is single-user local software. Cloud, OAuth, database accounts and deployment are deferred.
 
-For Supabase, create/select the project, apply the repository migrations after they exist, configure Auth and a private bucket, and verify owner-scoped writes and reads. A successful login to the dashboard is not a database test. [API keys](https://supabase.com/docs/guides/api/api-keys), [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).
+```sh
+pnpm typecheck
+pnpm test
+pnpm build
+# Opt-in real API calls using the public synthetic example:
+pnpm test:live
+```
 
-## First application implementation
+pnpm test uses explicit test adapters for orchestration tests. It does not prove a live model response. pnpm test:live requires the connected ingestion/export modules and makes actual billed model calls, then checks ZIP integrity and editable-JSON reimport. See lead status for checks actually completed.
 
-Scaffold Next.js without overwriting repository docs or resetting Git. Add compatible pinned dependencies for React, Tailwind, Zod, OpenAI, Supabase, React Flow and elkjs. Add real `dev`, `build`, `start`, `typecheck` and test commands, then verify them before documenting them as working. The proposed structure is in ARCHITECTURE.md.
-
-## Deployment
-
-Proposed target: Render Node web service connected to this repository. Configure build/start commands only after they work locally. Keep durable files/data in Supabase. Configure environment values directly in the hosting service and verify the actual deployed workflow and commit. No hosting account, service or paid plan has been created by this preparation.
-
-Free Render services sleep when idle and have an ephemeral filesystem; validate startup before the demo. [Render free-service limits](https://render.com/docs/free). An existing suitable hosting account may be used instead after the integration owner agrees.
-
-## Second laptop
-
-Authenticate its CLI independently, clone this exact repository, read the latest private handoff and use an assigned `codex/` branch. Do not copy this laptop's credentials, `.tools`, `node_modules` or absolute paths. Fetch remote changes before work; inspect a dirty worktree before pulling. Do not force-reset local changes.
+The prepared-example checkbox loads a fictional five-generation family with a placeholder portrait and a birth-year discrepancy. To use a private family, upload its tree/project JSON and matching original media. Normalized legacy assertions cite the supplied tree, with warnings when original primary references are absent. Native chat ZIP/audio/video remain stored-only unless a tested parser is explicitly listed.
