@@ -105,3 +105,11 @@
 - Closing download requests the real bundle, blocks duplicates, distinguishes failure/retry, and disables writes once the run is sealed. Current book preview uses actual saved passages and run readiness. Legacy project reopen, graph edits, gallery and late-clue controls remain.
 - Checks: typecheck PASS, 77 tests PASS (74 baseline plus saved-delta, stable-layout and shared-upload regressions). Actual browser intake renders correctly; new run routes and packet are not yet present in this checkout, so these checks are not a full round-2 rehearsal.
 - Main-agent callout: the new optional RootsApi methods must be wired in src/app/roots-api. Product twin and source projection remain needed for actual English browser coverage. Photo comparison view is underway; awaiting the shared optional pair/alignment metadata before person-card integration.
+
+## Photo view and browser QA increment be72363
+
+- Added PhotoComparison and OriginalPhotos integration via a render-only adapter. The divider starts at 50%; pointer/keyboard controls, original/full-enhanced views, side-by-side fallback, missing-image fallback and pair-change reset are implemented. Slider arrows no longer page the gallery; the focus trap includes inputs; Escape restores the opener.
+- Actual browser verified two fictional UI pairs, unpaired gallery paging, missing derivative and unchanged camera/node coordinates across a saved-snapshot arrival. Ordered photo labels use snapshot.photoAnnotations; reconstructed/translated source details are explicit.
+- The real app's separate Open saved project restored the fictional roots-v1 gallery and both PNG originals. Unknown persisted through refresh. No local live-model result is claimed.
+- Preparation failure preserved selected files and fields; export failure remained retryable with no false completion. Detailed scope/evidence: tests/ui/ROUND2-BROWSER-CHECKS.md.
+- Remaining lead callout: publish photo-pair metadata and connect the optional run methods. EvidenceDrawer can bind OriginalPhotos.comparisonFor after the shared type exists. No pair/name guessing or competing runtime schema was added. Product twin remains missing here.

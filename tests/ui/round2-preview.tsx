@@ -56,6 +56,11 @@ master.assets = [
     storageKey: "fixture",
   },
 ];
+let holdCreation = false;
+let creationGate: {
+  resolve: () => void;
+  reject: (error: Error) => void;
+} | null = null;
 let current: ProjectSnapshot | null = null;
 try {
   const saved = localStorage.getItem(storage);
@@ -72,6 +77,10 @@ const unavailable = async () => {
 };
 const api: RootsApi = {
   async createProject(input) {
+    if (holdCreation)
+      await new Promise<void>((resolve, reject) => {
+        creationGate = { resolve, reject };
+      });
     current = {
       ...structuredClone(master),
       projectId: crypto.randomUUID(),
@@ -160,7 +169,39 @@ function Harness() {
         <strong>
           TEST ONLY: isolated UI states. No live Astra, packet parsing or real
           download.
-        </strong>{" "}
+        </strong>
+        <button
+          onClick={() => {
+            holdCreation = true;
+            setNotice(
+              "The next create request will be held for preparation QA.",
+            );
+          }}
+        >
+          Hold next preparation
+        </button>
+        <button
+          onClick={() => {
+            holdCreation = false;
+            creationGate?.resolve();
+            creationGate = null;
+          }}
+        >
+          Finish preparation
+        </button>
+        <button
+          onClick={() => {
+            holdCreation = false;
+            creationGate?.reject(
+              new Error(
+                "Deliberate preparation failure. Selected files must remain.",
+              ),
+            );
+            creationGate = null;
+          }}
+        >
+          Fail preparation
+        </button>{" "}
         <button
           onClick={() => {
             if (!current || current.run!.answers.length !== 7) {

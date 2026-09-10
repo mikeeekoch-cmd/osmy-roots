@@ -113,6 +113,7 @@ export function FamilyCanvas({
         currentLayout.minY * next,
     });
   };
+  const viewKey = all ? "all" : branchPersonId || "default";
   useEffect(() => {
     cameraTouched.current = false;
     fit();
@@ -122,7 +123,7 @@ export function FamilyCanvas({
     });
     observer.observe(viewport.current);
     return () => observer.disconnect();
-  }, [all, branchPersonId, snapshot.projectId]);
+  }, [viewKey, snapshot.projectId]);
   const focus = (id: string, inspect = true) => {
     cameraTouched.current = true;
     setBranchPersonId(id);

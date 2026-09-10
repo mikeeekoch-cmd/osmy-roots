@@ -77,6 +77,7 @@ export function RootsApp({
     } catch {
       /* Storage may be disabled; server persistence remains authoritative. */
     }
+    return true;
   };
   useEffect(() => {
     mounted.current = true;
@@ -112,6 +113,7 @@ export function RootsApp({
       return;
     let cancelled = false;
     let polling = false;
+    const epoch = projectEpoch.current;
     const timer = setInterval(async () => {
       if (
         document.visibilityState === "hidden" ||
@@ -125,7 +127,12 @@ export function RootsApp({
           snapshot.projectId,
           latestSnapshot.current?.run?.nextSequence,
         );
-        if (!cancelled) saveSnapshot(next);
+        if (!cancelled && epoch === projectEpoch.current) {
+          saveSnapshot(next);
+          setError((current) =>
+            current?.startsWith("Connection interrupted:") ? null : current,
+          );
+        }
       } catch (e) {
         if (!cancelled) setError(`Connection interrupted: ${errorMessage(e)}`);
       } finally {
@@ -178,7 +185,7 @@ export function RootsApp({
     try {
       const next = await action();
       if (mounted.current && epoch === projectEpoch.current) {
-        saveSnapshot(next);
+        if (!saveSnapshot(next)) return true;
         setDownloaded(false);
         const savedPerson =
           changedId ||
@@ -241,6 +248,7 @@ export function RootsApp({
   async function newProject() {
     if (
       snapshot?.run &&
+      !snapshot.run.sealedAt &&
       !["completed", "cancelled"].includes(snapshot.run.phase)
     ) {
       if (!api.cancelRun) {
@@ -569,7 +577,7 @@ export function RootsApp({
                   key={`${editor.operation}-${editor.entityId || "new"}`}
                   snapshot={snapshot}
                   {...editor}
-                  busy={busy}
+                  busy={busy || download || sealed}
                   onClose={() => setEditor(null)}
                   onSave={async (mutation) => {
                     if (
