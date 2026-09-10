@@ -52,8 +52,19 @@ export function displayNameFromFullName(fullName) {
   const raw = String(fullName || '').trim();
   if (!raw) return '';
   if (!hasCyrillic(raw)) return raw;
-  const parts = raw.split(/\s+/).filter(Boolean);
-  if (parts.length === 1) return transliterate(parts[0]);
-  const [surname, ...rest] = parts;
-  return [...rest.map(transliterate), transliterate(surname)].join(' ');
+  // A parenthetical maiden name reads as a suffix in English, not a first name.
+  const parenthetical = [];
+  const plain = [];
+  for (const part of raw.split(/\s+/).filter(Boolean)) {
+    if (/^\(.*\)$/.test(part)) parenthetical.push(part.slice(1, -1));
+    else plain.push(part);
+  }
+  if (!plain.length) return parenthetical.map(transliterate).join(' ');
+  if (plain.length === 1) {
+    const only = transliterate(plain[0]);
+    return parenthetical.length ? `${only} (${parenthetical.map(transliterate).join(' ')})` : only;
+  }
+  const [surname, ...rest] = plain;
+  const base = [...rest.map(transliterate), transliterate(surname)].join(' ');
+  return parenthetical.length ? `${base} (${parenthetical.map(transliterate).join(' ')})` : base;
 }
