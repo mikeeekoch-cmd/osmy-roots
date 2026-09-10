@@ -88,6 +88,24 @@ async function manifestFor(files: InputFile[], supplied?: RuntimeManifest) {
   }
   manifest = parseManifest(manifest);
   const expected = manifest.files.filter(f => f.path.startsWith('01-upload/') || !f.path.includes('/'));
+  if (!supplied && manifest.schemaVersion === 'roots-demo-v3' && process.env.ROOTS_DEMO_CONNECTIONS === 'true' && process.env.ROOTS_ROUND3_MANIFEST) {
+    const root = dirname(process.env.ROOTS_ROUND3_MANIFEST);
+    const prepared: InputFile[] = await Promise.all(expected.map(async file => {
+      const path = join(root, file.path), info = await lstat(path);
+      if (!info.isFile() || info.isSymbolicLink()) throw new AppError('A prepared demo source is unavailable.');
+      const bytes = await readFile(path);
+      if (bytes.length !== file.bytes || hash(bytes) !== file.sha256) throw new AppError('A prepared local demo source changed.');
+      return {uploadId:`demo-${file.sha256.slice(0,24)}`,originalName:basename(file.path),mediaType:'application/octet-stream',bytes};
+    }));
+    const extra = files.filter(file => !prepared.some(p => p.originalName === file.originalName && hash(p.bytes) === hash(file.bytes)));
+    if (extra.length) {
+      const archive = join(dataRoot(), 'selected-uploads', randomUUID());
+      await mkdir(archive, {recursive:true,mode:0o700});
+      for (const [index,file] of extra.entries()) await writeFile(join(archive, `${index}-${basename(file.originalName)}`), file.bytes, {mode:0o600});
+    }
+    files.splice(0, files.length, ...prepared);
+    return manifest;
+  }
   for (const file of expected) {
     const picked = files.find(f => f.originalName === basename(file.path));
     if (!picked || picked.bytes.length !== file.bytes || hash(picked.bytes) !== file.sha256)
@@ -117,6 +135,8 @@ export async function startRound2(raw: unknown, files: InputFile[], options: Rou
   const packetRoot=options.manifest?undefined:dirname(manifestPath);
   const parse = options.parse || (manifest.inputFormat === 'family_notes' ? parseFamilyNotesPacket : parseFamilyPacket);
   const parsed: any = await parse({files,identityKeys:manifest.identityKeys} as any);
+  const preparedDemo = !options.manifest && manifest.schemaVersion === 'roots-demo-v3' && process.env.ROOTS_DEMO_CONNECTIONS === 'true';
+  if (preparedDemo) for (const source of parsed.sources) source.origin = 'prepared';
   if (parsed.files.some((f: any) => f.status === 'failed')) throw new AppError('One or more packet files failed parsing. Inspect the selected file format and retry.');
   const id = randomUUID();
   const full = ProjectSnapshotSchema.parse({schemaVersion:'roots-v1',projectId:id,version:1,input,
