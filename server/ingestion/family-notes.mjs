@@ -4,7 +4,17 @@
 import { ingestContribution } from './index.mjs';
 import { sha256 } from './hash.mjs';
 
-const fixedSource = (name) => ({ 'about my family.pdf': 'about-family', 'family notes.txt': 'family-notes', 'photo notes.txt': 'photo-notes' })[name.toLowerCase()];
+// Stable ids for the documents a family packet is expected to contain, so citations
+// stay readable and survive a repacket. An unlisted file keeps its content-derived id.
+const FIXED_SOURCE_IDS = {
+  'about my family.pdf': 'about-family',
+  'family notes.txt': 'family-notes',
+  'photo notes.txt': 'photo-notes',
+  'archive findings.txt': 'archive-findings',
+  'family chronology.csv': 'family-chronology',
+  'family book excerpt.pdf': 'book-excerpt',
+};
+const fixedSource = (name) => FIXED_SOURCE_IDS[name.toLowerCase()];
 const stable = (kind, label) => `${kind}-${sha256(label).slice(0, 18)}`;
 const unknown = (s) => !s || /^(unknown|not known|not recorded|unsure)$/i.test(s.trim());
 const keyFor = (keys, label, kind) => {

@@ -34,7 +34,8 @@ export const ALLOWED_HOSTS = Object.freeze([
   'example.com', 'www.example.com',
 ]);
 
-function hostAllowed(hostname, allowHosts) {
+/** Exported so a search result or a crawl link can be judged before we try to visit it. */
+export function isHostAllowed(hostname, allowHosts) {
   const h = String(hostname || '').toLowerCase();
   return (allowHosts || ALLOWED_HOSTS).some((a) => h === a || h.endsWith(`.${a}`));
 }
@@ -125,11 +126,15 @@ function accessBarrier(status, text) {
  * @param {number} [args.maxBytes]
  * @param {string[]} [args.allowHosts]  override allowlist (Mike can supply a specific record host)
  * @param {number} [args.maxRedirects]
+ * @param {boolean} [args.includeRawBody]  opt-in: also return the capped body text.
+ *   The crawler needs the markup to read outbound links, and re-fetching the same
+ *   page to get it would double the retrieval count. Off by default, so no existing
+ *   caller sees a changed payload.
  * @returns {Promise<{status:string, source?:object, finalUrl?:string, retrievedAt?:string, error?:object}>}
  */
 export async function fetchPublicRecord({
   url, timeoutMs = DEFAULT_TIMEOUT_MS, maxBytes = DEFAULT_MAX_BYTES,
-  allowHosts, maxRedirects = 3, fetchImpl, lookupImpl,
+  allowHosts, maxRedirects = 3, fetchImpl, lookupImpl, includeRawBody = false,
 } = {}) {
   const startedAt = Date.now();
   const fail = (status, code, message, extra = {}) => ({
@@ -155,7 +160,7 @@ export async function fetchPublicRecord({
     let response;
     let hops = 0;
     for (;;) {
-      if (!hostAllowed(current.hostname, allowHosts)) {
+      if (!isHostAllowed(current.hostname, allowHosts)) {
         return fail('not_allowed', 'HOST_NOT_ALLOWED',
           `${current.hostname} is not on the approved public-source list. Ask Mike to approve the exact record host.`,
           { finalUrl: current.toString() });
@@ -239,6 +244,7 @@ export async function fetchPublicRecord({
       retrievedAt,
       elapsedMs: Date.now() - startedAt,
       truncated,
+      ...(includeRawBody ? { rawBody: rawText, isHtml } : {}),
       source: {
         id: `SRC_WEB_${contentHash.slice(0, 10)}`,
         kind: 'archive_record',
