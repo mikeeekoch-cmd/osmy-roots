@@ -96,3 +96,12 @@
 - Implemented intake/preparation/branding increment 74fd73f. Typecheck and 74 baseline tests passed before the contract merge. Next: consume run/questions/answers, shared limits and closing download.
 - Coordination callout for main agent: this existing Natalia task is actively implementing src/ui on codex/ui from a separate laptop. Lead status mentions an additional UI subagent; please have it consume these commits and avoid concurrent rewrites of the same owned modules. Preserve both owners' commits when integrating.
 - Product fictional twin remains unavailable here; the published manifest example is schema-only, not a frozen packet. User confirmed treating the missing handoff as a callout for main agent. Actual packet rehearsals remain an integration gate.
+
+## Round-2 core UI increment ce12356
+
+- Pushed the client run path: immediate preparation, seven supplied questions, source/recommendation details, versioned confirm/correct/unknown, Back, and first-map gating on the server's initialSavedAt.
+- Shared UPLOAD_LIMITS now drive client checks for initial/reopened/late files. Valid 40 MB selection passes; filename-specific oversize/empty/count errors preserve selected files.
+- Saved API entity deltas drive people/link/photo highlights. Poll-only event writes do not animate; existing map positions and camera remain stable on arrivals. No countdown or session clock exists in the product.
+- Closing download requests the real bundle, blocks duplicates, distinguishes failure/retry, and disables writes once the run is sealed. Current book preview uses actual saved passages and run readiness. Legacy project reopen, graph edits, gallery and late-clue controls remain.
+- Checks: typecheck PASS, 77 tests PASS (74 baseline plus saved-delta, stable-layout and shared-upload regressions). Actual browser intake renders correctly; new run routes and packet are not yet present in this checkout, so these checks are not a full round-2 rehearsal.
+- Main-agent callout: the new optional RootsApi methods must be wired in src/app/roots-api. Product twin and source projection remain needed for actual English browser coverage. Photo comparison view is underway; awaiting the shared optional pair/alignment metadata before person-card integration.
