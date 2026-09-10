@@ -1,4 +1,17 @@
-# Codex Natalia — UI and animations
+# Codex Natalia: UI and animations
+
+## Current handoff: 17:14 UTC
+
+- Ready to integrate: **codex/ui, code c78696c**, on lead/main a5de7c4. Full assignment P0 is connected; P1 source-to-person motion, branch navigation and accessible gallery paging are implemented and browser-checked after the lead opened the gate.
+- **Validation:** typecheck PASS, all 72 tests PASS, production build PASS. Production server starts successfully and browser restores the saved project. Production Unknown remained unresolved with zero acceptance receipts. Two existing dynamic local-storage tracing warnings remain in lead-owned server/state/store.ts; no UI build error.
+- **Runtime:** `pnpm install --frozen-lockfile`, `pnpm dev` (or `pnpm build && pnpm start`). Existing lead src/app/page.tsx already mounts RootsApp; no integration API or dependency changes are required. Local production preview is on port 3100.
+- **Evidence:** tests/ui/BROWSER-CHECKS.md and tests/ui/screenshots. Local real ZIP delivery/reopen is verified using a labeled prepared passage. Mike independently validated live Astra-to-current-book twice; this laptop has no model key and does not claim a local live inference pass.
+- **Preserved:** shared DTOs, backend, routes, package/lockfiles, exact source text and family privacy. No private family data or pre-event app code copied into this branch.
+- **Remaining owner action:** lead merges codex/ui and rehearses his funded personal/demo project. No additional feature work is needed for Natalia's assignment. Shared freeze/deadline remain 17:37:53 / 17:57:53 UTC.
+- **Private context:** authenticated root/execution listing rechecked; updated native scope opened but not exported/read because Safari interaction was interrupted. Latest newly changed private document bodies remain unverified. Repository scope/status is current. A dated private results package is being retained locally for Drive delivery; no fresh complete sync is claimed.
+
+## Historical shell checkpoint
+
 
 - Shared clock from lead e838039: T0 2026-09-10 16:27:53 UTC / 12:27:53 EDT; integrated P0 17:22:53 UTC; freeze 17:37:53 UTC; deadline 17:57:53 UTC / 13:57:53 EDT. No clock reset.
 - Branch: codex/ui. Separate worktree. Main baseline 4d1c86a; incorporated lead scaffold e838039.

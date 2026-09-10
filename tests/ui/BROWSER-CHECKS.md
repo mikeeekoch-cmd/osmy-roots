@@ -18,3 +18,17 @@ UI logic: `pnpm exec tsx --test tests/ui/model.test.ts`.
 Independent replay: `node tests/ui/serve.mjs` on 3101. Replay is labeled and intentionally refuses a fake book export. Connected harness: `ROOTS_UI_CONNECTED=1 node tests/ui/serve.mjs` on 3102 with the actual Next server on 3100. The production Next page already mounts RootsApp, so the harness is optional.
 
 Browser observations and remaining gates are in docs/status/ui.md. Screenshots use the real mounted app and safe prepared input; they are not evidence of a live AI interpretation.
+
+
+## Completed integration and P1
+
+The lead validated the live Astra-to-current-book route twice on a5de7c4 and opened P1 at 17:03 UTC. Natalia independently verified actual ZIP delivery and reimport using `fictional-current-book.json`, an explicitly prepared TEST_ONLY passage. Browser download event notifications were unreliable; the saved ZIP in Downloads and its project ID, contents and originals proved delivery.
+
+Additional generated fixtures:
+- `fictional-35-person-layout.json`: 35 entirely fictional people for full-map fit/search and branch selection.
+- `fictional-gallery.json` plus both PNG files: portrait/landscape paging and original proportions.
+- `fictional-current-book.json` plus placeholder PNG: download transport without a model call. This must never be presented as live Astra generation.
+
+P1 observed against real saved responses: correction -> source receipt/path -> highlighted person -> stale book; mobile branch selection; next/previous and Left/Right photo navigation; Tab cycles within lightbox; Escape restores opener and leaves evidence open. Production Unknown yields no acceptance receipt. Reduced-motion behavior is implemented in CSS; a browser OS preference override was not exercised.
+
+Final commands: `pnpm typecheck`, `pnpm test` (72 passed), `pnpm build` (passed with the two existing server local-storage tracing warnings), `pnpm start --port 3100`.
