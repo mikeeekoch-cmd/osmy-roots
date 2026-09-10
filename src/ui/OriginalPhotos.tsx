@@ -38,7 +38,7 @@ export function OriginalPhotos({
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [comparing, setComparing] = useState(false);
-  const pairs = (snapshot.photoPairs || []).filter((pair) => snapshot.assets.some((a) => a.id === pair.originalAssetId && a.mediaType.startsWith("image/")) && snapshot.assets.some((a) => a.id === pair.enhancedAssetId && a.mediaType.startsWith("image/")));
+  const pairs = (snapshot.research ? snapshot.research.photoPairQA.filter(pair => pair.qa.status === "passed") : snapshot.photoPairs || []).filter((pair) => snapshot.assets.some((a) => a.id === pair.originalAssetId && a.mediaType.startsWith("image/")) && snapshot.assets.some((a) => a.id === pair.enhancedAssetId && a.mediaType.startsWith("image/")));
   const pair = pairs.find((item) => item.originalAssetId === selected);
   const suppliedPair = selected ? comparisonFor?.(selected) : undefined;
   const candidateIds = personId ? [...new Set([...ids, ...photoIdsForPerson(snapshot, personId)])] : ids;
@@ -98,6 +98,7 @@ export function OriginalPhotos({
               />
             </button>
             {(pairs.some((pair) => pair.originalAssetId === id) || comparisonFor?.(id)) && <button className="compare-photo-button" onClick={(event) => { setSelected(id); setComparing(true); }}>Compare photos</button>}
+            {snapshot.research?.oldPhotoAssetIds.includes(id) && !pairs.some(pair => pair.originalAssetId === id) && <small className="photo-pair-pending">Enhanced comparison pending validation</small>}
             <figcaption>
               {name(id)}
               <br />

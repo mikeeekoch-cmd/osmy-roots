@@ -1783,3 +1783,60 @@
   .book-details-dialog { padding: 10px; }
   .book-details-content { padding: 16px; max-height: calc(100dvh - 20px); }
 }
+.intake-birth-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.relative-cards { display: grid; gap: 12px; margin-top: 16px; }
+.relative-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; min-width: 0; }
+.relative-card legend { color: var(--green); font-weight: 600; padding: 0 4px; }
+.relative-card .field { margin-bottom: 10px; }
+.fill-family-button { width: 100%; margin: 12px 0; }
+.autofill-notice { margin: 10px 0; font-size: 12px; }
+.autofill-sources { font-size: 12px; margin: 12px 0; }
+.autofill-sources article { border-bottom: 1px solid var(--line); padding: 12px 0; }
+.autofill-sources blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid var(--line); }
+.autofill-sources small { display: block; overflow-wrap: anywhere; }
+.provider-connections { display: grid; gap: 10px; margin: 18px 0; }
+.provider-card { padding: 12px; border: 1px solid var(--line); border-radius: 9px; min-width: 0; }
+.provider-heading { display: flex; align-items: center; gap: 8px; }
+.provider-heading > span { margin-left: auto; font-size: 10px; }
+.provider-heading strong { font-size: 12px; }
+.provider-card > small { display: block; margin: 8px 0; }
+.provider-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.provider-card button, .provider-card details { font-size: 11px; }
+.provider-card details { overflow-wrap: anywhere; }
+.provider-card details .field { margin-top: 10px; }
+.connection-verified { color: #315943; font-weight: bold; }
+.research-cycle-controls { display: flex; gap: 20px; align-items: center; justify-content: space-between; padding: 18px 22px; background: #edf2e6; border-bottom: 1px solid var(--line); }
+.research-cycle-controls p { margin: 7px 0 0; font-size: 13px; }
+.cycle-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; min-width: 150px; }
+.cycle-actions small { width: 100%; text-align: right; }
+.review-initial-checks { align-self: flex-start; margin: 6px 16px; }
+.research-plan { background: #eef2e7; border-radius: 8px; padding: 12px; margin: 18px 0; }
+.research-plan ul { padding-left: 16px; }
+.research-progress .activity small { display: block; margin: 5px 0; }
+.research-progress > details { margin: 16px 0; font-size: 12px; }
+.research-progress h3 { margin-top: 22px; }
+.research-progress .metrics small { color: var(--muted); margin-top: 4px; }
+.current-work { margin-top: 15px; }
+.activity .no_match, .activity .blocked { border-color: #b59d74; }
+.activity a { display: block; overflow-wrap: anywhere; color: var(--green); }
+.question-bank { border-bottom: 1px solid var(--line); padding-bottom: 22px; margin-bottom: 22px; }
+.question-bank > p { font-size: 12px; }
+.bank-card { padding: 14px; margin: 12px 0; background: var(--white); border: 1px solid var(--line); border-radius: 8px; }
+.bank-card h4 { margin: 8px 0; font: 18px Georgia, serif; }
+.bank-card p, .bank-card details { font-size: 12px; }
+.bank-card blockquote { margin: 12px 0; padding-left: 8px; border-left: 2px solid var(--line); }
+.bank-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.bank-actions button { font-size: 11px; }
+.workspace-providers { margin-bottom: 22px; font-size: 12px; }
+.person-documents a { display: block; color: var(--green); margin: 10px 0; overflow-wrap: anywhere; }
+.person-portrait { position: relative; overflow: hidden; }
+.person-portrait .supported-portrait { display: block; width: 100%; height: 100%; }
+.person-portrait .supported-portrait img { width: 100%; height: 100%; object-fit: contain; }
+.person-portrait .supported-portrait.cropped img { object-fit: fill; }
+.photo-pair-pending { display: block; padding: 8px; color: #715728; }
+@media (max-width: 650px) {
+  .intake-birth-fields { grid-template-columns: 1fr; }
+  .research-cycle-controls { flex-direction: column; align-items: stretch; gap: 10px; padding: 16px; }
+  .cycle-actions { justify-content: flex-start; }
+  .cycle-actions small { text-align: left; }
+}
