@@ -1,15 +1,18 @@
 // Local UI-only preview using the lead's existing tsx/esbuild dependency.
 // This is explicitly replay, never evidence of live backend acceptance.
 import { createRequire } from "node:module";
-import { createServer } from "node:http";
+import { createServer, request } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 const require = createRequire(import.meta.url);
 const { build } = createRequire(require.resolve("tsx/package.json"))("esbuild");
-const output = resolve(".ui-preview");
+const connected = process.env.ROOTS_UI_CONNECTED === "1";
+const port = connected ? 3102 : 3101;
+const entry = connected ? "connected" : "preview";
+const output = resolve(".ui-preview", entry);
 await mkdir(output, { recursive: true });
 await build({
-  entryPoints: ["tests/ui/preview.tsx"],
+  entryPoints: [`tests/ui/${entry}.tsx`],
   bundle: true,
   outdir: output,
   jsx: "automatic",
@@ -18,16 +21,37 @@ await build({
 });
 createServer(async (req, res) => {
   try {
+    if (connected && req.url?.startsWith("/api/")) {
+      const upstream = request(
+        {
+          hostname: "127.0.0.1",
+          port: 3100,
+          path: req.url,
+          method: req.method,
+          headers: req.headers,
+        },
+        (response) => {
+          res.writeHead(response.statusCode || 502, response.headers);
+          response.pipe(res);
+        },
+      );
+      upstream.on("error", () =>
+        res.writeHead(502).end("Start the lead Next server on port 3100."),
+      );
+      req.pipe(upstream);
+      return;
+    }
     if (req.url === "/") {
       res.setHeader("content-type", "text/html");
       res.end(
-        '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Roots — development replay</title><link rel="stylesheet" href="/preview.css"></head><body style="margin:0"><div id="root"></div><script src="/preview.js"></script></body></html>',
+        `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Roots — ${connected ? "connected UI" : "development replay"}</title><link rel="stylesheet" href="/${entry}.css"></head><body style="margin:0"><div id="root"></div><script src="/${entry}.js"></script></body></html>`,
       );
       return;
     }
-    const file = { "/preview.js": "preview.js", "/preview.css": "preview.css" }[
-      req.url
-    ];
+    const file = {
+      [`/${entry}.js`]: `${entry}.js`,
+      [`/${entry}.css`]: `${entry}.css`,
+    }[req.url];
     if (!file) {
       res.writeHead(404).end();
       return;
@@ -40,6 +64,6 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(500).end("Preview failed");
   }
-}).listen(3101, "127.0.0.1", () =>
-  console.log("UI replay: http://127.0.0.1:3101"),
+}).listen(port, "127.0.0.1", () =>
+  console.log(`UI ${entry}: http://127.0.0.1:${port}`),
 );

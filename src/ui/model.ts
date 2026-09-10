@@ -8,7 +8,7 @@ export const label = (value: string) => value.replaceAll("_", " ");
 export const dateLabel = (d: Person["lifeYears"]["birth"]) =>
   d.value ? `${d.precision === "approximate" ? "c. " : ""}${d.value}` : "?";
 export const years = (p: Person) =>
-  `${dateLabel(p.lifeYears.birth)} — ${dateLabel(p.lifeYears.death)}`;
+  `${dateLabel(p.lifeYears.birth)} – ${dateLabel(p.lifeYears.death)}`;
 export function uniqueEvents(events: ResearchEvent[]) {
   return [...new Map(events.map((e) => [e.eventId, e])).values()].sort(
     (a, b) => a.sequence - b.sequence,
@@ -46,6 +46,7 @@ export function progressCounts(snapshot: ProjectSnapshot) {
   };
 }
 export const isParent = (r: Relationship) =>
+  r.status !== "rejected" &&
   ["parent", "parent_child", "parent_of", "father", "mother"].includes(r.type);
 export function familyLayout(people: Person[], relationships: Relationship[]) {
   const generation = new Map(people.map((p) => [p.id, 0]));

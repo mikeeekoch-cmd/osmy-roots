@@ -45,16 +45,14 @@ export function makeReplayApi(): RootsApi {
       snapshot = clone(syntheticSnapshot);
       snapshot.input = input;
       snapshot.projectId = "synthetic-demo";
-      snapshot.relationships = snapshot.people
-        .slice(0, -1)
-        .map((p, i) => ({
-          id: `relationship-${i}`,
-          fromPersonId: p.id,
-          toPersonId: snapshot.people[i + 1].id,
-          type: "parent",
-          claimIds: ["claim-tree"],
-          status: "accepted",
-        }));
+      snapshot.relationships = snapshot.people.slice(0, -1).map((p, i) => ({
+        id: `relationship-${i}`,
+        fromPersonId: p.id,
+        toPersonId: snapshot.people[i + 1].id,
+        type: "parent",
+        claimIds: ["claim-tree"],
+        status: "accepted",
+      }));
       snapshot.claims = [
         {
           id: "claim-tree",
