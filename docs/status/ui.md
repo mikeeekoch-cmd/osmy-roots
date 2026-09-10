@@ -11,3 +11,11 @@
 - Context: current repository instructions read. Authenticated private root refreshed; relevant execution folder browser accessibility failed to return its contents. Used previously reviewed V3 local scope/reference plus current sanitized repository contract. No complete fresh private sync claimed; no private evidence copied into public source.
 - Tool attribution: UI implementation and validation by Codex (GPT-6 Astra). No prior app/mockup code or family photos reused. App model execution belongs to lead; UI does not invoke OpenAI directly.
 - Lead integration: import RootsApp and pass your client adapter from a client component. CSS is included by src/ui/index.tsx. Additional packages are not required.
+
+## 16:43 UTC validation checkpoint
+
+- First pushed UI commit: 1c356f2. Added a labeled development harness in tests/ui; it refuses fake PDF/ZIP export and is never imported by production.
+- Browser intake checks passed: missing name, missing geography, explicit unknown, missing material, valid context → workspace. Desktop 1440×960 screenshot visually inspected.
+- Fixed focused branch selection to include five generations through a middle-generation seed. Added backend file outcomes and source inspection.
+- Five UI logic tests pass: required material/geography, duplicate-hash/retry counters, cached/failed website exclusion, approximate/unknown dates, five-generation layout and bounded malformed-cycle layout. Typecheck passes.
+- Lead backend checkpoint 2e6dd71 is now available and will be incorporated for connected testing. Lead reports Astra credit_balance_exhausted; live-model acceptance remains blocked, not simulated.
