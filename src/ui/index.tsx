@@ -37,6 +37,7 @@ export function RootsApp({
       entityId?: string;
     } | null>(null),
     [highlight, setHighlight] = useState<string | null>(null),
+    [focusedProposalId, setFocusedProposalId] = useState<string | null>(null),
     [panel, setPanel] = useState<"map" | "progress" | "human">("map"),
     [restoring, setRestoring] = useState(true);
   const active = useRef(false),
@@ -129,7 +130,14 @@ export function RootsApp({
       if (mounted.current) {
         saveSnapshot(next);
         setDownloaded(false);
-        if (changedId) setHighlight(changedId);
+        const savedPerson =
+          changedId ||
+          (snapshot?.projectId === next.projectId
+            ? next.people.find(
+                (p) => !snapshot.people.some((old) => old.id === p.id),
+              )?.id
+            : undefined);
+        if (savedPerson) setHighlight(savedPerson);
       }
       return true;
     } catch (e) {
@@ -207,6 +215,25 @@ export function RootsApp({
             <small>A place for your family story</small>
           )}
         </div>
+        {snapshot && (
+          <button
+            className="new-project-button"
+            disabled={busy || download || contributionsRunning > 0}
+            onClick={() => {
+              setSnapshot(null);
+              setSelection(null);
+              setEditor(null);
+              setFocusedProposalId(null);
+              setError(null);
+              setDownloaded(false);
+              try {
+                localStorage.removeItem(`roots-last-project-${mode}`);
+              } catch {}
+            }}
+          >
+            New project
+          </button>
+        )}
         {mode === "replay" && (
           <span className="replay-banner">
             Development replay · no live research
@@ -366,6 +393,10 @@ export function RootsApp({
                   api={api}
                   selection={selection}
                   onClose={() => setSelection(null)}
+                  onReviewProposal={(id) => {
+                    setFocusedProposalId(id);
+                    setPanel("human");
+                  }}
                   onEdit={(operation, entityId) => {
                     setEditor({ operation, entityId });
                     setSelection(null);
@@ -399,6 +430,8 @@ export function RootsApp({
               snapshot={snapshot}
               selectedId={selection?.kind === "person" ? selection.id : null}
               busy={busy}
+              focusedProposalId={focusedProposalId}
+              onFocusProposal={setFocusedProposalId}
               onContribute={(input) =>
                 perform(
                   () =>
@@ -414,7 +447,7 @@ export function RootsApp({
                 const proposal = snapshot.proposals.find(
                   (p) => p.id === input.proposalId,
                 );
-                void perform(
+                return perform(
                   () =>
                     api.reviewProposal(snapshot.projectId, {
                       ...input,

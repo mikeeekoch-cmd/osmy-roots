@@ -100,16 +100,14 @@ test("unknown date values are retained and approximate dates are visibly qualifi
 });
 test("focused branch includes five generations through a middle-generation seed", () => {
   const s = snapshot();
-  s.relationships = s.people
-    .slice(0, -1)
-    .map((p, i) => ({
-      id: `r${i}`,
-      fromPersonId: p.id,
-      toPersonId: s.people[i + 1].id,
-      type: "parent",
-      claimIds: [],
-      status: "accepted",
-    }));
+  s.relationships = s.people.slice(0, -1).map((p, i) => ({
+    id: `r${i}`,
+    fromPersonId: p.id,
+    toPersonId: s.people[i + 1].id,
+    type: "parent",
+    claimIds: [],
+    status: "accepted",
+  }));
   assert.equal(branchIds(s).size, 5);
   const { positions } = familyLayout(s.people, s.relationships);
   s.relationships.forEach((r) =>
@@ -142,4 +140,34 @@ test("malformed imported parent cycles cannot hang map layout", () => {
       (p) => Number.isFinite(p.x) && Number.isFinite(p.y),
     ),
   );
+});
+
+test("partners occupy adjacent cards on one generation without changing genealogy", () => {
+  const s = snapshot();
+  s.relationships = [
+    {
+      id: "parent",
+      fromPersonId: "person-0",
+      toPersonId: "person-2",
+      type: "parent",
+      claimIds: [],
+      status: "accepted",
+    },
+    {
+      id: "partners",
+      fromPersonId: "person-2",
+      toPersonId: "person-3",
+      type: "partner",
+      claimIds: [],
+      status: "accepted",
+    },
+  ];
+  const before = structuredClone(s.relationships);
+  const { positions } = familyLayout(s.people, s.relationships);
+  assert.equal(positions["person-2"].y, positions["person-3"].y);
+  assert.equal(
+    Math.abs(positions["person-2"].x - positions["person-3"].x),
+    224,
+  );
+  assert.deepEqual(s.relationships, before);
 });

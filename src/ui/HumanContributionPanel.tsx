@@ -8,6 +8,8 @@ export function HumanContributionPanel({
   busy,
   onContribute,
   onReview,
+  focusedProposalId,
+  onFocusProposal,
 }: {
   snapshot: ProjectSnapshot;
   selectedId: string | null;
@@ -15,7 +17,9 @@ export function HumanContributionPanel({
   onContribute: (
     input: Parameters<RootsApi["addContribution"]>[1],
   ) => Promise<boolean>;
-  onReview: (input: ReviewDecision) => void;
+  onReview: (input: ReviewDecision) => Promise<boolean>;
+  focusedProposalId?: string | null;
+  onFocusProposal: (id: string | null) => void;
 }) {
   const [text, setText] = useState(""),
     [files, setFiles] = useState<File[]>([]),
@@ -27,12 +31,16 @@ export function HumanContributionPanel({
     [pendingInputs, setPendingInputs] = useState<
       { id: string; text: string; files: File[]; failed: boolean }[]
     >([]);
-  const pending = snapshot.proposals.find((p) => p.status === "pending");
+  const pending =
+    snapshot.proposals.find((p) => p.id === focusedProposalId) ||
+    snapshot.proposals.find((p) => p.status === "pending");
+  const finalized =
+    !!pending && ["accepted", "corrected", "rejected"].includes(pending.status);
   const unknown = snapshot.proposals.filter((p) => p.status === "unknown");
   const selected = snapshot.people.find((p) => p.id === selectedId);
-  const review = (action: ReviewDecision["action"]) => {
+  const review = async (action: ReviewDecision["action"]) => {
     if (!pending) return;
-    onReview({
+    const ok = await onReview({
       proposalId: pending.id,
       action,
       baseVersion: action === "correct" ? correctionVersion : snapshot.version,
@@ -44,7 +52,10 @@ export function HumanContributionPanel({
             }
           : undefined,
     });
-    setCorrecting(false);
+    if (ok) {
+      setCorrecting(false);
+      onFocusProposal(null);
+    }
   };
   const contribute = async () => {
     if (!text.trim() && !files.length) return;
@@ -79,7 +90,7 @@ export function HumanContributionPanel({
       {pending ? (
         <article className="question-card" key={pending.id}>
           <span className={`origin ${pending.origin}`}>
-            {pending.origin} · suggestion
+            {pending.origin} · {pending.status} interpretation
           </span>
           <h3>{pending.question}</h3>
           <p>{pending.text}</p>
@@ -91,6 +102,17 @@ export function HumanContributionPanel({
           ))}
           <p className="muted">{pending.uncertainty}</p>
           <span className="badge">{label(pending.evidenceType)}</span>
+          {focusedProposalId && (
+            <button
+              className="text-button close-review"
+              onClick={() => {
+                onFocusProposal(null);
+                setCorrecting(false);
+              }}
+            >
+              Close review
+            </button>
+          )}
           {correcting ? (
             <div className="correction">
               <label className="field">
@@ -127,8 +149,8 @@ export function HumanContributionPanel({
             <div className="review-actions">
               <button
                 className="primary"
-                disabled={busy}
-                onClick={() => review("accept")}
+                disabled={busy || finalized}
+                onClick={() => void review("accept")}
               >
                 Accept
               </button>
@@ -143,10 +165,16 @@ export function HumanContributionPanel({
               >
                 Correct
               </button>
-              <button disabled={busy} onClick={() => review("reject")}>
+              <button
+                disabled={busy || finalized}
+                onClick={() => void review("reject")}
+              >
                 Reject
               </button>
-              <button disabled={busy} onClick={() => review("unknown")}>
+              <button
+                disabled={busy || finalized}
+                onClick={() => void review("unknown")}
+              >
                 I do not know
               </button>
             </div>
@@ -173,6 +201,9 @@ export function HumanContributionPanel({
             <p key={p.id}>
               {p.question}
               <small>Unresolved · no accepted change</small>
+              <button onClick={() => onFocusProposal(p.id)}>
+                Revisit question
+              </button>
             </p>
           ))}
         </details>

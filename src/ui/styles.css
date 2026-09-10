@@ -1379,3 +1379,77 @@
   right: 5px;
   top: 5px;
 }
+
+.roots-app .relationship-handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  padding: 0;
+  font:
+    14px/12px Georgia,
+    serif;
+  background: var(--paper);
+  border-color: #a9ba99;
+  z-index: 1;
+}
+.roots-app .relationship-handle:hover {
+  background: #dbe8cb;
+}
+.relationship-handle.uncertain {
+  border-style: dashed;
+}
+
+.photo-unavailable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  max-width: 100%;
+  font: 10px/1.4 system-ui !important;
+  color: #947a51;
+  background: #f5eedf;
+  padding: 5px;
+  border-radius: 4px;
+}
+.photo-lightbox > div {
+  text-align: center;
+  color: #fffef9;
+}
+.photo-lightbox p {
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+
+.roots-app .new-project-button {
+  font-size: 10px;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+.close-review {
+  display: block;
+  margin-top: 10px !important;
+}
+@media (max-width: 580px) {
+  .roots-app .new-project-button {
+    font-size: 9px;
+    padding: 5px;
+  }
+  .roots-header:has(.download-button) .project-label {
+    max-width: 90px;
+  }
+  .roots-header .project-label strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .roots-header .project-label small {
+    max-width: 90px;
+  }
+}
+
+@media (max-width: 580px) {
+  .roots-header .project-label small {
+    display: none;
+  }
+}

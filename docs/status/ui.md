@@ -29,3 +29,16 @@
 - Book passage text and exact source locators are visible inside workspace once backend returns passages.
 - Graph editor status/claim controls temporarily removed because backend 2e6dd71 ignores them. I saw the lead is fixing status preservation; will restore status controls on consuming that change. Graph edits remain real recorded human contributions.
 - P0 still incomplete: data modules and successful live-model/book route required. P1 remains closed.
+
+## 16:58 UTC connected browser checks
+
+- Integrated lead 95c4399 without rewriting backend/contracts. Restored relationship review-state and supporting-claim controls after the lead's status-preservation fix.
+- Actual Next mount (not only harness): browser file selection/removal; schema-valid JSON import; five-generation fit; person/edge evidence; accept; correction of an accepted interpretation; name edit; saved refresh; relationship edit/undo; self-parent validation; backend ancestry-cycle rejection. Original quote remained exact after correction, and no duplicate story appeared.
+- Original image bytes imported through the real route; thumbnail, person gallery and enlarged 180×240 synthetic placeholder rendered with original proportions. Escape closes the photo while retaining the person drawer. Missing originals have a visible unavailable state.
+- Responsive visual checks: intake at 1106×850; workspace at 1440×960; person drawer and human review at 390×844. All three workspace panels remain reachable on mobile. Safe screenshots: tests/ui/screenshots/desktop-workspace.png and mobile-review.png. All pictured people/evidence/photos are fictional test fixtures.
+- Real text contribution saved its original and returned explicit MODEL_NOT_CONFIGURED failure on this laptop. Accepted map remained usable. New contributions are queued independently while requests run; failed request drafts can be restored.
+- Real permitted public fetch through lead service succeeded. Browser showed 1 live website, 0 analyzed records, and model failure. Repeated the fetch: two success events still show 1 distinct website; people remained 5. The unrelated public page is a retrieval test, not a family match.
+- Download button called the actual route and showed missing local API key; no fake ZIP was saved. Successful UI ZIP download remains pending the lead's export integration/current passage or a locally configured model key.
+- Added correction/revisit controls for previously reviewed/unknown interpretations, source counts, accessible relationship click targets, side-by-side partners, and New project to allow JSON reopening without deleting a saved project.
+- Checks: pnpm typecheck PASS; 6 UI tests PASS; combined state/service/UI suite 22 tests (the prior combined run was 21 before the added partner-layout case). No test substitutes for a live-model pass.
+- P1 remains CLOSED. Next: test successful actual ZIP response after upstream export handoff, then request lead connected-P0 confirmation. Local OPENAI_API_KEY is absent; credentials requested via local configuration only, never chat.

@@ -1,6 +1,6 @@
-import { useState } from "react";
 import type { ProjectSnapshot, RootsApi, Source, GraphMutation } from "./types";
 import { label, years } from "./model";
+import { OriginalPhotos } from "./OriginalPhotos";
 export function SourceEvidence({
   source,
   quote,
@@ -8,16 +8,23 @@ export function SourceEvidence({
   source: Source;
   quote?: string;
 }) {
+  const original =
+    quote ||
+    source.originalText ||
+    "Original file stored; text has not been extracted.";
   return (
     <article className="source-evidence">
       <span className={`origin ${source.origin}`}>{source.origin}</span>
       <h4>{source.title || source.originalLocator}</h4>
       {source.author && <small>From {source.author}</small>}
-      <blockquote>
-        {quote ||
-          source.originalText ||
-          "Original file stored; text has not been extracted."}
-      </blockquote>
+      {source.kind === "human_edit" ? (
+        <details>
+          <summary>Inspect original saved entry</summary>
+          <blockquote>{original}</blockquote>
+        </details>
+      ) : (
+        <blockquote>{original}</blockquote>
+      )}
       <small className="source-locator">{source.originalLocator}</small>
     </article>
   );
@@ -28,14 +35,15 @@ export function EvidenceDrawer({
   selection,
   onClose,
   onEdit,
+  onReviewProposal,
 }: {
   snapshot: ProjectSnapshot;
   api: RootsApi;
   selection: { kind: "person" | "relationship" | "source"; id: string };
   onClose: () => void;
   onEdit: (operation: GraphMutation["operation"], id: string) => void;
+  onReviewProposal: (id: string) => void;
 }) {
-  const [photo, setPhoto] = useState<string | null>(null);
   const person =
     selection.kind === "person"
       ? snapshot.people.find((p) => p.id === selection.id)
@@ -59,6 +67,9 @@ export function EvidenceDrawer({
   const sourceIds = new Set([
     ...claims.flatMap((c) => c.sourceIds),
     ...stories.flatMap((s) => s.sourceIds),
+    ...snapshot.assets
+      .filter((a) => person?.photoIds.includes(a.id))
+      .map((a) => a.sourceId),
   ]);
   const sources = directSource
     ? [directSource]
@@ -84,33 +95,7 @@ export function EvidenceDrawer({
             <br />
             {years(person)}
           </p>
-          {person.photoIds.length > 0 && (
-            <div className="photo-gallery">
-              {person.photoIds.map((id) => {
-                const asset = snapshot.assets.find((a) => a.id === id);
-                return (
-                  <figure key={id}>
-                    <button
-                      className="photo-open"
-                      onClick={() => setPhoto(id)}
-                      aria-label={`Enlarge ${asset?.originalName || "original photo"}`}
-                    >
-                      <img
-                        src={api.assetUrl(snapshot.projectId, id)}
-                        alt={
-                          asset?.originalName ||
-                          `Original photo of ${person.displayNameEn}`
-                        }
-                      />
-                    </button>
-                    <figcaption>
-                      {asset?.originalName || "Original photograph"}
-                    </figcaption>
-                  </figure>
-                );
-              })}
-            </div>
-          )}
+          <OriginalPhotos ids={person.photoIds} snapshot={snapshot} api={api} />
           <button onClick={() => onEdit("editPerson", person.id)}>
             Edit person
           </button>
@@ -169,7 +154,44 @@ export function EvidenceDrawer({
           ))}
         </>
       )}
-      <h3>Original evidence</h3>
+      {person &&
+        snapshot.proposals.some(
+          (p) =>
+            p.personId === person.id &&
+            ["accepted", "corrected"].includes(p.status),
+        ) && (
+          <section>
+            <h3>Reviewed interpretations</h3>
+            {snapshot.proposals
+              .filter(
+                (p) =>
+                  p.personId === person.id &&
+                  ["accepted", "corrected"].includes(p.status),
+              )
+              .map((p) => (
+                <article className="story" key={p.id}>
+                  <p>{p.text}</p>
+                  <button onClick={() => onReviewProposal(p.id)}>
+                    Correct interpretation
+                  </button>
+                </article>
+              ))}
+          </section>
+        )}
+      <h3>Original evidence ({sources.length})</h3>
+      {directSource && (
+        <OriginalPhotos
+          ids={snapshot.assets
+            .filter(
+              (a) =>
+                a.sourceId === directSource.id &&
+                a.mediaType.startsWith("image/"),
+            )
+            .map((a) => a.id)}
+          snapshot={snapshot}
+          api={api}
+        />
+      )}
       {sources.length ? (
         sources.map((s) => <SourceEvidence key={s.id} source={s} />)
       ) : (
@@ -212,31 +234,6 @@ export function EvidenceDrawer({
             </article>
           ))}
       </details>
-      {photo && (
-        <div
-          className="photo-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Original photograph"
-          onClick={() => setPhoto(null)}
-        >
-          <button
-            autoFocus
-            aria-label="Close photograph"
-            onClick={() => setPhoto(null)}
-          >
-            ×
-          </button>
-          <img
-            src={api.assetUrl(snapshot.projectId, photo)}
-            alt={
-              snapshot.assets.find((a) => a.id === photo)?.originalName ||
-              "Original family photograph"
-            }
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
     </section>
   );
 }
