@@ -259,8 +259,17 @@ export async function createProject(
       await saveAsset(id, bytes.assetId, bytes.bytes);
   }
   // Original media are resolved by ID; never accept a browser-supplied server path.
+  const suppliedHashes = new Map(
+    files.map((file) => [
+      file,
+      createHash("sha256").update(file.bytes).digest("hex"),
+    ]),
+  );
   for (const asset of s.assets) {
-    const file = files.find((f) => f.originalName === asset.originalName);
+    const file =
+      files.find(
+        (f) => asset.contentHash && suppliedHashes.get(f) === asset.contentHash,
+      ) || files.find((f) => f.originalName === asset.originalName);
     if (file) {
       if (
         asset.contentHash &&
@@ -296,6 +305,9 @@ export async function createProject(
         : "Saved the supplied starting person. Planning uses the supplied evidence.",
   });
   await createSavedProject(s);
+  // Reopening restores reviewed state and originals. It must not re-run old source
+  // text as a new investigation or charge for model calls during a portable import.
+  if (reopenedFrom) return s;
   const remaining = files.filter((f) => f !== json);
   if (input.context.trim() || remaining.length || input.publicRecordUrl)
     return addContribution(

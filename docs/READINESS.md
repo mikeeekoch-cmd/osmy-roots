@@ -1,23 +1,28 @@
-# Readiness , September 10, 2026
+# Readiness, September 10, 2026
 
-Measured preparation status. Application features have not been implemented yet.
+Measured local prototype status. The shared sprint began at 16:27:53 UTC; final deadline is 17:57:53 UTC. The engineering branch contains the integrated application. Main publication remains subject to the resolved default-branch approval restriction recorded in lead status.
 
-| Area | Verified result |
-| --- | --- |
-| Public repository | mikeeekoch-cmd/osmy-roots created, cloned and preparation pushed; MIT license |
-| GitHub access | CLI authenticated; repository creation/push succeeded; connector reports the same account and admin/push/pull |
-| Public access | Anonymous repository API and README retrieval returned HTTP 200 |
-| Local tools | Git 2.53.0, Node 24.19.0, pnpm 11.19.0; temporary local Node HTTP check passed and server closed |
-| ArtLens | Public README and ten-commit history reviewed; 16 local authored files unchanged from prior full review |
-| Family archive | All 2,848 files rehashed and unchanged from the previous review |
-| Fresh context | Authenticated Drive download restored; current V3 scope, handoff, contract, prompts and family packet reviewed; archived/derived material indexed with coverage limits in the private manifest |
-| Repo alignment | Two screens, 35-person seed import, live contribution, real events and complete book/project ZIP; V3 ownership and prompts documented |
-| OpenAI app key | Missing; no successful application inference verified |
-| Supabase | Credentials missing; database, Auth and private Storage not verified |
-| Hosting | No hosting account or deployment verified |
-| Native chat exports | Not supplied; only synthetic format fixtures and a real DOCX-derived message available |
-| Second laptop | Not inspected; separate clone, credentials and ownership handoff required |
+| Area                    | Verified result                                                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime                 | pnpm dev serves the real two-screen app on 127.0.0.1:3000; Node 24/25 supported                                                   |
+| Contracts               | roots-v1 TypeScript/Zod contracts published as e838039 within ten minutes                                                         |
+| Astra                   | Funded API key works; actual gpt-6-astra source interpretation and cited book generation succeeded                                |
+| Persistence             | Serialized atomic local writes, version checks, accepted/unknown/corrected history, duplicate protection, manual edits and undo   |
+| Evidence                | Exact quote/locator checks, person/candidate separation, relationship references, self-parent and cycle rejection                 |
+| UI                      | Actual routes, saved refresh, review, photo display, progress, download and responsive layouts checked                            |
+| Data/retrieval          | Real parsing/original bytes, source hashes and local hit/no-match; permitted public fetch succeeded; private destinations blocked |
+| Book/export             | Two real source-to-book runs passed; four-page PDF visually inspected; ZIP integrity and runtime-schema JSON reopen passed        |
+| Portability             | Separate empty local-store import restored assets by content hash and preserved reviewed history                                  |
+| Automated checks        | pnpm typecheck PASS; pnpm test 71 PASS; pnpm build PASS                                                                           |
+| Live check times        | 9284 ms and 7402 ms for full analysis/generation/package/reopen checks, fictional input                                           |
+| Private seed            | Runtime normalization validated 93 existing people and preserved unresolved data; no private material committed                   |
+| External family finding | Not demonstrated; the successful public page fetch is an adapter check                                                            |
+| Deployment              | Not performed; local single-user prototype only                                                                                   |
 
-Validation: diagnostic syntax, local Markdown links, whitespace and private-path ignore checks passed. The public files were checked for common credential patterns and private paths. `pnpm run doctor` reports three missing app environment values; `pnpm run doctor:api` sends no request without a key. These expected failures do not demonstrate working inference or database access.
+The production build emits two dynamic-filesystem tracing warnings because the private local store is resolved at runtime. This does not prevent local operation. Deployment needs an explicit data/storage and output-tracing review.
 
-Current next step: begin the 90-minute plan in EXECUTION.md. Confirm the OpenAI key locally and make a real inference test; cloud/database credentials are optional under the local persistence fallback. Codex Natalia owns UI/animations; Claude Code owns ingestion/retrieval/export. Prior tool/credential observations above are preparation-time evidence and must be refreshed, not assumed current.
+Prepared material includes the synthetic family, placeholder portrait, book layout and supplied family records. The regular orchestration tests inject labeled TEST_ONLY model responses; separate opt-in live runs prove actual API behavior. Earlier credit_balance_exhausted failures were real, preserved as failures, and resolved by API Platform credit.
+
+Deferred: Supabase/Auth, hosting, OAuth, native Telegram/WhatsApp parsing, universal ZIP input, DOCX/PDF extraction, OCR, audio/video analysis, restoration, general web search/crawling and standalone editable HTML map. Portable JSON is editable; exported HTML is read-only. Original files must accompany portable imports; missing originals are reported and incomplete book exports fail visibly.
+
+Worker and final commit details: status/lead.md. Run commands and local credential handling: SETUP.md. Demo: DEMO.md.

@@ -50,3 +50,15 @@
 - Added a fictional five-generation runtime example with cited relationships, two conflicting birth years and an original code-generated placeholder portrait. Initial development fixture remains explicitly separate.
 - Real private 93-person seed passed the lead runtime validator: 142 relationships, 427 normalized claims, 44 stories, 5 reported issues. Private contents were not committed. Normalized extraction and original uploaded JSON bytes are retained separately.
 - Natalia 5a08ca1 integrated: live polling and mid-run contributions, responsive intake fixes, synthetic labeling and book text in workspace. P1 remains closed until actual ZIP/PDF/reopen validation.
+
+## 17:03 UTC integrated P0 checkpoint
+
+- Worker commits integrated: Natalia cab71b8; Claude 1ff9020. Export adapter committed as 47a9a51. Current branch contains both owners' changes intact.
+- Integrated live source -> actual Astra proposal -> accept -> saved story -> current passage -> real PDF/HTML/ZIP -> JSON reopen passed twice (9284 ms, 7402 ms). Four PDF pages rendered and visually inspected.
+- Browser: actual ZIP download passed. A second new live interpretation was marked unknown, survived refresh without changing the book, then was revisited and accepted; accepted state became stale until regeneration.
+- Cross-machine reopen fixed and tested: originals match content hashes even when ZIP filenames are opaque asset IDs; no model call is made to restore a reviewed project. Complete sources, proposals, events and history survive roots-v1 export.
+- Validation: typecheck PASS, 71 tests PASS, production build PASS with two local-store tracing warnings. No P1 feature was started before these checks.
+- Shared deadline remains 17:57:53 UTC / 13:57:53 EDT. This checkpoint is before the T+55 integration target.
+- Natalia/Claude: consume codex/engineering, not unchanged main. T0 and contracts have been published there since e838039. Main push was rejected by automatic approval review; final checked publication needs Mike's explicit approval.
+- P0 route is validated. P1 gate opens only for bounded work on this integrated base; prioritize any integration defect first. Native chat parser is skipped without a real sample. No search provider is configured, so do not spend this sprint on provider onboarding.
+- Next: final browser reimport/checkpoint, private-input local rehearsal if practical, and safe final handoff. Cloud, OCR, broad crawling and editable HTML map remain cut.

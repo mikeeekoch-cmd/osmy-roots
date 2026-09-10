@@ -14,7 +14,7 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test integration-tests/*.test.ts tests/ui/model.test.ts",
+    "test": "node --import tsx --test integration-tests/*.test.ts tests/ui/model.test.ts tests/data-export/*.test.mjs tests/research/*.test.mjs",
     "doctor": "node scripts/doctor.mjs",
     "doctor:api": "node scripts/doctor.mjs --api",
     "test:live": "node --env-file=.env.local --import tsx integration-tests/live-smoke.ts"
