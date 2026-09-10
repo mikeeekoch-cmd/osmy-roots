@@ -32,6 +32,7 @@ page.on('response',async response=>{
     const s=await response.json();
     if(!s.projectId)return;
     latest=s;log.projectId=s.projectId;
+    if(s.run?.initialSavedAt&&!log.initialSavedAt)log.initialSavedAt=s.run.initialSavedAt;
     log.snapshots.push({at:new Date().toISOString(),version:s.version,people:s.people.length,relationships:s.relationships.length,phase:s.run?.phase,book:s.run?.book.status,answers:s.run?.answers.length});
     if(s.run?.answers.length===7&&!log.questionCompletionAt)log.questionCompletionAt=new Date().toISOString();
     for(const b of s.run?.batches||[])if(b.status==='saved'&&!seenBatches.has(b.id)){seenBatches.add(b.id);log.batches.push({id:b.id,savedAt:b.savedAt,observedAt:new Date().toISOString()});}
@@ -79,16 +80,31 @@ try{
       log.photoComparison={mode:await page.locator('.comparison-side-by-side').count()?'side_by_side':'aligned',at:new Date().toISOString()};
       await page.getByRole('button',{name:'Close photograph',exact:true}).click();
     }else if(latest.photoPairs?.length)throw Error('The supplied photo comparison was not reachable from its person card.');
+    else {
+      const original=page.locator('.photo-open').first();
+      if(await original.count()){
+        await original.click();await page.getByRole('dialog',{name:'Original photograph',exact:true}).waitFor();
+        await page.screenshot({path:join(directory,`${runLabel}-original-photo.png`),fullPage:true});
+        await page.getByRole('button',{name:'Close photograph',exact:true}).click();
+      }
+    }
     await page.keyboard.press('Escape');
   }
   await waitFor(()=>latest?.run?.book.status==='ready'&&latest.people.length===manifest.selectedPersonIds.length,120000);
   await page.screenshot({path:join(directory,`${runLabel}-book-ready.png`),fullPage:true});
+  const previewResponse=page.waitForResponse(response=>response.url().includes('/book/preview')&&response.status()===200,{timeout:10000});
+  await page.getByRole('button',{name:'Preview current PDF',exact:true}).click();
+  const pdf=await previewResponse;
+  if(!(await pdf.body()).subarray(0,5).equals(Buffer.from('%PDF-')))throw Error('The book preview is not an actual PDF.');
+  await page.screenshot({path:join(directory,`${runLabel}-pdf-preview.png`),fullPage:true});
+  await page.getByRole('button',{name:'Close book preview',exact:true}).click();
   const text=await page.locator('body').innerText();
   if(/[\u0400-\u04ff]/u.test(text))throw Error('Cyrillic text was rendered in the English demo.');
   if(/\b(countdown|seconds remaining|120.second demo|time remaining|elapsed session)\b/i.test(text))throw Error('Internal timing leaked into product UI.');
   if(latest.relationships.length!==manifest.expectedRelationshipCount)throw Error('Final relationship coverage mismatch.');
   if(manifest.photos.some(photo=>!latest.photoAnnotations?.some(saved=>saved.assetId===photo.assetId)))throw Error('A supplied photo caption is missing from the saved family.');
-  if(latest.run.modelStatus!=='completed'||!latest.run.analysis||!latest.stories.some(s=>s.status==='accepted'&&s.evidenceType==='family_recollection'))throw Error('A live reviewed recollection is missing.');
+  if(latest.run.modelStatus!=='completed'||latest.run.analysis?.model!=='gpt-6-astra'||!latest.stories.some(s=>s.status==='accepted'&&s.evidenceType==='family_recollection')||!latest.bookPassages.some(p=>p.origin==='live'&&p.model==='gpt-6-astra'))throw Error('A live reviewed Astra recollection or passage is missing.');
+  log.models={analysis:latest.run.analysis.model,passage:latest.bookPassages.map(p=>p.model)};
   if(log.batches.length!==6||Date.parse(log.batches[5].savedAt)-Date.parse(log.batches[0].savedAt)<45000)throw Error('Six distinct saved batches did not span 45 seconds.');
   const downloadPromise=page.waitForEvent('download',{timeout:30000});
   log.downloadClickAt=new Date().toISOString();
