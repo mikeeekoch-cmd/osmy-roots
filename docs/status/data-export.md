@@ -78,6 +78,28 @@ same roots-demo-v3 validation, with four aligned pairs of its own.
 **Checks.** 213 tests pass, up from the 171 baseline. TypeScript passes. The production build
 passes.
 
+## Integration with the lead's runtime, after his 20:17 changes
+
+- **`preparedAssets` is populated.** The manifest now carries all 12 enhanced derivatives as
+  safe packet-relative entries with hash, byte length and media type. Every `assetId` equals a
+  `PhotoPairV3.enhancedAssetId` and every hash matches the file on disk. They stay out of the
+  33 selected uploads, so a derivative can never be counted as a received original.
+  `scripts/check-packet.mjs` now enforces all of that, including that a prepared path is never
+  also an upload path.
+- **File lineage matches `TranslationLineageSchema`.** The three English derivative documents
+  record the controlling book's hash, the source page range and their own hash.
+- **The public search adapter he was waiting on is exported** from `server/research/index.mjs`:
+  `getSearchProviderConfig`, `searchPublicRecords`, `crawlLinkedPages`, `clearCrawlCache` and
+  `retrievalCountDelta`. Attempt, cache, duplicate-root and blocked metadata are preserved, and
+  the counters are derived from distinct successful operations only.
+- **The long renderer consumes `BookPlan.chapters`** and returns the actual page count,
+  section ranges and layout density, so the lead can enforce 35-40 pages before a current
+  edition is previewed or downloaded. `compactChapter` behaviour is untouched: the four-page
+  layout is still the fallback and still what an older packet gets.
+- **Presenter cues updated for demonstration-mode connections.** The script now says the
+  provider tiles are demo mode over prepared local copies, and explicitly tells the presenter
+  not to claim a live account connection.
+
 ## Still open for other owners
 
 - Provider credentials and application OAuth are Mike's. Until a provider is configured the

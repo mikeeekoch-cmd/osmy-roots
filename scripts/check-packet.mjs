@@ -54,6 +54,27 @@ async function checkRound3(manifest, parsed, manifestPath, mediaDir) {
   }
   if (missingPairs.length) fail(`Old photographs without an enhanced pair: ${missingPairs.join(', ')}`);
 
+  // Prepared derivative bytes must exist at a safe packet-relative path, hash exactly,
+  // and belong to a declared pair. They are never counted as uploaded originals.
+  const enhancedIds = new Set(manifest.photoPairs.map((p) => p.enhancedAssetId));
+  const preparedIds = new Set();
+  for (const prepared of manifest.preparedAssets || []) {
+    if (!enhancedIds.has(prepared.assetId)) fail(`preparedAssets names ${prepared.assetId}, which is not a pair's enhanced asset`);
+    if (preparedIds.has(prepared.assetId)) fail(`preparedAssets repeats ${prepared.assetId}`);
+    preparedIds.add(prepared.assetId);
+    if (manifest.files.some((f) => f.path === prepared.path)) fail(`${prepared.path} is both a selected upload and a prepared derivative`);
+    if (manifestPath) {
+      const bytes = await readFile(path.resolve(path.dirname(manifestPath), prepared.path)).catch(() => null);
+      if (!bytes) fail(`Prepared derivative not found: ${prepared.path}`);
+      if (bytes.length !== prepared.bytes || sha(bytes) !== prepared.sha256) fail(`Prepared derivative size or hash mismatch: ${prepared.path}`);
+      const pair = manifest.photoPairs.find((p) => p.enhancedAssetId === prepared.assetId);
+      if (sha(bytes) !== pair.enhancedHash) fail(`Prepared derivative does not match its pair record: ${prepared.path}`);
+    }
+  }
+  if (manifest.preparedAssets?.length && preparedIds.size !== enhancedIds.size) {
+    fail(`preparedAssets covers ${preparedIds.size} of ${enhancedIds.size} enhanced versions`);
+  }
+
   // A portrait must be supported by a real span, and a crop must be explicitly reviewed.
   for (const portrait of manifest.portraits) {
     if (!annotationByAsset.has(portrait.assetId)) fail(`Portrait for ${portrait.personId} points at a missing photograph`);
@@ -102,6 +123,7 @@ async function checkRound3(manifest, parsed, manifestPath, mediaDir) {
     oldPhotographs: manifest.oldPhotoAssetIds.length,
     pairsPrepared: manifest.photoPairs.length,
     pairsPassed: manifest.photoPairs.filter((p) => p.qa.status === 'passed').length,
+    preparedDerivatives: manifest.preparedAssets?.length ?? 0,
     portraits: manifest.portraits.length,
     soloPortraits: manifest.portraits.filter((p) => p.kind === 'solo').length,
     reviewedCrops: manifest.portraits.filter((p) => p.kind === 'reviewed_crop').length,
