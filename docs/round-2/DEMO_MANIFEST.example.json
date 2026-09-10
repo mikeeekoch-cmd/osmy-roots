@@ -1,0 +1,332 @@
+{
+  "schemaVersion": "roots-demo-v2",
+  "packetVersion": "fictional-contract-example-1",
+  "script": {
+    "title": "A fictional family",
+    "version": "1",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "selectedPersonIds": [
+    "F001",
+    "F002",
+    "F003",
+    "F004",
+    "F005",
+    "F006",
+    "F007",
+    "F008",
+    "F009",
+    "F010",
+    "F011",
+    "F012",
+    "F013",
+    "F014",
+    "F015",
+    "F016",
+    "F017",
+    "F018",
+    "F019",
+    "F020",
+    "F021",
+    "F022",
+    "F023",
+    "F024",
+    "F025",
+    "F026",
+    "F027",
+    "F028",
+    "F029",
+    "F030",
+    "F031",
+    "F032",
+    "F033",
+    "F034",
+    "F035"
+  ],
+  "expectedRelationshipCount": 0,
+  "files": [
+    {
+      "path": "01-upload/Family_Register.csv",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "bytes": 0,
+      "sourceIds": [
+        "fictional-register"
+      ],
+      "evidenceRootIds": [
+        "fictional-root"
+      ],
+      "lineage": []
+    }
+  ],
+  "photos": [],
+  "questions": [
+    {
+      "id": "question-1",
+      "category": "photo",
+      "prompt": "Review the supplied photo evidence.",
+      "recommendation": "Keep unresolved until the corresponding evidence is supplied.",
+      "support": [
+        {
+          "sourceId": "fictional-register",
+          "locator": "Family_Register.csv",
+          "quote": "Fictional contract example only."
+        }
+      ],
+      "personIds": [
+        "F001"
+      ],
+      "effect": {
+        "kind": "editorial",
+        "personId": "F001"
+      },
+      "requiresAstra": false,
+      "status": "ready",
+      "origin": "prepared"
+    },
+    {
+      "id": "question-2",
+      "category": "kinship",
+      "prompt": "Review the supplied kinship evidence.",
+      "recommendation": "Keep unresolved until the corresponding evidence is supplied.",
+      "support": [
+        {
+          "sourceId": "fictional-register",
+          "locator": "Family_Register.csv",
+          "quote": "Fictional contract example only."
+        }
+      ],
+      "personIds": [
+        "F001"
+      ],
+      "effect": {
+        "kind": "editorial",
+        "personId": "F001"
+      },
+      "requiresAstra": false,
+      "status": "ready",
+      "origin": "prepared"
+    },
+    {
+      "id": "question-3",
+      "category": "origin",
+      "prompt": "Review the supplied origin evidence.",
+      "recommendation": "Keep unresolved until the corresponding evidence is supplied.",
+      "support": [
+        {
+          "sourceId": "fictional-register",
+          "locator": "Family_Register.csv",
+          "quote": "Fictional contract example only."
+        }
+      ],
+      "personIds": [
+        "F001"
+      ],
+      "effect": {
+        "kind": "editorial",
+        "personId": "F001"
+      },
+      "requiresAstra": false,
+      "status": "ready",
+      "origin": "prepared"
+    },
+    {
+      "id": "question-4",
+      "category": "time",
+      "prompt": "Review the supplied time evidence.",
+      "recommendation": "Keep unresolved until the corresponding evidence is supplied.",
+      "support": [
+        {
+          "sourceId": "fictional-register",
+          "locator": "Family_Register.csv",
+          "quote": "Fictional contract example only."
+        }
+      ],
+      "personIds": [
+        "F001"
+      ],
+      "effect": {
+        "kind": "editorial",
+        "personId": "F001"
+      },
+      "requiresAstra": false,
+      "status": "ready",
+      "origin": "prepared"
+    },
+    {
+      "id": "question-5",
+      "category": "movement",
+      "prompt": "Review the supplied movement evidence.",
+      "recommendation": "Keep unresolved until the corresponding evidence is supplied.",
+      "support": [
+        {
+          "sourceId": "fictional-register",
+          "locator": "Family_Register.csv",
+          "quote": "Fictional contract example only."
+        }
+      ],
+      "personIds": [
+        "F001"
+      ],
+      "effect": {
+        "kind": "editorial",
+        "personId": "F001"
+      },
+      "requiresAstra": false,
+      "status": "ready",
+      "origin": "prepared"
+    },
+    {
+      "id": "question-6",
+      "category": "recollection",
+      "prompt": "Review the supplied recollection evidence.",
+      "recommendation": "Keep unresolved until the corresponding evidence is supplied.",
+      "support": [
+        {
+          "sourceId": "fictional-register",
+          "locator": "Family_Register.csv",
+          "quote": "Fictional contract example only."
+        }
+      ],
+      "personIds": [
+        "F001"
+      ],
+      "effect": {
+        "kind": "story",
+        "personId": "F001"
+      },
+      "requiresAstra": true,
+      "status": "ready",
+      "origin": "prepared"
+    },
+    {
+      "id": "question-7",
+      "category": "conflict",
+      "prompt": "Review the supplied conflict evidence.",
+      "recommendation": "Keep unresolved until the corresponding evidence is supplied.",
+      "support": [
+        {
+          "sourceId": "fictional-register",
+          "locator": "Family_Register.csv",
+          "quote": "Fictional contract example only."
+        }
+      ],
+      "personIds": [
+        "F001"
+      ],
+      "effect": {
+        "kind": "editorial",
+        "personId": "F001"
+      },
+      "requiresAstra": false,
+      "status": "ready",
+      "origin": "prepared"
+    }
+  ],
+  "initialBranchIds": [
+    "F001",
+    "F002",
+    "F003",
+    "F004",
+    "F005"
+  ],
+  "initialReleaseOffsetSeconds": 35,
+  "batches": [
+    {
+      "id": "batch-1",
+      "personIds": [
+        "F006",
+        "F007",
+        "F008",
+        "F009",
+        "F010"
+      ],
+      "relationshipIds": [],
+      "dependencyIds": [
+        "initial"
+      ],
+      "releaseOffsetSeconds": 44
+    },
+    {
+      "id": "batch-2",
+      "personIds": [
+        "F011",
+        "F012",
+        "F013",
+        "F014",
+        "F015"
+      ],
+      "relationshipIds": [],
+      "dependencyIds": [
+        "batch-1"
+      ],
+      "releaseOffsetSeconds": 53
+    },
+    {
+      "id": "batch-3",
+      "personIds": [
+        "F016",
+        "F017",
+        "F018",
+        "F019",
+        "F020"
+      ],
+      "relationshipIds": [],
+      "dependencyIds": [
+        "batch-2"
+      ],
+      "releaseOffsetSeconds": 62
+    },
+    {
+      "id": "batch-4",
+      "personIds": [
+        "F021",
+        "F022",
+        "F023",
+        "F024",
+        "F025"
+      ],
+      "relationshipIds": [],
+      "dependencyIds": [
+        "batch-3"
+      ],
+      "releaseOffsetSeconds": 71
+    },
+    {
+      "id": "batch-5",
+      "personIds": [
+        "F026",
+        "F027",
+        "F028",
+        "F029",
+        "F030"
+      ],
+      "relationshipIds": [],
+      "dependencyIds": [
+        "batch-4"
+      ],
+      "releaseOffsetSeconds": 80
+    },
+    {
+      "id": "batch-6",
+      "personIds": [
+        "F031",
+        "F032",
+        "F033",
+        "F034",
+        "F035"
+      ],
+      "relationshipIds": [],
+      "dependencyIds": [
+        "batch-5"
+      ],
+      "releaseOffsetSeconds": 89
+    }
+  ],
+  "sourceJobs": [],
+  "requiredBookSections": [
+    "Dedication",
+    "Family register",
+    "Reviewed story",
+    "Sources and open questions"
+  ]
+}

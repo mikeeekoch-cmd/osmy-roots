@@ -92,3 +92,14 @@
 - Product owns actual private files, manifest values, source/translation/photo lineage, complete coverage and presenter cues. Claude owns parsers/retrieval/export against the frozen packet; Natalia owns display/animations; Mike owns runtime schemas, model/state/run, integration and acceptance. Private source pointers are in an ignored local handoff, not Git.
 - No engineering agents were dispatched, no new T0 started and no content packet was claimed complete in this documentation pass. Existing P0/partial P1 evidence remains the 556953f check: 74 tests, typecheck and build passed with two known tracing warnings. This pass changes instructions only; application tests were not rerun as if code changed.
 - Required next execution: one shared T0+90 engineering deadline, contracts within ten minutes, P0 integration by T+55, freeze by T+70, then all shared checks and two real fresh <=120-second browser rehearsals. Status must distinguish content-ready, engineering-ready and integrated-demo-ready.
+
+## Round 2 execution: shared engineering clock
+
+- Actual T0: 2026-09-10 18:18:15 UTC / 14:18:15 EDT.
+- Contracts due: 18:28:15 UTC / 14:28:15 EDT. P0 integration: 19:13:15 UTC / 15:13:15 EDT.
+- Feature freeze: 19:28:15 UTC / 15:28:15 EDT. Shared engineering deadline: 19:48:15 UTC / 15:48:15 EDT.
+- Baseline: fetched d10eb59, descendant of validated 556953f, in a separate engineering worktree; preserved the data/export checkout.
+- Lead owns contracts, Astra, state, API and integration. Three Codex subagents cover UI, data/export and product/content ownership for this execution. Existing Claude-authored modules remain preserved; this round does not claim new Claude execution.
+- Published schema: packages/contracts/round2.ts. API/module instructions: docs/round-2/CONTRACT-HANDOFF.md. Fictional structural example: docs/round-2/DEMO_MANIFEST.example.json; zero hashes are explicit example placeholders, not a frozen packet.
+- Product is auditing the selected private inputs and building the single private manifest. No content-ready or integrated-demo-ready claim yet.
+- Final gate: exact frozen packet, seven explicit answers, six saved arrivals across at least 45 seconds, current source-reviewed English book, and two actual <=120-second browser rehearsals. Timing and failures must be recorded.
