@@ -350,6 +350,7 @@ export const BookEditionSchema = z.object({
   sealedAt: At.optional(),
   previousEditionId: Id.optional(),
   chapterFingerprints: z.record(z.string(), Hash),
+  passageFingerprint: Hash.optional(),
   pdfHash: Hash.optional(),
   zipHash: Hash.optional(),
   error: z.string().optional(),

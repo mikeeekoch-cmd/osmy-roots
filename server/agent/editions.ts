@@ -13,7 +13,7 @@ import {
 } from "../state/store";
 import { researchFingerprint, digest } from "../state/research";
 import { AppError } from "../state/validation";
-import { generatePassage } from "./astra";
+import { generatePassage, selectBookClaims } from "./astra";
 import { dataModules } from "./data-modules";
 import { readGeneratedZip } from "./bundle";
 import { createZip } from "../export/zip.mjs";
@@ -39,6 +39,20 @@ const path = (id: string, key: string, kind: string) =>
 const editionKey = (edition: BookEdition) =>
   `${edition.fingerprint}-${edition.id}`;
 const now = () => new Date().toISOString();
+export function passageFingerprint(s: ProjectSnapshot) {
+  const claims = selectBookClaims(s);
+  return digest({
+    claims,
+    people: s.people
+      .filter((p) => claims.some((c) => c.subjectId === p.id))
+      .map((p) => ({ id: p.id, name: p.displayNameEn })),
+    stories: s.stories.filter(
+      (st) =>
+        st.status === "accepted" &&
+        st.claimIds.some((id) => claims.some((c) => c.id === id)),
+    ),
+  });
+}
 export async function prepareEdition(id: string) {
   if (tasks.has(id)) return tasks.get(id)!;
   const task = buildEdition(id).finally(() => tasks.delete(id));
@@ -93,6 +107,7 @@ async function buildEdition(id: string) {
     pageCount: 0,
     createdAt: now(),
     previousEditionId: s.research.bookEdition?.id,
+    passageFingerprint: passageFingerprint(s),
     chapterFingerprints: Object.fromEntries(
       s.research.bookPlan.chapters.map((ch) => [
         ch.id,
@@ -125,9 +140,12 @@ async function buildEdition(id: string) {
   });
   try {
     let passages = s.bookPassages;
-    if (s.stories.some((st) => st.status === "accepted"))
-      passages = [await generatePassage(s)];
-    else {
+    if (selectBookClaims(s).length) {
+      const unchanged =
+        s.research.bookEdition?.passageFingerprint ===
+          edition.passageFingerprint && passages.length > 0;
+      if (!unchanged) passages = [await generatePassage(s)];
+    } else {
       const claim = s.claims.find((c) => c.status === "accepted");
       if (!claim)
         throw new AppError("Review a documented family record first.", 409);

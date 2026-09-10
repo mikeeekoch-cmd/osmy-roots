@@ -28,6 +28,7 @@ import {
 import { loadProject, updateProject, readAsset } from "../server/state/store";
 import { createProject } from "../server/agent/service";
 import { multipart } from "../server/agent/http";
+import { passageFingerprint } from "../server/agent/editions";
 import {
   digest,
   researchFingerprint,
@@ -781,6 +782,35 @@ test("portable round-3 restore retains intake edits and resumes later rounds in 
     if (restoredRoot) await rm(restoredRoot, { recursive: true, force: true });
     process.env.ROOTS_DATA_DIR = root;
     await waitForResearch(start.projectId);
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("book passage cache survives photo edits but changes with reviewed evidence", async () => {
+  const { root, s } = await ready();
+  try {
+    await cycleAction(
+      s.projectId,
+      { action: "initial", requestId: "cache-initial", baseVersion: s.version },
+      deps,
+    );
+    const current = await waitForResearch(s.projectId);
+    const story = current.stories.find((st) => st.status === "accepted");
+    assert.ok(story);
+    const key = passageFingerprint(current);
+    const changed = structuredClone(current);
+    changed.photoAnnotations[0].caption = "A revised photo caption.";
+    changed.research!.jobs[0].summary = "A completed status update.";
+    assert.equal(
+      passageFingerprint(changed),
+      key,
+      "Unrelated edits must not call the passage model again",
+    );
+    const claim = changed.claims.find((c) => story.claimIds.includes(c.id))!;
+    claim.value = "The family corrected this recollection.";
+    claim.version++;
+    assert.notEqual(passageFingerprint(changed), key);
+  } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
