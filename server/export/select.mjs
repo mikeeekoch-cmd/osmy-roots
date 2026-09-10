@@ -64,17 +64,33 @@ const REL_WORD = {
 export function claimText(claim, people = new Map()) {
   const name = (id) => people.get(id)?.displayNameEn || id;
   const relMatch = /^relationship_(.+)$/.exec(claim.predicate || '');
-  if (relMatch && claim.value && typeof claim.value === 'object') {
-    const { from, to, subtype } = claim.value;
+  // Relationship values reach the exporter as an object from one parser and as a
+  // JSON string from another. Without this the book printed the raw JSON at readers.
+  const value = decodeClaimValue(claim.value);
+  if (relMatch && value && typeof value === 'object') {
+    const { from, to, subtype } = value;
     const word = REL_WORD[relMatch[1]] || relMatch[1].replace(/_/g, ' ');
     const detail = subtype ? ` (${subtype})` : '';
     return `${name(from)} is ${word} ${name(to)}${detail}`;
   }
   const label = String(claim.predicate || '').replace(/_/g, ' ');
-  const value = claim.value && typeof claim.value === 'object'
-    ? Object.entries(claim.value).filter(([, v]) => v != null).map(([k, v]) => `${k} ${v}`).join(', ')
-    : String(claim.value ?? '');
-  return `${label}: ${value}`;
+  const rendered = value && typeof value === 'object'
+    ? Object.entries(value).filter(([, v]) => v != null).map(([k, v]) => `${k} ${v}`).join(', ')
+    : String(value ?? '');
+  return `${label}: ${rendered}`;
+}
+
+/** Accept both an object value and the same object serialised by an upstream parser. */
+export function decodeClaimValue(value) {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return value;
+  try {
+    const parsed = JSON.parse(trimmed);
+    return parsed && typeof parsed === 'object' ? parsed : value;
+  } catch {
+    return value;
+  }
 }
 
 /**
