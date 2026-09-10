@@ -88,7 +88,6 @@ async function manifestFor(files: InputFile[], supplied?: RuntimeManifest) {
   }
   manifest = parseManifest(manifest);
   const expected = manifest.files.filter(f => f.path.startsWith('01-upload/') || !f.path.includes('/'));
-  if (expected.length !== files.length) throw new AppError('Select the complete frozen upload folder, without presenter or audit files.', 400, 'PACKET_MISMATCH');
   for (const file of expected) {
     const picked = files.find(f => f.originalName === basename(file.path));
     if (!picked || picked.bytes.length !== file.bytes || hash(picked.bytes) !== file.sha256)
