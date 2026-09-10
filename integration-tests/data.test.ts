@@ -4,7 +4,11 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { dataModules } from "../server/agent/data-modules";
-import { readGeneratedZip } from "../server/agent/bundle";
+import {
+  readGeneratedZip,
+  bookDateLabel,
+  printLocators,
+} from "../server/agent/bundle";
 import { createProject } from "../server/agent/service";
 import { updateProject, readAsset } from "../server/state/store";
 import { reviewProposal } from "../server/state/decisions";
@@ -20,6 +24,33 @@ before(async () => {
 });
 after(async () => {
   await rm(root, { recursive: true, force: true });
+});
+
+test("printed citations stay compact while portable evidence retains exact long quotations", () => {
+  const source = syntheticSnapshot.sources[0];
+  const quote = "Exact original quotation. ".repeat(200);
+  const passage = {
+    id: "long-source",
+    text: "A short English recollection.",
+    claimIds: ["claim"],
+    sourceIds: [source.id],
+    sourceLocators: [
+      { sourceId: source.id, locator: source.originalLocator, quote },
+    ],
+    acceptedStateVersion: 1,
+    origin: "prepared" as const,
+    model: "TEST_ONLY",
+  };
+  const printed = printLocators([passage], [source]);
+  assert.deepEqual(printed[0].sourceLocators, [
+    `[1] ${source.originalLocator}`,
+  ]);
+  assert.equal(passage.sourceLocators[0].quote, quote);
+  assert.equal(
+    bookDateLabel({ value: "1889", precision: "approximate" }),
+    "c. 1889",
+  );
+  assert.equal(bookDateLabel({ value: null, precision: "unknown" }), "Unknown");
 });
 
 test("actual ingestion keeps text bytes, exact quotes, hashes and honest unsupported outcomes", async () => {

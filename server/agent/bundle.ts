@@ -58,6 +58,37 @@ export function readGeneratedZip(input: Uint8Array) {
   return entries;
 }
 
+export function bookDateLabel(
+  date: ProjectSnapshot["people"][number]["lifeYears"]["birth"],
+) {
+  if (!date.value) return "Unknown";
+  if (date.precision === "approximate") return `c. ${date.value}`;
+  return date.value;
+}
+
+export function printLocators(
+  passages: BundleInput["passages"],
+  sources: ProjectSnapshot["sources"],
+) {
+  const numbers = new Map(
+    sources.map((source, index) => [source.id, index + 1]),
+  );
+  return passages.map((passage) => ({
+    ...passage,
+    sourceLocators: [
+      ...new Set(
+        passage.sourceLocators.map((span) => {
+          const locator =
+            span.locator.length > 160
+              ? `${span.locator.slice(0, 157)}...`
+              : span.locator;
+          return `[${numbers.get(span.sourceId)}] ${locator}`;
+        }),
+      ),
+    ],
+  }));
+}
+
 function presentation(snapshot: ProjectSnapshot) {
   return {
     ...snapshot,
@@ -65,7 +96,7 @@ function presentation(snapshot: ProjectSnapshot) {
       ...p,
       lifeYears: {
         ...p.lifeYears,
-        label: `${p.lifeYears.birth.value || "Unknown"} - ${p.lifeYears.death.value || "Unknown"}`,
+        label: `${bookDateLabel(p.lifeYears.birth)} - ${bookDateLabel(p.lifeYears.death)}`,
       },
     })),
     // Unresolved edges remain in portable JSON and open questions, not the printed ancestry.
@@ -85,6 +116,20 @@ function presentation(snapshot: ProjectSnapshot) {
       subjectId: s.personId,
       attributedTo: s.attribution,
     })),
+    claims: snapshot.claims.map((claim) => {
+      if (!claim.predicate.startsWith("relationship_")) return claim;
+      try {
+        const value = JSON.parse(claim.value);
+        return value &&
+          typeof value === "object" &&
+          typeof value.from === "string" &&
+          typeof value.to === "string"
+          ? { ...claim, value }
+          : claim;
+      } catch {
+        return claim;
+      }
+    }),
     layout: { positions: snapshot.layout },
   };
 }
@@ -135,13 +180,11 @@ export async function buildRuntimeBundle({
     .at(-1)?.personId;
   const raw = await buildRaw({
     snapshot: presentation(snapshot),
-    passages: passages.map((p) => ({
-      ...p,
-      sourceLocators: p.sourceLocators.map((s) => `${s.locator}: "${s.quote}"`),
-    })),
+    passages: printLocators(passages, snapshot.sources),
     resolveAsset: (id: string) => resolved.get(id),
     options: {
       includeAssets: "all",
+      compactChapter: true,
       focusPersonId: chapterPersonId,
       branchRootId: deepestLineFocus(presentation(snapshot)),
       dedication: "For the family.",

@@ -1,5 +1,6 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
+import { selectBookClaims } from "../server/agent/astra";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -129,8 +130,74 @@ test("correction moves story to selected person and keeps original quotation", a
   assert.equal(s.people[2].storyIds.length, 0);
   assert.equal(s.people[1].storyIds.length, 1);
   assert.equal(s.stories[0].spans[0].quote, syntheticProposal.spans[0].quote);
+  const correction = s.sources.find((source) => source.kind === "human_edit")!;
+  assert.ok(correction.originalText.includes("Intended person: person-1"));
+  assert.ok(
+    s.stories[0].spans.some(
+      (span) =>
+        span.sourceId === correction.id &&
+        span.quote === correction.originalText,
+    ),
+  );
+  assert.ok(s.history.at(-1)!.sourceIds.includes(correction.id));
   assert.equal(s.claims[0].version, 2);
   assert.equal(s.history.length, 2);
+});
+test("book selection follows the latest reviewed person after correcting an earlier story", async () => {
+  let s = await seed();
+  s = await reviewProposal(s.projectId, {
+    proposalId: syntheticProposal.id,
+    action: "accept",
+    baseVersion: s.version,
+  });
+  s = await updateProject(s.projectId, (draft) => {
+    const originalText =
+      "I remember Taylor Morgan keeping a workshop notebook.";
+    draft.sources.push({
+      ...draft.sources[0],
+      id: "source-taylor",
+      originalLocator: "taylor.txt",
+      originalText,
+    });
+    draft.proposals.push({
+      ...structuredClone(syntheticProposal),
+      id: "proposal-taylor",
+      personId: "person-3",
+      candidatePersonIds: ["person-3"],
+      text: originalText,
+      sourceIds: ["source-taylor"],
+      spans: [
+        {
+          sourceId: "source-taylor",
+          locator: "taylor.txt",
+          quote: originalText,
+        },
+      ],
+    });
+  });
+  s = await reviewProposal(s.projectId, {
+    proposalId: "proposal-taylor",
+    action: "accept",
+    baseVersion: s.version,
+  });
+  assert.deepEqual(
+    [...new Set(selectBookClaims(s).map((c) => c.subjectId))],
+    ["person-3"],
+  );
+  s = await reviewProposal(s.projectId, {
+    proposalId: syntheticProposal.id,
+    action: "correct",
+    baseVersion: s.version,
+    corrections: {
+      personId: "person-1",
+      text: "The contributor meant Robin Morgan in the original recollection.",
+    },
+  });
+  assert.deepEqual(
+    [...new Set(selectBookClaims(s).map((c) => c.subjectId))],
+    ["person-1"],
+  );
+  assert.equal(s.stories.length, 2);
 });
 test("same-name candidates remain separate until explicit correction chooses a person", async () => {
   let s = await seed();

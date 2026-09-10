@@ -74,6 +74,7 @@ export async function reviewProposal(projectId: string, raw: unknown) {
           "ALREADY_REVIEWED",
         );
       const touchedClaims: string[] = [];
+      const touchedSources = [...p.sourceIds];
       if (input.action === "accept" || input.action === "correct") {
         const personId = input.corrections?.personId || p.personId;
         if (!personId || !s.people.some((x) => x.id === personId))
@@ -91,13 +92,36 @@ export async function reviewProposal(projectId: string, raw: unknown) {
         // Upsert fixed IDs so a retry/correction cannot duplicate the accepted story.
         const oldClaim = s.claims.find((c) => c.id === claimId);
         const oldStory = s.stories.find((st) => st.id === storyId);
+        const sourceIds = [...p.sourceIds];
+        const spans = structuredClone(p.spans);
+        if (input.action === "correct") {
+          const id = `correction-${randomUUID()}`;
+          const originalText = `Intended person: ${personId}\nInterpretation: ${text}\nPredicate: ${input.corrections?.predicate || p.predicate}`;
+          const locator = `Human correction ${id}`;
+          s.sources.push({
+            id,
+            kind: "human_edit",
+            originalLocator: locator,
+            originalText,
+            contentHash: createHash("sha256")
+              .update(originalText)
+              .digest("hex"),
+            origin: "live",
+            author: "Local user",
+            messageTimestamp: now(),
+            parentAttachmentId: null,
+          });
+          sourceIds.push(id);
+          touchedSources.push(id);
+          spans.push({ sourceId: id, locator, quote: originalText });
+        }
         const claim = {
           id: claimId,
           subjectId: personId,
           predicate: input.corrections?.predicate || p.predicate,
           value: text,
-          sourceIds: p.sourceIds,
-          spans: p.spans,
+          sourceIds,
+          spans,
           status: "accepted" as const,
           evidenceType: p.evidenceType,
           version: (oldClaim?.version || 0) + 1,
@@ -111,9 +135,9 @@ export async function reviewProposal(projectId: string, raw: unknown) {
           id: storyId,
           personId,
           text,
-          sourceIds: p.sourceIds,
+          sourceIds,
           claimIds: [claimId],
-          spans: p.spans,
+          spans,
           evidenceType: p.evidenceType,
           status: "accepted" as const,
           attribution,
@@ -138,7 +162,7 @@ export async function reviewProposal(projectId: string, raw: unknown) {
         `review:${input.action}`,
         before,
         { ...graphState(s), proposal: structuredClone(p) },
-        p.sourceIds,
+        touchedSources,
         touchedClaims,
         input.requestId,
       );
