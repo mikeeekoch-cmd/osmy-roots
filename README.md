@@ -1,74 +1,49 @@
 <p align="center"><img src="assets/roots-mark.svg" alt="Osmy Roots" width="120" /></p>
 <h1 align="center">Osmy Roots</h1>
-<p align="center"><strong>Bring what you have. Discover the connections. Keep the stories.</strong></p>
-<p align="center">Turn scattered family photos, memories and records into an evidence-backed family tree and a family book.</p>
 
-Prepared for the OpenAI GPT-6 Astra NYC Hackathon, September 10, 2026.
+Roots is a local family-history prototype. Add a source, inspect Astra's interpretation and exact quotation, review the proposed change, and download the current illustrated book with an editable project and original evidence.
 
-**Status: 90-minute engineering sprint authorized.** This repository contains documentation, a license, an environment template and a development readiness command. The application and deployment were not implemented at the preparation checkpoint. Follow [the current 90-minute plan](docs/EXECUTION.md) and owner statuses for actual progress. Planned behavior below is the product target.
+Built for the OpenAI GPT-6 Astra NYC Hackathon, September 10, 2026. The integrated local route has passed two real model-to-book runs. See [readiness](docs/READINESS.md) and [lead status](docs/status/lead.md) for measured checks and the tested commit.
 
-## Why Roots
-
-A family history rarely arrives as a complete tree. It arrives as a photograph with a name on the back, a relative's voice message, two conflicting dates and a story someone remembers. Roots connects those fragments while keeping the evidence and the storyteller visible.
-
-## The experience we are building
-
-1. **Input.** Add a starting name, family geography (or “unknown”), and files, context or a prepared packet. Click Start the search.
-2. **Research workspace.** Follow real progress on the left, inspect and edit the family map in the center, and answer questions or add new clues on the right. Photos, stories, citations and history stay with each person and relationship.
-3. **Download from the workspace.** One action saves an illustrated PDF and HTML book, editable map, structured project, sources, notes and original media.
-
-There are only two screens. Research planning runs internally. Astra proposes interpretations; human review commits supported changes. Corrections flag affected relationships and book passages.
-Memories, documentary evidence and uncertain interpretations remain distinct. Roots does not promise to discover an ancestor from every photo.
-
-## Planned stack
-
-| Component | Choice |
-| --- | --- |
-| Web and server | Next.js App Router, React, TypeScript, Node.js 24 |
-| Styling and tree | Tailwind CSS, React Flow, elkjs |
-| AI | Official OpenAI SDK, Responses API, `gpt-6-astra` |
-| Data and files | Supabase Postgres, Auth and private Storage |
-| Contracts | Zod and shared TypeScript types |
-| Sources | User-selected material and bounded archive retrieval |
-| Export | Illustrated PDF/HTML plus editable map, JSON, sources and originals in one ZIP |
-| Validation | Vitest for consequential logic, Playwright for the core journey |
-| Deployment target | Node web service; Render proposed, account unverified |
-
-The 90-minute sprint uses local persistence unless cloud infrastructure already works. Supabase/Auth, broad retrieval and deployment are optional. The lead checks the existing stack at the first milestone.
-
-## Get ready locally
-
-Install Git, Node.js 24, pnpm 11 and GitHub CLI. Then:
+## Run locally
 
 ```sh
 git clone https://github.com/mikeeekoch-cmd/osmy-roots.git
 cd osmy-roots
+git switch codex/engineering
+pnpm install --frozen-lockfile
 cp .env.example .env.local
-# Set required values locally. Never commit .env.local.
-pnpm run doctor
+# Configure OPENAI_API_KEY locally, with funded API Platform credit.
+pnpm dev
 ```
 
-`doctor` reports missing tools and environment values without revealing secrets. `pnpm run doctor:api` additionally checks model metadata with a configured key; it does not prove inference or billing. There is **no `pnpm dev` command yet**. See [setup](docs/SETUP.md).
+Open http://127.0.0.1:3000. Use Node.js 24 or 25 and pnpm 11. The server binds to loopback; credentials, saved projects and originals stay in ignored local files. Full instructions: [setup](docs/SETUP.md).
 
-## Engineering map
+## What works
 
-| Document | Purpose |
-| --- | --- |
-| [Product](docs/PRODUCT.md) | User journey, MVP and acceptance criteria |
-| [Architecture](docs/ARCHITECTURE.md) | Evidence model, run state and corrections |
-| [V3 contract](docs/CONTRACT-V3.json) | Shared data, review, progress and export envelopes |
-| [Execution](docs/EXECUTION.md) | Current 90-minute plan, three owners and scope cuts |
-| [P0 and next scope](docs/SCOPE-PRIORITIES.md) | Per-interface acceptance, search, animation and mock boundaries |
-| [Launch prompts](docs/prompts/) | Mike: agent/integration; Natalia: UI; Claude: files/search/export |
-| [Setup](docs/SETUP.md) | Local environment and deployment verification |
-| [Readiness](docs/READINESS.md) | Verified capabilities and remaining dependencies |
-| [Demo](docs/DEMO.md) | Demo script and submission preparation |
-| [ArtLens lessons](docs/ARTLENS-REFERENCE.md) | Reference patterns and changes for Roots |
-| [Build log](docs/BUILD-LOG.md) | Preparation versus implemented event work |
-| [Agent instructions](AGENTS.md) | Shared context and collaboration rules |
+The input form opens a research workspace with progress, a family map and a human contribution panel. Text and JSON are parsed; photos and unsupported formats retain their original bytes and honest processing status. Local search uses the supplied sources. A bounded, allowlisted public-fetch adapter returns actual retrieval results or explicit failures.
 
-## Demo and contributions
+The official OpenAI Responses SDK runs gpt-6-astra on a new source. Proposals carry validated person IDs and exact source quotations. Accept, correct, reject and unknown persist with history. Manual person/relationship edits and one-level undo preserve evidence; stale writes, self-parent links and ancestry cycles are rejected. A memory remains a memory after acceptance.
 
-A working app URL, one-minute video and verified results will be added when available. This project does not claim an award or completed functionality. Pre-existing family research is private reference material and is not included here. Only explicitly cleared demo assets may be published.
+Download generates current cited prose and packages a four-page illustrated English PDF, readable HTML, complete editable JSON, sources, notes and every saved original. Reopening with original files works in a separate local store. The app never substitutes a fixed PDF or a canned answer for a failed live call.
 
-Code and original repository documentation are licensed under [MIT](LICENSE). This does not grant rights to third-party records or uploaded family material.
+## Demo and boundaries
+
+Follow the [2-3 minute demo](docs/DEMO.md). The built-in example is a fictional five-generation family with a placeholder portrait and conflicting birth years. It proves the software route, not a real archive discovery. Private family records can be imported locally and are excluded from this public repository.
+
+Cloud deployment, authentication, OAuth, native Telegram/WhatsApp parsing, DOCX/PDF extraction, OCR, restoration, broad crawling and a standalone editable HTML map are deferred. The HTML book is read-only; project.json is the editable record. There is no demonstrated ancestor match from external retrieval.
+
+## Checks and ownership
+
+```sh
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm test:live # Makes real billed API calls using fictional evidence.
+```
+
+The regular suite includes explicit model fixtures; live checks run separately. The stack is Next.js, React, TypeScript, Zod, the official OpenAI SDK, local atomic JSON storage, native SVG/CSS and Claude's dependency-free PDF/ZIP modules.
+
+Codex Mike owns Astra, state, contracts and integration. Codex Natalia owns UI and animations. Claude Code Mike owns ingestion, retrieval and export. [Build log](docs/BUILD-LOG.md), [shared contracts](docs/PROTOTYPE-CONTRACT.md), [scope priorities](docs/SCOPE-PRIORITIES.md) and [execution plan](docs/EXECUTION.md) preserve the implementation record.
+
+Code and original repository documentation use the [MIT license](LICENSE). This does not grant rights to third-party records or uploaded family material.
