@@ -2,6 +2,8 @@
 
 Status: implementation brief, not a delivered feature claim. This is the controlling specification for the next round, based on Mike's feedback after round 1. It overrides conflicting earlier intake, staging, language and scope requirements. It preserves evidence integrity, human review and the existing working prototype.
 
+Apply the additive PHOTO-COMPARE-ADDENDUM.md: runtime timing is invisible in the product, and Natalia adds Original/Enhanced comparison inside person cards using Product's prepared image pairs. The four current assignments continue without a new sprint clock. Private photo variants retain the original evidence and portable metadata.
+
 ## Verified starting point
 
 Fetch origin/codex/engineering and include code baseline 556953f or a descendant. Main was last verified at a5de7c4; starting from main alone misses the final integrated fixes. On September 10 the lead reran typecheck, all 74 tests and the production build successfully at 556953f. Two dynamic filesystem tracing warnings remain. Three real Astra source-to-book round trips passed during round 1; they were not rerun merely to write this brief.

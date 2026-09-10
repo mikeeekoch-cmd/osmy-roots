@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { RunStateSchema, PhotoAnnotationSchema, TranslationLineageSchema, type SetupAnswer } from "./round2";
+export * from "./round2";
 
 export const SCHEMA_VERSION = "roots-v1" as const;
 export const Id = z.string().min(1).max(160);
@@ -43,6 +45,9 @@ export const SourceSchema = z.object({
   url: z.string().optional(),
   language: z.string().optional(),
   extractionMethod: z.string().optional(),
+  evidenceRootIds: z.array(z.string()).optional(),
+  lineage: z.array(TranslationLineageSchema).optional(),
+  reconstructed: z.boolean().optional(),
 });
 export type Source = z.infer<typeof SourceSchema>;
 export const SourceAssetSchema = z.object({
@@ -232,6 +237,8 @@ export const ProjectSnapshotSchema = z.object({
     .default({}),
   files: z.array(FileOutcomeSchema).default([]),
   issues: z.array(z.string()).default([]),
+  run: RunStateSchema.optional(),
+  photoAnnotations: z.array(PhotoAnnotationSchema).optional(),
 });
 export type ProjectSnapshot = z.infer<typeof ProjectSnapshotSchema>;
 export const ReviewDecisionSchema = z.object({
@@ -270,6 +277,9 @@ export interface Contribution {
   publicRecordUrl?: string;
 }
 export interface RootsApi {
+  answerSetupQuestion?(projectId: string, input: SetupAnswer): Promise<ProjectSnapshot>;
+  prepareFamilyBook?(projectId: string): Promise<ProjectSnapshot>;
+  cancelRun?(projectId: string): Promise<ProjectSnapshot>;
   createProject(input: ProjectInput, files?: File[]): Promise<ProjectSnapshot>;
   getSnapshot(
     projectId: string,
