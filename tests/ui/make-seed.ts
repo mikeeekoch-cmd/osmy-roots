@@ -192,3 +192,65 @@ await writeFile(
   ".ui-preview/fictional-35-person-layout.json",
   JSON.stringify(validateSnapshot(thirtyFive), null, 2),
 );
+
+// Browser download transport check with an explicitly prepared current passage.
+// This is not a live Astra run and is never substituted for the real demo route.
+const downloadFixture = structuredClone(withPhoto);
+downloadFixture.bookStatus = "current";
+const bookClaim = downloadFixture.claims[0];
+downloadFixture.bookPassages = [
+  {
+    id: "ui-download-transport-check",
+    text: "TEST FIXTURE: The supplied synthetic record lists Evelyn Morgan as Robin Morgan’s parent. This prepared passage tests download delivery only.",
+    claimIds: [bookClaim.id],
+    sourceIds: bookClaim.sourceIds,
+    sourceLocators: bookClaim.spans,
+    acceptedStateVersion: downloadFixture.version,
+    origin: "prepared",
+    model: "TEST_ONLY",
+  },
+];
+downloadFixture.issues.push(
+  "Prepared current passage for browser download transport verification. No live model generation is claimed.",
+);
+await writeFile(
+  ".ui-preview/fictional-current-book.json",
+  JSON.stringify(validateSnapshot(downloadFixture), null, 2),
+);
+
+const galleryFixture = structuredClone(withPhoto);
+const landscapeRows = Buffer.alloc(160 * (320 * 3 + 1));
+for (let y = 0; y < 160; y++)
+  for (let x = 0; x < 320; x++) {
+    const color =
+      y > 90 + Math.sin(x / 35) * 20 ? [131, 147, 118] : [228, 236, 223];
+    color.forEach(
+      (v, k) => (landscapeRows[y * (320 * 3 + 1) + 1 + x * 3 + k] = v),
+    );
+  }
+const landscapeHeader = Buffer.alloc(13);
+landscapeHeader.writeUInt32BE(320, 0);
+landscapeHeader.writeUInt32BE(160, 4);
+landscapeHeader[8] = 8;
+landscapeHeader[9] = 2;
+const landscape = Buffer.concat([
+  Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+  chunk("IHDR", landscapeHeader),
+  chunk("IDAT", deflateSync(landscapeRows)),
+  chunk("IEND", Buffer.alloc(0)),
+]);
+await writeFile(".ui-preview/fictional-landscape.png", landscape);
+galleryFixture.people[2].photoIds.push("fixture-landscape");
+galleryFixture.assets.push({
+  id: "fixture-landscape",
+  sourceId: "source-memory",
+  originalName: "fictional-landscape.png",
+  mediaType: "image/png",
+  byteLength: landscape.length,
+  storageKey: "assets/fixture-landscape",
+  contentHash: createHash("sha256").update(landscape).digest("hex"),
+});
+await writeFile(
+  ".ui-preview/fictional-gallery.json",
+  JSON.stringify(validateSnapshot(galleryFixture), null, 2),
+);

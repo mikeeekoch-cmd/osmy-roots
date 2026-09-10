@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectSnapshot, RootsApi } from "./types";
 import { branchIds, familyLayout, isParent, years } from "./model";
 import { OriginalPhoto } from "./OriginalPhotos";
+import { SourceConnection, type SavedConnection } from "./SourceConnection";
 export function FamilyCanvas({
   snapshot,
   api,
   selectedId,
   highlightId,
+  savedConnection,
   onSelect,
   onRelationship,
   onAdd,
@@ -15,11 +17,13 @@ export function FamilyCanvas({
   api: RootsApi;
   selectedId: string | null;
   highlightId: string | null;
+  savedConnection?: SavedConnection | null;
   onSelect: (id: string) => void;
   onRelationship: (id: string) => void;
   onAdd: () => void;
 }) {
   const [all, setAll] = useState(false),
+    [branchPersonId, setBranchPersonId] = useState<string | undefined>(),
     [query, setQuery] = useState(""),
     [scale, setScale] = useState(0.8),
     [offset, setOffset] = useState({ x: 20, y: 20 });
@@ -28,8 +32,13 @@ export function FamilyCanvas({
     null,
   );
   const branch = useMemo(
-    () => branchIds(snapshot),
-    [snapshot.people, snapshot.relationships, snapshot.input.seedName],
+    () => branchIds(snapshot, branchPersonId),
+    [
+      snapshot.people,
+      snapshot.relationships,
+      snapshot.input.seedName,
+      branchPersonId,
+    ],
   );
   const people = all
     ? snapshot.people
@@ -75,7 +84,8 @@ export function FamilyCanvas({
     observer.observe(viewport.current);
     return () => observer.disconnect();
   }, [all, layoutKey]);
-  const focus = (id: string) => {
+  const focus = (id: string, inspect = true) => {
+    setBranchPersonId(id);
     const p = layout.positions[id];
     if (!p) {
       setAll(true);
@@ -90,12 +100,12 @@ export function FamilyCanvas({
         y: r.height / 2 - (p.y + (all ? 64 : 30)) * next,
       });
     }
-    onSelect(id);
+    if (inspect) onSelect(id);
   };
   useEffect(() => {
     if (highlightId) {
       if (!layout.positions[highlightId]) setAll(true);
-      else focus(highlightId);
+      else focus(highlightId, false);
     }
   }, [highlightId, all]);
   const results = query.trim()
@@ -145,6 +155,22 @@ export function FamilyCanvas({
         <button onClick={() => setAll(!all)}>
           {all ? "Focused branch" : `View all ${snapshot.people.length}`}
         </button>
+        <select
+          className="branch-person"
+          aria-label="Choose a family branch"
+          value={branchPersonId || ""}
+          onChange={(e) => {
+            setBranchPersonId(e.target.value || undefined);
+            setAll(false);
+          }}
+        >
+          <option value="">Starting family branch</option>
+          {snapshot.people.map((person) => (
+            <option key={person.id} value={person.id}>
+              {person.displayNameEn}
+            </option>
+          ))}
+        </select>
       </div>
       <div
         ref={viewport}
@@ -176,6 +202,20 @@ export function FamilyCanvas({
           pan.current = null;
         }}
       >
+        {savedConnection && layout.positions[savedConnection.personId] && (
+          <SourceConnection
+            connection={savedConnection}
+            target={{
+              x:
+                offset.x +
+                (layout.positions[savedConnection.personId].x +
+                  (all ? 96 : 130)) *
+                  scale,
+              y:
+                offset.y + layout.positions[savedConnection.personId].y * scale,
+            }}
+          />
+        )}
         {people.length === 0 ? (
           <div className="map-empty">
             <span>♧</span>

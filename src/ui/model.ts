@@ -124,26 +124,37 @@ export function familyLayout(people: Person[], relationships: Relationship[]) {
   };
 }
 /** Focus a five-generation ancestry line through the starting person when possible. */
-export function branchIds(snapshot: ProjectSnapshot): Set<string> {
+export function branchIds(
+  snapshot: ProjectSnapshot,
+  focusId?: string,
+): Set<string> {
   const parents = snapshot.relationships.filter(isParent);
   const layout = familyLayout(snapshot.people, snapshot.relationships);
-  const seed = snapshot.people.find(
-    (p) =>
-      p.displayNameEn.toLowerCase() === snapshot.input.seedName.toLowerCase(),
-  );
-  const descendants = new Set<string>();
-  const visit = (id: string) => {
-    if (descendants.has(id)) return;
-    descendants.add(id);
-    parents
-      .filter((r) => r.fromPersonId === id)
-      .forEach((r) => visit(r.toPersonId));
-  };
-  if (seed) visit(seed.id);
-  const candidates = seed
-    ? snapshot.people.filter((p) => descendants.has(p.id))
-    : snapshot.people;
-  const end = [...candidates].sort(
+  const seed =
+    snapshot.people.find((p) => p.id === focusId) ||
+    snapshot.people.find(
+      (p) =>
+        p.displayNameEn.toLowerCase() === snapshot.input.seedName.toLowerCase(),
+    );
+  if (seed) {
+    const line = [seed.id];
+    while (line.length < 5) {
+      const parent = parents.find(
+        (r) => r.toPersonId === line[0] && !line.includes(r.fromPersonId),
+      );
+      if (!parent) break;
+      line.unshift(parent.fromPersonId);
+    }
+    while (line.length < 5) {
+      const child = parents.find(
+        (r) => r.fromPersonId === line.at(-1) && !line.includes(r.toPersonId),
+      );
+      if (!child) break;
+      line.push(child.toPersonId);
+    }
+    return new Set(line);
+  }
+  const end = [...snapshot.people].sort(
     (a, b) =>
       (layout.positions[b.id]?.y || 0) - (layout.positions[a.id]?.y || 0),
   )[0];

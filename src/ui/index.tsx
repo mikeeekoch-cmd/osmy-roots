@@ -7,6 +7,7 @@ import { ResearchProgress } from "./ResearchProgress";
 import { HumanContributionPanel } from "./HumanContributionPanel";
 import { EvidenceDrawer } from "./EvidenceDrawer";
 import { GraphEditor } from "./GraphEditor";
+import type { SavedConnection } from "./SourceConnection";
 import "./styles.css";
 export type { RootsApi } from "./types";
 const errorMessage = (error: unknown) =>
@@ -37,6 +38,9 @@ export function RootsApp({
       entityId?: string;
     } | null>(null),
     [highlight, setHighlight] = useState<string | null>(null),
+    [savedConnection, setSavedConnection] = useState<SavedConnection | null>(
+      null,
+    ),
     [focusedProposalId, setFocusedProposalId] = useState<string | null>(null),
     [panel, setPanel] = useState<"map" | "progress" | "human">("map"),
     [restoring, setRestoring] = useState(true);
@@ -103,6 +107,11 @@ export function RootsApp({
     const timer = setTimeout(() => setHighlight(null), 2400);
     return () => clearTimeout(timer);
   }, [highlight]);
+  useEffect(() => {
+    if (!savedConnection) return;
+    const timer = setTimeout(() => setSavedConnection(null), 3000);
+    return () => clearTimeout(timer);
+  }, [savedConnection]);
   useEffect(() => {
     const close = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -219,6 +228,9 @@ export function RootsApp({
               setSelection(null);
               setEditor(null);
               setFocusedProposalId(null);
+              setSavedConnection(null);
+              setHighlight(null);
+              setPanel("map");
               setError(null);
               setDownloaded(false);
               try {
@@ -330,6 +342,7 @@ export function RootsApp({
                 api={api}
                 selectedId={selection?.kind === "person" ? selection.id : null}
                 highlightId={highlight}
+                savedConnection={savedConnection}
                 onSelect={(id) => {
                   setSelection({ kind: "person", id });
                   setEditor(null);
@@ -447,11 +460,38 @@ export function RootsApp({
                   (p) => p.id === input.proposalId,
                 );
                 return perform(
-                  () =>
-                    api.reviewProposal(snapshot.projectId, {
+                  async () => {
+                    const saved = await api.reviewProposal(snapshot.projectId, {
                       ...input,
                       requestId: crypto.randomUUID(),
-                    }),
+                    });
+                    const reviewed = saved.proposals.find(
+                      (p) => p.id === input.proposalId,
+                    );
+                    const person = saved.people.find(
+                      (p) => p.id === reviewed?.personId,
+                    );
+                    const source = saved.sources.find((s) =>
+                      reviewed?.sourceIds.includes(s.id),
+                    );
+                    if (
+                      mounted.current &&
+                      ["accept", "correct"].includes(input.action) &&
+                      reviewed &&
+                      ["accepted", "corrected"].includes(reviewed.status) &&
+                      person &&
+                      source
+                    ) {
+                      setSelection(null);
+                      setSavedConnection({
+                        key: `${saved.version}-${reviewed.id}`,
+                        personId: person.id,
+                        personName: person.displayNameEn,
+                        sourceLabel: source.title || source.originalLocator,
+                      });
+                    }
+                    return saved;
+                  },
                   ["accept", "correct"].includes(input.action)
                     ? input.corrections?.personId ||
                         proposal?.personId ||

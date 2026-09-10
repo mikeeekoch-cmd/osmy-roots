@@ -171,3 +171,26 @@ test("partners occupy adjacent cards on one generation without changing genealog
   );
   assert.deepEqual(s.relationships, before);
 });
+
+test("explicit branch selection stays on that person and ignores rejected parents", () => {
+  const s = snapshot();
+  s.relationships = s.people
+    .slice(0, -1)
+    .map((p, i) => ({
+      id: `branch-${i}`,
+      fromPersonId: p.id,
+      toPersonId: s.people[i + 1].id,
+      type: "parent",
+      claimIds: [],
+      status: "accepted",
+    }));
+  const before = structuredClone(s.relationships);
+  assert.equal(branchIds(s, s.people[0].id).size, 5);
+  assert.equal(branchIds(s, s.people[4].id).size, 5);
+  s.relationships[2].status = "rejected";
+  assert.deepEqual(
+    [...branchIds(s, s.people[4].id)],
+    [s.people[3].id, s.people[4].id],
+  );
+  assert.deepEqual(s.relationships.slice(0, 2), before.slice(0, 2));
+});

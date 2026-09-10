@@ -58,3 +58,12 @@
 - Independent UI stress validation: imported 35 clearly fictional people through the actual API; default five-generation line, all-35 fit and search to a distant person passed. Added reproducible synthetic layout fixture and screenshot. This is not validation of the supplied private family seed.
 - Stored-only original photos now show an explicit saved-original status while retaining the no-OCR warning. Actual parser failures remain errors.
 - Next: consume the validated lead base, verify real download delivery locally without claiming local inference, then bounded P1 source-to-person motion and gallery navigation before the shared freeze.
+
+## 17:12 UTC bounded P1 and local export verification
+
+- Local actual browser Download saved a 1,668,932-byte ZIP (SHA-256 521b23097625a371576d3bddbcd82198439c8fd9b0e5558bc5d258544b31b4c7). Its project JSON and original photo reopened through the UI. This transport check used an explicitly prepared TEST_ONLY passage; live-model success remains the lead's separately recorded two runs. The browser event waiter timed out, but the actual Downloads file, project ID, ZIP contents and original bytes verified delivery.
+- P1 source-to-person curve and receipt now appear only after an accepted/corrected API snapshot. The real correction response showed the linked source, highlighted Alex, preserved the exact quote and marked the book stale. Unknown/reject never initiate this animation. Reduced-motion CSS replaces the moving path with a static receipt.
+- P1 branch selection supports any saved person, keeps that person on a bounded ancestry line, ignores rejected parent links and preserves genealogy. Browser checked mobile 390×844 five-generation fit; new projects now reset to the map panel.
+- P1 original gallery: previous/next, Left/Right, Escape, focus trap and return to the opener passed. Portrait 180×240 and landscape 320×160 retain their proportions. Unsupported original rendering shows an explicit unavailable fallback. No image enhancement or identity inference added.
+- Added synthetic fixtures and browser screenshots for these checks. Typecheck PASS; full repository suite 72 PASS. Production build is the next final check. No changes to backend/contracts/dependencies.
+- Latest main fetched: a5de7c4, identical to the consumed validated lead base. Lead can merge the next codex/ui increment directly.
