@@ -306,6 +306,8 @@ test("research controls resume saved state without inventing a fourth round", as
     assert.equal(nextCycleAction(s), null);
     s.research.cycles.at(-1)!.status = "failed";
     assert.equal(nextCycleAction(s), null);
+    s.research.cycles.at(-1)!.status = "cancelled";
+    assert.equal(nextCycleAction(s), null);
     s.research.cycles.at(-1)!.status = "completed";
     assert.equal(nextCycleAction(s), ordinal < 3 ? "deeper" : null);
   }

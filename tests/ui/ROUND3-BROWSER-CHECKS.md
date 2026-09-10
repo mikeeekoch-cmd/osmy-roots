@@ -1,6 +1,6 @@
 # Round 3 UI browser record — 2026-09-10
 
-Owner: Codex Natalia, GPT-6 Astra. Branch `codex/ui`; engineering through `59462bb` incorporated by merge with all UI history preserved. This record covers UI and local HTTP integration, not final private-family or live-model acceptance.
+Owner: Codex Natalia, GPT-6 Astra. Branch `codex/ui`; engineering through `5f3136f` incorporated by merge with all UI history preserved. This record covers UI and local HTTP integration, not final private-family or live-model acceptance.
 
 ## Environments and evidence
 
@@ -35,7 +35,7 @@ The comparator uses the original's cropped aspect ratio and validates both ratio
 ## Interaction checks
 
 - Six API-supplied checks; first three distinct large images; correct/unknown/skip and Back/review; initial answers remain separate from later questions. Actual HTTP project saved five Unknown answers and one Skip, then reopened all six. No identity was inferred from a caption association.
-- Clean fictional cycle sequence repeated after the double-click fix: Start → running → pause → refresh → same paused round → resume → complete; first Research deeper → complete; second Research deeper → complete; no fourth action. Double-clicks on all three start controls did not cancel or duplicate a cycle. Now/Next, plan and grouped chronological outcomes follow saved job state; third-round no-match is explicit.
+- Clean fictional cycle sequence repeated after the double-click fix: Start → running → pause → refresh → same paused round → resume → complete; first Research deeper → complete; second Research deeper → complete; no fourth action. Double-clicks on all three start controls did not cancel or duplicate a cycle. A further Cancel → Retry browser check retained round 1 and never offered a deeper action for that cancelled round. Now/Next, plan and grouped chronological outcomes follow saved job state; third-round no-match is explicit.
 - Actual HTTP Start persisted one failed cycle when the local model was unconfigured. Reopen displayed the saved failure and Retry, not preparing/success. Live progressive-research success remains the lead's acceptance responsibility.
 - Persistent later question bank: correction/answer history, unknown, skip, saved filter and refresh; initial count stays six. Source spans and unresolved candidates remain inspectable. Shared graph reviews are offered only for pending proposals.
 - Intake: optional fields can remain blank; grandfather/grandmother side can remain Unknown. One-click autofill uses current manual state, protects explicit clears and conflicts, leaves absent values blank. Production HTTP filled the blank starting name from the selected fictional manifest's supported source. Editing it manually and filling again preserved the edit and showed the exact conflicting value/quote/locator. With no files or an incomplete packet, actual API errors stay visible; no research starts from Fill.
@@ -46,7 +46,7 @@ The comparator uses the original's cropped aspect ratio and validates both ratio
 ## Checks and remaining acceptance
 
 - `pnpm typecheck`; full `pnpm test` with local `ROOTS_PDFTOTEXT`; `pnpm build --webpack`; `git diff --check`.
-- One repeated suite encountered an upstream asynchronous test-cleanup ENOTEMPTY in `integration-tests/round3.test.ts`. The preceding full run passed 181 tests; the subsequent rerun is recorded in UI status. No backend/test-owner code was altered to mask the race.
+- Two repeated suites on the prior engineering base encountered an upstream asynchronous test-cleanup ENOTEMPTY in `integration-tests/round3.test.ts`. The preceding full run passed 181 tests. After merging engineering `5f3136f`, the final full run passed all 182 tests; typecheck and production build also passed. No backend/test-owner code was altered to mask the race.
 - Claude reports 33 selected original files, including 24 photos and 12 selected old photos, in the new private packet. None of that package was transferred to this laptop. **All 24 private originals, all 12 private aligned pairs, reviewed portrait crops, and the actual 35–40-page English book remain pending private validation on Mike's laptop.** These public fixtures cannot satisfy that gate.
 - Native touch hardware/gesture dispatch was unavailable. Pointer, keyboard and narrow viewport checks passed; touch dragging remains a device acceptance check.
 - Exact private photo reproduction, live research timing, two final full-packet rehearsals, long-book rendering/download and private-source coverage remain Mike/Claude integration acceptance. The UI does not declare the complete application ready.
